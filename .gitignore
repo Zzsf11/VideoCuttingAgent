@@ -1,0 +1,21 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# working directory
+.working_dir/
+.test/
+*.mp4
+video_database/
+Dataset/
+reports/
+Qwen2.5-Omni/
+Qwen3-Omni/
+Qwen3-VL/

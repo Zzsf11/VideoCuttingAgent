@@ -1,0 +1,67 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+        ,
+        {
+            "name": "Python: local_run.py Batman Justice Video",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/local_run.py",
+            "args": [
+                // "Dataset/Video/Batman.Begins.2005.1080p.BluRay.x264.YIFY.mp4",
+                "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/Batman.Begins.2005.1080p.BluRay.x264.YIFY.mp4",
+                // "Dataset/Video/Interstellar.2014.480p.BluRay.x265.[9jaRocks.Com]_10min.mkv",
+                "Dataset/Audio/Call_of_Slience/Call of Silence.mp3",
+                "Make a video that reflects Interstellar's journey and exploration"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+        ,
+        {
+            "name": "Python: vca.build_database.video_caption",
+            "type": "python",
+            "request": "launch",
+            "module": "vca.build_database.video_caption",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Python: vca.build_database.audio_caption",
+            "type": "python",
+            "request": "launch",
+            "module": "vca.build_database.audio_caption",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Python: vca.build_database.build_vectorDB",
+            "type": "python",
+            "request": "launch",
+            "module": "vca.build_database.build_vectorDB",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+        ,
+        {
+            "name": "Python: vca.core",
+            "type": "python",
+            "request": "launch",
+            "module": "vca.core",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ]
+}
