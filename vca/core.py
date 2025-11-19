@@ -374,24 +374,7 @@ def trim_video_clip(
             return m * 60 + s
         else:
             return float(parts[0])
-    
-    # Get all frame files and sort them by frame number
-    frame_files = sorted(
-        [
-            f for f in os.listdir(frame_path)
-            if f.startswith("frame") and (f.endswith(".jpg") or f.endswith(".png"))
-        ],
-        key=lambda x: int(x.split("_")[-1].rstrip(".jpg").rstrip(".png")),
-    )
-    
-    if not frame_files:
-        return "Error: No frames found in the folder."
-    
-    # Map frame numbers to file paths
-    frame_num_to_file = {}
-    for f in frame_files:
-        frame_num = int(f.split("_")[-1].rstrip(".jpg").rstrip(".png"))
-        frame_num_to_file[frame_num] = os.path.join(frame_path, f)
+
     
     # Parse the time range string: 'HH:MM:SS to HH:MM:SS'
     match = re.search(r'([\d:]+)\s+to\s+([\d:]+)', time_range, re.IGNORECASE)
@@ -405,21 +388,6 @@ def trim_video_clip(
     # Convert to seconds
     start_sec = hhmmss_to_seconds(start_time_str)
     end_sec = hhmmss_to_seconds(end_time_str)
-    
-    # Convert seconds to frame numbers
-    # Frames are extracted at SHOT_DETECTION_FPS or VIDEO_FPS
-    start_frame = int(start_sec * config.SHOT_DETECTION_FPS)
-    end_frame = int(end_sec * config.SHOT_DETECTION_FPS)
-    
-    # Collect frames in this range
-    clip_files = [
-        frame_num_to_file[fn]
-        for fn in range(start_frame, end_frame + 1)
-        if fn in frame_num_to_file
-    ]
-    
-    if not clip_files:
-        return f"Error: No frames found for time range {time_range}."
     
     # Convert seconds to HH:MM:SS format for display
     clip_start_time = convert_seconds_to_hhmmss(start_sec)
@@ -479,10 +447,13 @@ Return a JSON object with this EXACT structure:
             endpoint=config.VLLM_ENDPOINT,
             model_name=config.VIDEO_ANALYSIS_MODEL,
             return_json=False,
-            image_paths=clip_files,
+            video_path=frame_path,
             video_fps=config.VIDEO_FPS,  # Critical for temporal grounding - tells model the FPS used for frame extraction
             do_sample_frames=False,  # Don't re-sample - we already have pre-extracted frames
             max_tokens=config.VIDEO_ANALYSIS_MODEL_MAX_TOKEN,
+            use_local_clipping=True, # True - clip the video from ori video 
+            video_start_time=start_sec,
+            video_end_time=end_sec,
         )
         
         if resp is None or resp.get("content") is None:
@@ -882,7 +853,7 @@ Only pass arguments that come verbatim from the user or from earlier tool output
 You are a senior video editor who plans narrative-driven highlight reels.
 
 [Task]
-Inspect the script, timestamps, and provided cues, then iteratively call the available tools to locate and refine clips that satisfy the creative brief.
+Inspect the script and storyline, using the given tools to select aligned clips in given video material. Your goal is to create a coherent, emotionally engaging edited video that matches the provided creative brief. And if you find it impossible to select and get some desired the shot in the current video, clearly state the reason and give the suggestion for revise the shot plan.
 
 [Tools]
 • `get_video_clip_frame`: retrieve candidate video clips from the database for contextual exploration.
@@ -890,21 +861,16 @@ Inspect the script, timestamps, and provided cues, then iteratively call the ava
 • `finish`: present the final timestamped editing plan once all required clips are selected and refined.
 
 [Workflow]
-1. Review the global brief and initial observations about the video
+1. Review the global brief and initial observations about the video.
 2. Use `get_video_clip_frame` to surface promising segments aligned with the target theme, narrative logic, and emotion, filtering out clips whose narrative jumps conflict with the current storyline.
-3. For each promising segment, call `trim_video_clip` with a time range (e.g., "00:13:28 to 00:13:40") to get:
-   - Overall assessment of that clip's usability
-   - Detailed scene breakdown to understand the content
-   - Recommendations on how to use it
+3. For each promising segment, call `trim_video_clip` with a time range (e.g., "00:13:28 to 00:13:40") to get detailed scene breakdown to understand the content.
 4. Based on trim_video_clip's output, decide your shot selection:
    - If the full analyzed range works well → use it as one shot
    - If only part of it fits → select a continuous subset (e.g., first 3 scenes combined)
    - If you need more precision → call trim_video_clip again with a narrower range
-5. **CRITICAL**: When you decide on a shot, use the TIME RANGE that covers your selection, NOT the individual scene times from internal_scenes. For example:
-   - ✅ CORRECT: "shot 1: 00:13:28 to 00:13:34" (combining scenes 1-3 into one 6s shot)
-   - ❌ WRONG: "shot 1: 00:13:28 to 00:13:29, shot 2: 00:13:30 to 00:13:31, ..." (treating each scene as separate shot)
 6. Repeat 2–5 until the desired runtime and storytelling flow are covered.
-7. Conclude with `finish`, summarizing the final ordered shot list with exact timestamps.
+7. When you find you can't select and get some desired the shot in the current video, clearly state the reason and give the suggestion for revise the shot plan.
+8. Conclude with `finish`, summarizing the final ordered shot list with exact timestamps.
 
 [Input Brief]
 - Target edited video length: VIDEO_LENGTH_PLACEHOLDER seconds.
@@ -1863,6 +1829,7 @@ def main():
 
     Instruction = """Give me a video that show the growth of batman from a young boy to a mature man."""
     
+    trim_video_clip(time_range="00:13:57 to 00:14:16", frame_path=video_path)
     # generate_structure_proposal_all_caption(video_summary_path, audio_caption_path, Instruction)
     
     agent = DVDCoreAgent(

@@ -313,6 +313,51 @@ def _encode_with_opencv(image_paths: list, fps: float, output_path: str) -> str:
     return output_path
 
 
+def clip_video_segment(input_path: str, start_time: float, end_time: float = None, output_path: str = None) -> str:
+    """
+    Clip a segment from a video file using ffmpeg stream copy (fast, no re-encoding).
+    
+    Args:
+        input_path: Path to input video
+        start_time: Start time in seconds
+        end_time: End time in seconds (optional)
+        output_path: Output path (optional, defaults to temp file)
+        
+    Returns:
+        str: Path to the clipped video file
+    """
+    if output_path is None:
+        temp_file = tempfile.NamedTemporaryFile(suffix='.mp4', delete=False)
+        output_path = temp_file.name
+        temp_file.close()
+    
+    cmd = [
+        'ffmpeg',
+        '-y',
+        '-ss', str(start_time),
+    ]
+    
+    if end_time is not None:
+        duration = end_time - start_time
+        if duration <= 0:
+             raise ValueError(f"Invalid duration: end_time ({end_time}) must be greater than start_time ({start_time})")
+        cmd.extend(['-t', str(duration)])
+        
+    cmd.extend([
+        '-i', input_path,
+        '-c', 'copy',  # Stream copy
+        '-avoid_negative_ts', '1',
+        '-loglevel', 'error',
+        output_path
+    ])
+    
+    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"ffmpeg clip failed: {result.stderr}")
+        
+    return output_path
+
+
 @retry_with_exponential_backoff
 def call_vllm_model(
     messages,
@@ -331,6 +376,7 @@ def call_vllm_model(
     video_end_time: float = None,  # End time in seconds for video clip
     do_sample_frames: bool = False,  # Whether to sample frames in the multimodal processor
     auto_encode_frames: bool = True,  # Auto-encode image_paths to video for proper temporal handling
+    use_local_clipping: bool = False, # Whether to clip video locally using ffmpeg before sending to vLLM
     use_extra_body: bool = False,  # Whether to use extra_body for mm_processor_kwargs (disable for older vLLM)
 ) -> dict:
     """
@@ -385,6 +431,8 @@ def call_vllm_model(
         auto_encode_frames: If True (default), automatically encode image_paths to video for 
                             proper temporal handling. Set to False only if images are truly 
                             independent images, not video frames.
+        use_local_clipping: Whether to clip video locally using ffmpeg before sending to vLLM (default: False).
+                            This is much faster than re-encoding but requires ffmpeg.
         use_extra_body: Whether to use extra_body for mm_processor_kwargs (default: True).
                         Set to False for older vLLM versions that don't support this parameter.
         
@@ -394,6 +442,8 @@ def call_vllm_model(
     
     # Auto-encode frame sequences to video for proper temporal handling
     temp_video_path = None
+    
+    # Case 1: Image paths provided -> Encode to video
     if image_paths and not video_path and auto_encode_frames and video_fps is not None:
         # When we have pre-extracted frames, we need to encode them into a video
         # so that vLLM can properly handle temporal information
@@ -403,6 +453,17 @@ def call_vllm_model(
         image_paths = []  # Clear image_paths since we're now using video_path
         # For encoded videos from frames, we don't want vLLM to resample
         do_sample_frames = False
+        
+    # Case 2: Video path provided with start/end times -> Local clipping
+    elif video_path and use_local_clipping and (video_start_time is not None or video_end_time is not None):
+        start = video_start_time if video_start_time is not None else 0.0
+        # print(f"Clipping video locally from {start}s to {video_end_time}s...")
+        temp_video_path = clip_video_segment(video_path, start, video_end_time)
+        video_path = temp_video_path
+        
+        # Clear timestamps for vLLM since we're sending the clipped segment directly
+        video_start_time = None
+        video_end_time = None
     
     try:
         headers = {
