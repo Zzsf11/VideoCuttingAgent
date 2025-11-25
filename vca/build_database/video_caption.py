@@ -280,6 +280,59 @@ def parse_shot_scenes(shot_scenes_path: str) -> List[Tuple[int, int]]:
     return scenes
 
 
+def merge_short_scenes(scenes: List[Tuple[int, int]], max_frames: int) -> List[Tuple[int, int]]:
+    """
+    Merge consecutive scenes that are shorter than or equal to max_frames.
+    Scenes longer than max_frames are treated as boundaries and are not modified.
+    """
+    if not scenes:
+        return []
+        
+    merged_scenes = []
+    current_batch = []
+    
+    for start, end in scenes:
+        duration = end - start + 1
+        
+        if duration > max_frames:
+            # This scene is too long to be merged, acts as a boundary.
+            if current_batch:
+                # Merge accumulated short scenes
+                batch_start = current_batch[0][0]
+                batch_end = current_batch[-1][1]
+                merged_scenes.append((batch_start, batch_end))
+                current_batch = []
+            
+            # Add the long scene as is
+            merged_scenes.append((start, end))
+        else:
+            # This scene is short enough.
+            if not current_batch:
+                current_batch.append((start, end))
+            else:
+                # Check if adding this scene would exceed max_frames
+                batch_start = current_batch[0][0]
+                projected_duration = end - batch_start + 1
+                
+                if projected_duration <= max_frames:
+                    current_batch.append((start, end))
+                else:
+                    # Finalize current batch
+                    batch_end = current_batch[-1][1]
+                    merged_scenes.append((batch_start, batch_end))
+                    
+                    # Start new batch with current scene
+                    current_batch = [(start, end)]
+            
+    # Process any remaining scenes in the batch
+    if current_batch:
+        batch_start = current_batch[0][0]
+        batch_end = current_batch[-1][1]
+        merged_scenes.append((batch_start, batch_end))
+        
+    return merged_scenes
+
+
 def gather_clip_frames_from_scenes(
     video_frame_folder: str,
     shot_scenes_path: str,
@@ -318,13 +371,18 @@ def gather_clip_frames_from_scenes(
 
     # Parse shot scenes
     scenes = parse_shot_scenes(shot_scenes_path)
+
     if not scenes:
         print("Warning: No scenes found in shot_scenes.txt, falling back to time-based clips")
         return gather_clip_frames(video_frame_folder, clip_secs, subtitle_file_path)
 
+    # Merge short scenes before processing
+    max_merge_frames = int(clip_secs * config.SHOT_DETECTION_FPS)
+    merged_scenes = merge_short_scenes(scenes, max_merge_frames)
+
     result = []
 
-    for scene_id, (start_frame, end_frame) in enumerate(scenes):
+    for scene_id, (start_frame, end_frame) in enumerate(merged_scenes):
         # Convert frame numbers to seconds
         # shot detection frames are based on SHOT_DETECTION_FPS
         scene_start_sec = start_frame / config.SHOT_DETECTION_FPS

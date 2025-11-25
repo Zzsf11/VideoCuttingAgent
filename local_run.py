@@ -65,31 +65,21 @@ def main():
 
 
     
-    # # Get video captions
-    # caption_file = os.path.join(video_captions_dir, "captions.json")
-    # if not os.path.exists(caption_file):
-    #     print("Processing video to get captions...")
-    #     shot_scenes_file = os.path.join(frames_dir, "shot_scenes.txt")
-    #     process_video(
-    #         frame_folder=frames_dir,
-    #         output_caption_folder=video_captions_dir,
-    #         subtitle_file_path=srt_path,
-    #         shot_scenes_path=shot_scenes_file if os.path.exists(shot_scenes_file) else None,
-    #     )
-    #     print("Captions generated.")
-    # else:
-    #     print(f"Captions already exist at {caption_file}.")
-
-        # Get video captions
+    # Get video captions
     caption_file = os.path.join(video_captions_dir, "captions.json")
-    print("Processing video to get captions...")
-    shot_scenes_file = os.path.join(frames_dir, "shot_scenes.txt")
-    process_video(
-        frame_folder=frames_dir,
-        output_caption_folder=video_captions_dir,
-        subtitle_file_path=srt_path,
-        shot_scenes_path=shot_scenes_file if os.path.exists(shot_scenes_file) else None,
-    )
+    if not os.path.exists(caption_file):
+        print("Processing video to get captions...")
+        shot_scenes_file = os.path.join(frames_dir, "shot_scenes.txt")
+        process_video(
+            frame_folder=frames_dir,
+            output_caption_folder=video_captions_dir,
+            subtitle_file_path=srt_path,
+            shot_scenes_path=shot_scenes_file if os.path.exists(shot_scenes_file) else None,
+        )
+        print("Captions generated.")
+    else:
+        print(f"Captions already exist at {caption_file}.")
+
 
 
     # # Analyze music

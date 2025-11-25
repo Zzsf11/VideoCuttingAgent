@@ -12,7 +12,7 @@ SHOT_DETECTION_THRESHOLD = 0.3 # threshold for shot detection
 SHOT_DETECTION_PREDICTIONS_PATH = "shot_predictions.txt"
 SHOT_DETECTION_SCENES_PATH = "shot_scenes.txt"
 SHOT_DETECTION_MODEL = "autoshot"
-CLIP_SECS = 30 # max clip seconds
+CLIP_SECS = 60 # max clip seconds
 WHOLE_VIDEO_SUMMARY_BATCH_SIZE = 50  # number of clip captions per summary batch
 
 
@@ -44,12 +44,7 @@ EMBEDDING_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embe
 EMBEDDING_MODEL_DIM = 4096
 VLLM_EMBEDDING_ENDPOINT = "http://localhost:8001/v1/"  # vLLM embedding base URL (will append /v1/embeddings)
 # 启动embedding服务的命令示例:
-# vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B \
-#     --host 0.0.0.0 \
-#     --port 8001 \
-#     --max-model-len 8192 \
-#     --trust-remote-code
-#     --tensor-parallel-size 2
+# CUDA_VISIBLE_DEVICES=1 vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B     --host 0.0.0.0     --port 8001     --max-model-len 8192     --trust-remote-code
 
 
 
@@ -58,17 +53,9 @@ VLLM_EMBEDDING_ENDPOINT = "http://localhost:8001/v1/"  # vLLM embedding base URL
 AGENT_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct"
 AGENT_MODEL_MAX_TOKEN = 4096  # Max tokens to generate (not total context length)
 VLLM_AGENT_ENDPOINT = "http://localhost:8000"  # vLLM embedding服务端点
+# 启动agent服务的命令示例:
+# CUDA_VISIBLE_DEVICES=0 vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct     --host 0.0.0.0     --port 8000     --max-model-len 65535     --max-num-seqs 256     --gpu-memory-utilization 0.9     --trust-remote-code --enable-auto-tool-choice --tool-call-parser hermes
 
-# vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-30B-A3B \
-#     --host 0.0.0.0 \
-#     --port 8000 \
-#     --max-model-len 40960 \
-#     --max-num-seqs 256 \
-#     --gpu-memory-utilization 0.9 \
-#     --trust-remote-code \
-#     --tensor-parallel-size 2
-#     --enable-auto-tool-choice \
-#     --tool-call-parser hermes
 
 
 OPENAI_API_KEY = os.environ.get("Osk-KLzUGaBXb0aRjUhMCd9f4dC321F943Aa83Dc415a4b4e4cB1", None) # will overwrite Azure OpenAI setting

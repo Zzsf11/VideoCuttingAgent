@@ -400,41 +400,36 @@ def trim_video_clip(
 
     DENSE_CAPTION_PROMPT = """
 [Role]
-You are a meticulous video captioner and editing assistant.
+You are an expert Video Logger and Editor. 
+Your specialty is "Granular Video Segmentation": identifying precise boundaries where visual shots change or where the narrative action shifts significantly.
 
 [Task]
-Given the supplied frames for a specific time range, produce an extremely detailed, faithful caption and practical editing suggestions.
+Analyze the provided frames to segment the video into distinct, coherent clips.
+1. **Identify Boundaries:** Look for visual cuts (camera changes) or distinct shifts in subject action (plot beats).
+2. **Describe:** For each segment, write a factual, dense visual caption.
+
+[Segmentation Rules]
+- **Visual Cut:** Create a new segment when the camera angle, framing, or location changes completely.
+- **Action Shift:** Within a continuous shot, if the subject completes one action and starts a distinctly different one (e.g., "stops running" -> "starts drinking water"), create a split.
+- **Avoid Micro-splitting:** Do not split for minor gestures (e.g., blinking, turning head slightly) unless it changes the meaning.
 
 [Output]
-Return a JSON object with this EXACT structure:
+Return a JSON object with a list of segments:
 {
-  "analyzed_range": "<HH:MM:SS> to <HH:MM:SS>",
-  "total_duration_sec": <float>,
-  "usability_assessment": "<overall evaluation: is this clip suitable for use? any major issues?>",
-  "recommended_usage": "<suggest how to use this clip: as single shot, split into multiple shots, extend/trim boundaries, etc>",
-  "internal_scenes": [
+  "total_analyzed_duration": <float>,
+  "segments": [
     {
-      "scene_time": "<start_sec> to <end_sec>",
-      "duration_sec": <float>,
-      "story_beat": "<1–2 sentence narrative beat>",
-      "clip_description": "<rich, concrete visual description: actions, blocking, composition, lighting, environment, props, costume, micro-gestures>",
-      "shot_type": "<dominant shot types & camera move>",
-      "emotion": "<emotional tone>",
-      "music_alignment": "<how the visuals sync/contrast with score or ambience>",
-      "continuity_notes": "<subject geography, screen direction, eyelines, motion continuity>",
-      "risk_notes": "<potential issues (blur/obstruction/jump risk) and mitigation>"
+      "timestamp": "<start_HH:MM:SS> to <end_HH:MM:SS>",
+      "visual_details": "<Detailed description: clearly state the Subject, their specific Movements, the Camera angle, and the Environment. No flowery language.>",
+      "editor_notes": "<Brief note on usability: e.g., 'Good stabilizer shot', 'Contains motion blur', 'Good for reaction cut'.>"
     },
     ...
   ]
 }
 
 [Guidelines]
-- Be strictly grounded in the frames; avoid guessing off-screen content
-- Prefer specific nouns/verbs over vague adjectives
-- Describe composition (framing, depth, foreground/background), lighting cues, and motion paths
-- Suggest practical edit points tied to visual or musical cues
-- Keep segments meaningful; avoid unnecessary micro-splits
-- Obey the JSON schema exactly; no extra text outside the JSON
+- **Accuracy is Paramount:** If you are unsure if a cut happened, prioritize the continuity of the action.
+- **Strict JSON:** Do not include any text before or after the JSON block.
 """
     send_messages[1]["content"] = DENSE_CAPTION_PROMPT
     
@@ -480,57 +475,55 @@ Return a JSON object with this EXACT structure:
             # Try to parse JSON
             parsed = json.loads(content)
             
-            # NEW: Handle the structured response format
-            if isinstance(parsed, dict) and "analyzed_range" in parsed:
-                # New structured format with analyzed_range and internal_scenes
+            # Handle "segments" format (from DENSE_CAPTION_PROMPT)
+            if isinstance(parsed, dict) and "segments" in parsed:
                 result = {
                     "analyzed_range": f"{clip_start_time} to {clip_end_time}",
                     "total_duration_sec": end_sec - start_sec,
-                    "usability_assessment": parsed.get("usability_assessment", ""),
-                    "recommended_usage": parsed.get("recommended_usage", ""),
+                    "usability_assessment": "See segment details.",
+                    "recommended_usage": "Select continuous segments based on action shifts.",
                     "internal_scenes": []
                 }
                 
-                # Process internal_scenes
-                scenes = parsed.get("internal_scenes", [])
-                for scene in scenes:
-                    if "scene_time" in scene:
-                        # Parse scene_time
-                        scene_time_str = scene["scene_time"]
-                        rel_start = rel_end = None
-                        range_match = re.search(r'([0-9:.]+)\s+to\s+([0-9:.]+)', scene_time_str, re.IGNORECASE)
+                for seg in parsed["segments"]:
+                    # Construct description
+                    desc_parts = []
+                    if seg.get("segment_type"):
+                        desc_parts.append(f"[{seg['segment_type']}]")
+                    if seg.get("primary_action"):
+                        desc_parts.append(seg["primary_action"])
+                    if seg.get("visual_details"):
+                        desc_parts.append(seg["visual_details"])
+                    if seg.get("editor_notes"):
+                        desc_parts.append(f"(Note: {seg['editor_notes']})")
+                        
+                    scene = {
+                        "scene_time": seg.get("timestamp", ""),
+                        "description": " ".join(desc_parts),
+                        "duration_sec": 0
+                    }
+                    
+                    # Calculate absolute timestamps and duration
+                    if "timestamp" in seg:
+                        range_match = re.search(r'([0-9:.]+)\s+to\s+([0-9:.]+)', seg["timestamp"], re.IGNORECASE)
                         if range_match:
-                            start_str = range_match.group(1).strip()
-                            end_str = range_match.group(2).strip()
                             try:
-                                if ':' in start_str or ':' in end_str:
-                                    rel_start = hhmmss_to_seconds(start_str)
-                                    rel_end = hhmmss_to_seconds(end_str)
-                                else:
-                                    rel_start = float(start_str)
-                                    rel_end = float(end_str)
+                                # Timestamps from model are relative to the clip start (00:00:00)
+                                # We need to convert them to absolute timestamps
+                                s_rel = hhmmss_to_seconds(range_match.group(1))
+                                e_rel = hhmmss_to_seconds(range_match.group(2))
+                                
+                                s_abs = start_sec + s_rel
+                                e_abs = start_sec + e_rel
+                                
+                                scene["scene_time"] = f"{convert_seconds_to_hhmmss(s_abs)} to {convert_seconds_to_hhmmss(e_abs)}"
+                                scene["duration_sec"] = round(e_abs - s_abs, 2)
                             except ValueError:
-                                rel_start = rel_end = None
-                        
-                        if rel_start is None or rel_end is None:
-                            abs_start = start_sec
-                            abs_end = end_sec
-                        else:
-                            abs_start = start_sec + rel_start
-                            abs_end = start_sec + rel_end
-                        
-                        if abs_end <= abs_start:
-                            fps = getattr(config, "VIDEO_FPS", 0) or 0
-                            min_duration = max(1.0 / fps, 0.1) if fps > 0 else max(end_sec - start_sec, 1)
-                            abs_end = abs_start + min_duration
-                        
-                        scene["scene_time"] = f"{convert_seconds_to_hhmmss(abs_start)} to {convert_seconds_to_hhmmss(abs_end)}"
-                        scene["duration_sec"] = round(abs_end - abs_start)
+                                pass
                     
                     result["internal_scenes"].append(scene)
                 
                 return json.dumps(result, indent=4, ensure_ascii=False)
-            
             
         except json.JSONDecodeError as e:
             print(f"JSON decode error for time range {time_range}: {e}")
@@ -656,7 +649,7 @@ def generate_structure_proposal_all_caption(video_caption_path, audio_db, user_i
     
     # Construct the prompt using the template
     prompt = GENERATE_STRUCTURE_PROPOSAL_PROMPT
-    prompt = prompt.replace("VIDEO_SUMMARY_PLACEHOLDER", video_summary)
+    prompt = prompt.replace("VIDEO_SUMMARY_PLACEHOLDER", video_caption)
     prompt = prompt.replace("AUDIO_SUMMARY_PLACEHOLDER", audio_summary)
     prompt = prompt.replace("AUDIO_STRUCTURE_PLACEHOLDER", audio_structure)
     prompt = prompt.replace("INSTRUCTION_PLACEHOLDER", user_instruction)
@@ -869,8 +862,7 @@ Inspect the script and storyline, using the given tools to select aligned clips 
    - If only part of it fits → select a continuous subset (e.g., first 3 scenes combined)
    - If you need more precision → call trim_video_clip again with a narrower range
 6. Repeat 2–5 until the desired runtime and storytelling flow are covered.
-7. When you find you can't select and get some desired the shot in the current video, clearly state the reason and give the suggestion for revise the shot plan.
-8. Conclude with `finish`, summarizing the final ordered shot list with exact timestamps.
+7. Conclude with `finish`, summarizing the final ordered shot list with exact timestamps.
 
 [Input Brief]
 - Target edited video length: VIDEO_LENGTH_PLACEHOLDER seconds.
@@ -964,7 +956,7 @@ Provide a detailed timestamped plan in the format:
         # For trim_video_clip, inject frame_folder parameter
         if name == "trim_video_clip":
             if self.frame_folder_path:
-                args["frame_path"] = self.frame_folder_path
+                args["frame_path"] = self.video_path
             else:
                 self._append_tool_msg(
                     tool_call["id"], 
@@ -1649,6 +1641,7 @@ Provide a detailed timestamped plan in the format:
                 print(f"Processing Shot {idx + 1}/{len(shot_plan['shots'])}")
                 print(f"{'='*60}\n")
                 # Set shot-specific output path: <base>_section_<sec_idx>_shot_<idx>.mp4
+                print("shot plan: ", shot)
                 base_path, ext = os.path.splitext(original_output_path)
                 self.output_path = f"{base_path}_section_{sec_idx}_shot_{idx}{ext}"
                 print(f"Shot output path: {self.output_path}")
@@ -1829,7 +1822,7 @@ def main():
 
     Instruction = """Give me a video that show the growth of batman from a young boy to a mature man."""
     
-    trim_video_clip(time_range="00:13:57 to 00:14:16", frame_path=video_path)
+    # trim_video_clip(time_range="00:13:57 to 00:14:16", frame_path=video_path)
     # generate_structure_proposal_all_caption(video_summary_path, audio_caption_path, Instruction)
     
     agent = DVDCoreAgent(

@@ -62,6 +62,14 @@
             "module": "vca.core",
             "console": "integratedTerminal",
             "justMyCode": false
+        },
+                {
+            "name": "Python: vca.Screenwriter",
+            "type": "python",
+            "request": "launch",
+            "module": "vca.Screenwriter",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }
