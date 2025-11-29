@@ -767,8 +767,7 @@ Validate and finalize the draft plan against the video database. Real footage is
                 print(f"Processing Shot {idx + 1}/{len(shot_plan['shots'])}")
                 print(f"{'='*60}\n")
                 print(f"Shot output path: {self.output_path}")
-                msgs[-1]["content"] = msgs[-1]["content"].replace("SHOT_PLAN_PLACEHOLDER\n", shot['content']).replace("CURRENT_VIDEO_EMOTION_PLACEHOLDER", shot['emotion'])
-                # msgs[-1]["content"] = msgs[-1]["content"].replace("VIDEO_SUMMARY_PLACEHOLDER", structure_proposal['video_summary'])
+                msgs[-1]["content"] = msgs[-1]["content"].replace("SHOT_PLAN_PLACEHOLDER", json.dumps(shot, indent=2, ensure_ascii=False))
                 audio_section_info = str({k: v for k, v in (json.loads(self.audio_db['sections'][sec_idx].get('detailed_analysis', '')['sections'][idx]) if isinstance(self.audio_db['sections'][sec_idx].get('detailed_analysis', '')['sections'][idx], str) else self.audio_db['sections'][sec_idx].get('detailed_analysis', '')['sections'][idx]).items()})
                 msgs[-1]["content"] = msgs[-1]["content"].replace("BACKGROUND_MUSIC_PLACEHOLDER", audio_section_info)
                 self.current_target_length = shot['time_duration']

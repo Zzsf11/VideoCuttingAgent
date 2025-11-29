@@ -1,85 +1,47 @@
 === STRUCTURE PROPOSAL ===
 {
   "overall_theme": "The transformation of Bruce Wayne into Batman: A journey from trauma and loss to redemption, resilience, and the embrace of justice through personal sacrifice and inner strength.",
-  "narrative_logic": "The narrative follows a non-linear but emotionally coherent arc, beginning with the origin of Bruce Wayne’s trauma, tracing his physical and psychological evolution through isolation, training, and moral conflict, culminating in his return as Batman to confront corruption and save Gotham. The story emphasizes internal growth—fear transformed into purpose, pain into power—and concludes with a quiet, introspective resolution that underscores the weight of his role as a symbol of hope and justice.",
+  "narrative_logic": "The narrative follows a non-linear but emotionally coherent arc, beginning with the origin of Bruce Wayne’s trauma, tracing his physical and psychological evolution through isolation, training, and moral conflict, culminating in his emergence as Batman. The story emphasizes internal growth—fear transformed into purpose, pain into power—and concludes with a quiet, introspective resolution that underscores his enduring commitment to Gotham.",
   "video_structure": [
     {
-      "content": "A young Bruce Wayne explores a dimly lit greenhouse, his curiosity piqued by a strange, glowing stone. He reaches for it, but the floor collapses beneath him, sending him tumbling into a dark, echoing well. The fall is disorienting, accompanied by flashes of his parents' murder—gunfire, screams, and a falling bat. The scene ends with Bruce lying in the dark, trembling, as the sound of a bat’s wings echoes through the void.",
-      "key_words": "young Bruce Wayne, greenhouse, mysterious stone, fall, well, parents' murder, trauma, bat wings",
+      "content": "A young Bruce Wayne explores a dimly lit greenhouse, his curiosity piqued by a strange, glowing stone. He reaches for it, triggering a sudden collapse of the floor. He falls into a dark, echoing well, the camera spiraling downward as he screams. The scene cuts to a nightmare: his parents are shot in a dark alley, the sound of gunshots echoing as he watches helplessly. The image fades to black, leaving only the echo of his mother’s voice.",
+      "key_words": "young bruce wayne, greenhouse, falling, nightmare, parents murder",
       "audio_section": "Intro",
       "emotion": "Melancholic, introspective, haunting",
       "start_time": "00:00",
       "end_time": "00:36"
     },
     {
-      "content": "Bruce, now a teenager, is shown in a bleak prison cell, bruised and exhausted. He is being trained by Ra's al Ghul in the League of Shadows. Flashbacks of his parents' murder intercut with scenes of brutal physical training—climbing walls, fighting in the dark, enduring pain. He confronts his deepest fear: the bat. The sequence ends with him standing before Ra's, eyes filled with determination, as the voice of the League echoes: 'You are not afraid of death. You are afraid of life.'",
-      "key_words": "Bruce Wayne, prison, League of Shadows, Ra's al Ghul, training, fear, bat, trauma, determination",
+      "content": "Bruce, now a teenager, is shown in a bleak prison cell, bruised and exhausted. He is being interrogated by a shadowy figure. Flashbacks of his parents’ murder flash across his face. He is then dragged into a training chamber, where he is forced to confront his deepest fears—bats, darkness, and the sound of gunshots. He collapses, but rises again, determined. The scene ends with him standing before Ra's al Ghul, who watches him with cold intensity.",
+      "key_words": "prison, training, fear, Ra's al Ghul, determination",
       "audio_section": "Verse 1",
-      "emotion": "Somber, introspective, emotionally raw",
+      "emotion": "Somber, vulnerable, resilient",
       "start_time": "00:36",
       "end_time": "01:10"
     },
     {
-      "content": "A dramatic montage of Bruce’s transformation: he fights through a storm of fire and rain, his body moving with precision and grace. He stands atop a Gotham skyscraper, the city below him, as the League’s plan to destroy Gotham unfolds in the background. He turns away, rejecting their path of destruction. A massive explosion erupts behind him as he escapes, the flames illuminating his silhouette. The scene cuts to him in a dark alley, pulling on a mask for the first time.",
-      "key_words": "Batman, transformation, explosion, fire, rain, mask, rejection, justice, escape",
+      "content": "A montage of Bruce’s training: he runs through a forest at dawn, climbs sheer cliffs, fights in hand-to-hand combat, and meditates in silence. The camera captures his physical transformation—his body lean and strong, his eyes sharp and focused. The sequence culminates in a dramatic shot of him standing atop a mountain, the wind whipping around him, as the sun rises behind him. The music swells with a powerful cello melody.",
+      "key_words": "training montage, physical transformation, discipline, strength, sunrise",
       "audio_section": "Instrumental Bridge",
-      "emotion": "Dramatic, powerful, cathartic",
+      "emotion": "Dramatic, powerful, transcendent",
       "start_time": "01:11",
       "end_time": "01:42"
     },
     {
-      "content": "Batman confronts Dr. Crane in a crumbling warehouse, the air thick with hallucinogenic gas. Bats swarm around him as he fights through visions of his past. He defeats Crane, but not before Rachel Dawes is poisoned. In a climactic moment, Batman saves her, revealing his identity to her in a quiet, emotional exchange. The scene ends with Rachel whispering, 'You're not the man I thought you were,' as Batman walks away into the night.",
-      "key_words": "Batman, Dr. Crane, hallucinogenic toxin, bats, confrontation, Rachel Dawes, identity reveal, sacrifice",
+      "content": "Bruce returns to Gotham, now as Batman. He confronts Dr. Crane in a dark, industrial warehouse, the air thick with smoke and the sound of bats. The fight is intense—Batman uses his agility and intellect to outmaneuver Crane, who is fueled by hallucinogenic toxin. The scene ends with Batman standing over Crane, who is screaming in terror as the warehouse erupts in flames. The music reaches a crescendo with the full vocal and instrumental force.",
+      "key_words": "Batman, Dr. Crane, fight, warehouse, fire, bats",
       "audio_section": "Chorus",
-      "emotion": "Hopeful, triumphant, emotionally charged",
+      "emotion": "Cathartic, triumphant, hopeful",
       "start_time": "01:43",
       "end_time": "02:28"
     },
     {
-      "content": "A final sequence: Batman stands on a rooftop, the city lights below. He watches as a train carrying the toxin races toward the city center. He leaps into action, stopping the train in a violent, explosive climax. The screen fades to black. A single piano note lingers. The camera pans up to the sky, where a bat soars into the night. The credits roll over a quiet, somber melody.",
-      "key_words": "Batman, rooftop, train, toxin, final battle, sacrifice, solitude, bat flight, credits",
+      "content": "Batman stands on a rooftop, rain falling around him. He watches the city below, his silhouette framed by the glow of neon lights. The camera slowly zooms in on his face, revealing a quiet resolve. He turns and walks away, disappearing into the shadows. The music fades gently, leaving only the sound of rain and a soft piano note.",
+      "key_words": "Batman, rooftop, rain, city, solitude, resolve",
       "audio_section": "Outro",
-      "emotion": "Reflective, peaceful, resolved",
+      "emotion": "Peaceful, reflective, somber",
       "start_time": "02:29",
       "end_time": "02:58"
-    }
-  ]
-}
-
-=== Draft_shot_plan ===
-{
-  "shots": [
-    {
-      "id": 1,
-      "time_duration": 12.0,
-      "content": "A slow, atmospheric close-up of a dimly lit greenhouse, filled with mist and shadow. A single, glowing stone pulses faintly on a moss-covered pedestal. Young Bruce Wayne, barely visible in the background, steps forward with cautious curiosity. The camera lingers on the stone, then slowly pulls back to reveal Bruce reaching out his hand toward it. The chime-like sound echoes as the floor beneath him begins to crack. The shot holds on the moment of stillness before collapse, emphasizing the mystery and quiet dread.",
-      "story_beat": "Setup: Introduction of the mysterious stone and Bruce’s curiosity.",
-      "emotion": "Mysterious, calm, introspective",
-      "visuals": "Slow-motion tracking shot, low-angle framing, soft focus on the glowing stone, wide synth pad visuals in the background, dim lighting with a single light source highlighting the stone. Camera movement is minimal, emphasizing stillness and anticipation."
-    },
-    {
-      "id": 2,
-      "time_duration": 10.0,
-      "content": "As the melancholic string melody begins, the camera cuts to a close-up of Bruce’s face—his eyes wide with fear as the floor gives way. The shot transitions to a slow-motion descent into the well, with the camera rotating around him as he tumbles. Flashbacks of his parents’ murder—gunfire, screams, a falling bat—intercut in fragmented, dreamlike flashes. The piano arpeggio intensifies as the visuals blur between the fall and the trauma.",
-      "story_beat": "Development: The fall begins and trauma is triggered.",
-      "emotion": "Pensive, melancholic, building anticipation",
-      "visuals": "Rapid cuts between close-ups of Bruce’s face, the collapsing floor, and flashbacks. Slow-motion descent with rotating camera. Flashing light effects during trauma sequences. Soft focus and desaturated colors to reflect emotional disorientation."
-    },
-    {
-      "id": 3,
-      "time_duration": 10.0,
-      "content": "The driving electronic beat kicks in as the camera cuts to a low-angle shot from inside the well, looking up at Bruce as he lands hard on the stone floor. The scene shifts to a series of fast, rhythmic cuts: Bruce pushing himself up, his hands trembling, the sound of his breath echoing. The camera follows his movement as he stumbles forward, the pulsing synth bassline matching the rhythm of his heartbeat. The core piano arpeggio and mournful melody continue, now driving forward with urgency.",
-      "story_beat": "Development: Bruce regains awareness and begins to move.",
-      "emotion": "Purposeful, determined, epic",
-      "visuals": "Fast cuts synced to drum beats, handheld camera movement, low-angle shots, dynamic lighting with strobe-like flashes. The camera follows Bruce’s motion, emphasizing momentum and struggle. The well’s walls appear to close in, enhancing the sense of confinement and urgency."
-    },
-    {
-      "id": 4,
-      "time_duration": 4.0,
-      "content": "The music reaches its peak as the camera cuts to a wide shot of the well’s mouth, where a bat’s wings suddenly flap into frame, silhouetted against the night sky. The sound of the wings echoes as the camera zooms in on Bruce, lying motionless in the dark, his face illuminated by a faint, ghostly glow. The final shot is a close-up of his trembling hand reaching out—then still—as the bat’s wings disappear into the void. The music swells and then cuts abruptly to silence.",
-      "story_beat": "Payoff: The trauma culminates in a symbolic moment of transformation.",
-      "emotion": "Triumphant, powerful, climactic",
-      "visuals": "Tight, rhythmic cuts synced to drum hits. Final shot is a static close-up with a slow zoom. The bat’s wings are silhouetted against a dark sky, creating a powerful visual metaphor. The lighting is minimal, with a single beam of light highlighting Bruce’s face. The scene ends in darkness, emphasizing the emotional climax."
     }
   ]
 }
