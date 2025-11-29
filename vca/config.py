@@ -25,7 +25,7 @@ VIDEO_BATCH_SIZE = 500  # Number of frames to process at once (only used with le
 ASR_MODEL = "large-v3" # tiny, base, small, medium, large, large-v2, large-v3 from https://github.com/linto-ai/whisper-timestamped
 VIDEO_ANALYSIS_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct"
 VIDEO_ANALYSIS_MODEL_MAX_TOKEN = 16384  # Max tokens to generate (not total context length)
-VLLM_ENDPOINT = "http://localhost:8000/v1/chat/completions"  # vLLM base URL (will append /v1/chat/completions)
+VLLM_ENDPOINT = "http://localhost:8888/v1/chat/completions"  # vLLM base URL (will append /v1/chat/completions)
 # vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct \
 #     --host 0.0.0.0 \
 #     --port 8000 \
@@ -42,7 +42,7 @@ AUDIO_ANALYSIS_MODEL_MAX_TOKEN = 32768  # Max tokens to generate (not total cont
 # ------------------ Text embedding model configuration ------------------ #
 EMBEDDING_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B"
 EMBEDDING_MODEL_DIM = 4096
-VLLM_EMBEDDING_ENDPOINT = "http://localhost:8001/v1/"  # vLLM embedding base URL (will append /v1/embeddings)
+VLLM_EMBEDDING_ENDPOINT = "http://localhost:8889/v1/"  # vLLM embedding base URL (will append /v1/embeddings)
 # 启动embedding服务的命令示例:
 # CUDA_VISIBLE_DEVICES=1 vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B     --host 0.0.0.0     --port 8001     --max-model-len 8192     --trust-remote-code
 
@@ -52,7 +52,7 @@ VLLM_EMBEDDING_ENDPOINT = "http://localhost:8001/v1/"  # vLLM embedding base URL
 # AGENT_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-30B-A3B"
 AGENT_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct"
 AGENT_MODEL_MAX_TOKEN = 4096  # Max tokens to generate (not total context length)
-VLLM_AGENT_ENDPOINT = "http://localhost:8000"  # vLLM embedding服务端点
+VLLM_AGENT_ENDPOINT = "http://localhost:8888"  # vLLM embedding服务端点
 # 启动agent服务的命令示例:
 # CUDA_VISIBLE_DEVICES=0 vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct     --host 0.0.0.0     --port 8000     --max-model-len 65535     --max-num-seqs 256     --gpu-memory-utilization 0.9     --trust-remote-code --enable-auto-tool-choice --tool-call-parser hermes
 

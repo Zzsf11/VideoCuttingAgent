@@ -102,7 +102,6 @@ Output format (example):
         "End_Time": "MM:SS",
         "Musical_Description": "What is happening musically?",
         "Video_Pacing_Suggestion": "Based on the music, what should the video editing pace be like here?",
-        "Shot_Type_Suggestion": "What kind of visuals would match this section?"
     },
     ...
   ]
