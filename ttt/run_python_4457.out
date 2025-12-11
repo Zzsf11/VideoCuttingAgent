@@ -1,0 +1,155 @@
+========================================================
+Loading environment modules...
+Environment loaded.
+
+========================================================
+Job ID: 4457
+Node: gpuh05
+Start time: 2025年 12月 04日 星期四 00:17:36 CST
+Command: python local_run.py /public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/Batman.Begins.2005.1080p.BluRay.x264.YIFY_10_20min.mp4 /public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Way_down_we_go/Way Down We Go-Kaleo#1NrOG.mp3 Batman sucks!
+========================================================
+Unrecognized keys in `rope_scaling` for 'rope_type'='default': {'mrope_section', 'interleaved', 'mrope_interleaved'}
+Unrecognized keys in `rope_scaling` for 'rope_type'='default': {'mrope_section', 'interleaved'}
+You are attempting to use Flash Attention 2 without specifying a torch dtype. This might lead to unexpected behaviour
+Processing audio to get captions...
+
+✓ Audio duration: 03:39 (219.56 seconds)
+
+================================================================================
+STAGE 1: Analyzing entire audio to identify sections
+================================================================================
+Loading model from: /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Instruct
+Loading checkpoint shards:   0%|          | 0/15 [00:00<?, ?it/s]Loading checkpoint shards:   7%|▋         | 1/15 [00:03<00:44,  3.19s/it]Loading checkpoint shards:  13%|█▎        | 2/15 [00:06<00:43,  3.33s/it]Loading checkpoint shards:  20%|██        | 3/15 [00:10<00:40,  3.36s/it]Loading checkpoint shards:  27%|██▋       | 4/15 [00:13<00:37,  3.37s/it]Loading checkpoint shards:  33%|███▎      | 5/15 [00:16<00:32,  3.28s/it]Loading checkpoint shards:  40%|████      | 6/15 [00:19<00:29,  3.27s/it]Loading checkpoint shards:  47%|████▋     | 7/15 [00:22<00:25,  3.20s/it]Loading checkpoint shards:  53%|█████▎    | 8/15 [00:25<00:22,  3.14s/it]Loading checkpoint shards:  60%|██████    | 9/15 [00:28<00:18,  3.11s/it]Loading checkpoint shards:  67%|██████▋   | 10/15 [00:32<00:15,  3.13s/it]Loading checkpoint shards:  73%|███████▎  | 11/15 [00:35<00:12,  3.12s/it]Loading checkpoint shards:  80%|████████  | 12/15 [00:38<00:09,  3.20s/it]Loading checkpoint shards:  87%|████████▋ | 13/15 [00:43<00:07,  3.80s/it]Loading checkpoint shards:  93%|█████████▎| 14/15 [00:56<00:06,  6.43s/it]Loading checkpoint shards: 100%|██████████| 15/15 [00:56<00:00,  4.63s/it]Loading checkpoint shards: 100%|██████████| 15/15 [00:56<00:00,  3.78s/it]
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
+Model and processor loaded successfully!
+
+============================================================
+Attempt 1/1: Processing audio: /public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Way_down_we_go/Way Down We Go-Kaleo#1NrOG.mp3
+============================================================
+
+Generated caption:
+{
+  "summary": "A powerful and soulful rock ballad with a gospel-like choir, featuring passionate male vocals, driving drums, and a bluesy electric guitar solo. The song builds from a piano-led intro to a full-band climax, creating an epic and emotionally charged atmosphere.",
+  "sections": [
+    {
+      "name": "Intro / Verse 1",
+      "description": "The song opens with a simple, reverberating piano melody. A male vocalist enters with a soulful, questioning tone, singing the first verse and the initial line of the chorus.",
+      "Start_Time": "00:00",
+      "End_Time": "00:18"
+    },
+    {
+      "name": "Chorus",
+      "description": "The drums and bass kick in with a steady, driving beat, transforming the song into a full-band rock track. The vocals become more powerful and anthemic as they repeat the central, building chorus, 'Way down we go.'",
+      "Start_Time": "00:19",
+      "End_Time": "00:42"
+    },
+    {
+      "name": "Verse 2",
+      "description": "The intensity of the band slightly recedes, allowing the lyrics and the lead vocal to take center stage again, continuing the narrative with a sense of urgency.",
+      "Start_Time": "00:43",
+      "End_Time": "01:07"
+    },
+    {
+      "name": "Chorus",
+      "description": "The full band returns with renewed energy for the chorus, now with even more forceful vocals, creating a powerful and climactic feel.",
+      "Start_Time": "01:07",
+      "End_Time": "01:29"
+    },
+    {
+      "name": "Bridge",
+      "description": "The song transitions into a musical interlude featuring a soulful and expressive electric guitar solo. The drums and bass continue to provide a driving rhythm underneath.",
+      "Start_Time": "01:29",
+      "End_Time": "02:19"
+    },
+    {
+      "name": "Final Chorus",
+      "description": "The vocals return, building to a final, highly energetic, and slightly chaotic rendition of the chorus. The word 'Lord!' is shouted, adding to the passionate and raw emotion of the track.",
+      "Start_Time": "02:20",
+      "End_Time": "03:12"
+    },
+    {
+      "name": "Outro",
+      "description": "The final chorus is repeated with a slight fade, bringing the epic song to a close.",
+      "Start_Time": "03:12",
+      "End_Time": "03:39"
+    }
+  ]
+}
+✓ Successfully generated and validated JSON on attempt 1
+
+✓ Found 7 sections
+Validating section time fields...
+✓ All sections have time fields
+
+Validating audio coverage...
+✓ Sections cover full audio duration (ends at 03:39)
+
+✓ Stage 1 completed successfully on attempt 1
+
+================================================================================
+STAGE 2: Analyzing each section in detail
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 1: Extracting audio segments...
+--------------------------------------------------------------------------------
+✓ Section 1 'Intro / Verse 1': 00:00 - 00:18 (18.0s)
+✓ Section 2 'Chorus': 00:19 - 00:42 (23.0s)
+✓ Section 3 'Verse 2': 00:43 - 01:07 (24.0s)
+✓ Section 4 'Chorus': 01:07 - 01:29 (22.0s)
+✓ Section 5 'Bridge': 01:29 - 02:19 (50.0s)
+✓ Section 6 'Final Chorus': 02:20 - 03:12 (52.0s)
+✓ Section 7 'Outro': 03:12 - 03:39 (27.0s)
+
+--------------------------------------------------------------------------------
+Step 2: Processing 7 segments in batches of 4...
+--------------------------------------------------------------------------------
+
+················································································
+Processing Batch 1/2 (4 segments)
+················································································
+  - Section 1: Intro / Verse 1
+  - Section 2: Chorus
+  - Section 3: Verse 2
+  - Section 4: Chorus
+✓ Batch 1 completed successfully
+
+················································································
+Processing Batch 2/2 (3 segments)
+················································································
+  - Section 5: Bridge
+  - Section 6: Final Chorus
+  - Section 7: Outro
+✓ Batch 2 completed successfully
+
+--------------------------------------------------------------------------------
+Step 3: Merging results...
+--------------------------------------------------------------------------------
+✓ Section 1 'Intro / Verse 1': Detailed analysis added
+✓ Section 2 'Chorus': Detailed analysis added
+✓ Section 3 'Verse 2': Detailed analysis added
+✓ Section 4 'Chorus': Detailed analysis added
+✓ Section 5 'Bridge': Detailed analysis added
+✓ Section 6 'Final Chorus': Detailed analysis added
+✓ Section 7 'Outro': Detailed analysis added
+
+--------------------------------------------------------------------------------
+Cleaning up temporary files...
+✓ Removed: /tmp/tmp49hxo4_r.wav
+✓ Removed: /tmp/tmp20ut6mbs.wav
+✓ Removed: /tmp/tmp_0yopx3e.wav
+✓ Removed: /tmp/tmpluke5xid.wav
+✓ Removed: /tmp/tmppd1nce_w.wav
+✓ Removed: /tmp/tmp0z82edzj.wav
+✓ Removed: /tmp/tmpjjecdmmg.wav
+
+================================================================================
+✓ Complete caption saved to: ./video_database/Database/Way_Down_We_Go-Kaleo#1NrOG/captions/captions.json
+================================================================================
+Captions generated.
+========================================================
+End time: 2025年 12月 04日 星期四 00:27:31 CST
+========================================================

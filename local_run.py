@@ -15,9 +15,10 @@ import vca.config as config
 
 def main():
     parser = argparse.ArgumentParser(description="Run VideoCaptioningAgent on a video.")
-    parser.add_argument("Video_Path", help="The URL of the video to process.")
-    parser.add_argument("Audio_Path", help="The URL of the video to process.")
-    parser.add_argument("Text_Prompt", help="The prompt to cutting the video.")
+    # parser.add_argument("--Video_Path", help="The URL of the video to process.", default="/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/Batman.Begins.2005.1080p.BluRay.x264.YIFY.mp4")
+    parser.add_argument("--Video_Path", help="The URL of the video to process.", default="/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/VLOG_Lisbon.mp4")
+    parser.add_argument("--Audio_Path", help="The URL of the video to process.", default="/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Call_of_Slience/CallofSilence.mp3")
+    parser.add_argument("--Text_Prompt", help="The prompt to cutting the video.", default="请根据背景音乐内容，剪辑出一个视频")
     args = parser.parse_args()
 
     Video_Path = args.Video_Path
@@ -36,32 +37,29 @@ def main():
 
 
 
-    # Decode video to frames and get subtitles
-    if not os.path.exists(frames_dir) or not os.listdir(frames_dir):
-        print(f"Decoding video to frames in {frames_dir}...")
-        decode_video_to_frames(
-            Video_Path,
-            frames_dir,
-            config.VIDEO_FPS,
-            config.VIDEO_RESOLUTION,
-            max_frames=config.VIDEO_MAX_FRAMES,
-            asr_to_srt=True,
-            srt_path=srt_path,
-            asr_model=config.ASR_MODEL,
-            asr_device="cuda:0",
-            batch_size=config.VIDEO_BATCH_SIZE,
-            use_batch_processing=config.USE_BATCH_PROCESSING,
-            shot_detection=True,
-            shot_detection_fps=config.SHOT_DETECTION_FPS,
-            shot_detection_threshold=config.SHOT_DETECTION_THRESHOLD,
-            shot_predictions_path=os.path.join(frames_dir, "shot_predictions.txt"),
-            shot_scenes_path=os.path.join(frames_dir, "shot_scenes.txt"),
-            shot_detection_model=config.SHOT_DETECTION_MODEL,
-
-        )
-        print("Video decoded.")
-    else:
-        print(f"Frames already exist in {frames_dir}.")
+    # # Decode video to frames and get subtitles
+    # # Note: decode_video_to_frames will automatically skip steps that are already done
+    # # (frames extraction, ASR, shot detection) based on existing files
+    # print(f"Processing video in {frames_dir}...")
+    # decode_video_to_frames(
+    #     Video_Path,
+    #     frames_dir,
+    #     config.VIDEO_FPS,
+    #     config.VIDEO_RESOLUTION,
+    #     max_frames=getattr(config, 'VIDEO_MAX_FRAMES', None),
+    #     asr_to_srt=True,
+    #     srt_path=srt_path,
+    #     asr_model=config.ASR_MODEL,
+    #     asr_device="cuda:0",
+    #     use_batch_processing=config.USE_BATCH_PROCESSING,
+    #     shot_detection=True,
+    #     shot_detection_fps=config.SHOT_DETECTION_FPS,
+    #     shot_detection_threshold=config.SHOT_DETECTION_THRESHOLD,
+    #     shot_predictions_path=os.path.join(frames_dir, "shot_predictions.txt"),
+    #     shot_scenes_path=os.path.join(frames_dir, "shot_scenes.txt"),
+    #     shot_detection_model=config.SHOT_DETECTION_MODEL,
+    # )
+    # print("Video processing completed.")
 
 
     

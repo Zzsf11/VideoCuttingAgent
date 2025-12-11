@@ -287,13 +287,13 @@ def merge_short_scenes(scenes: List[Tuple[int, int]], max_frames: int) -> List[T
     """
     if not scenes:
         return []
-        
+
     merged_scenes = []
     current_batch = []
-    
+
     for start, end in scenes:
         duration = end - start + 1
-        
+
         if duration > max_frames:
             # This scene is too long to be merged, acts as a boundary.
             if current_batch:
@@ -302,7 +302,7 @@ def merge_short_scenes(scenes: List[Tuple[int, int]], max_frames: int) -> List[T
                 batch_end = current_batch[-1][1]
                 merged_scenes.append((batch_start, batch_end))
                 current_batch = []
-            
+
             # Add the long scene as is
             merged_scenes.append((start, end))
         else:
@@ -313,23 +313,89 @@ def merge_short_scenes(scenes: List[Tuple[int, int]], max_frames: int) -> List[T
                 # Check if adding this scene would exceed max_frames
                 batch_start = current_batch[0][0]
                 projected_duration = end - batch_start + 1
-                
+
                 if projected_duration <= max_frames:
                     current_batch.append((start, end))
                 else:
                     # Finalize current batch
                     batch_end = current_batch[-1][1]
                     merged_scenes.append((batch_start, batch_end))
-                    
+
                     # Start new batch with current scene
                     current_batch = [(start, end)]
-            
+
     # Process any remaining scenes in the batch
     if current_batch:
         batch_start = current_batch[0][0]
         batch_end = current_batch[-1][1]
         merged_scenes.append((batch_start, batch_end))
-        
+
+    return merged_scenes
+
+
+def merge_scenes_by_min_length(scenes: List[Tuple[int, int]], min_frames: int) -> List[Tuple[int, int]]:
+    """
+    Merge scenes that are shorter than min_frames with adjacent scenes.
+    Each short scene is merged with its neighbor (preferring the next scene).
+
+    Args:
+        scenes: List of (start_frame, end_frame) tuples
+        min_frames: Minimum scene length in frames
+
+    Returns:
+        List of merged (start_frame, end_frame) tuples
+    """
+    if not scenes:
+        return []
+
+    if len(scenes) == 1:
+        return scenes
+
+    # Mark scenes that need merging (shorter than min_frames)
+    needs_merge = []
+    for i, (start, end) in enumerate(scenes):
+        duration = end - start + 1
+        needs_merge.append(duration < min_frames)
+
+    merged_scenes = []
+    i = 0
+
+    while i < len(scenes):
+        if not needs_merge[i]:
+            # This scene is long enough, keep it as is
+            merged_scenes.append(scenes[i])
+            i += 1
+        else:
+            # This scene is too short, need to merge with neighbors
+            merge_start_idx = i
+            merge_end_idx = i
+
+            # Look ahead to find consecutive short scenes to merge together
+            while merge_end_idx + 1 < len(scenes) and needs_merge[merge_end_idx + 1]:
+                merge_end_idx += 1
+
+            # Check if we can extend to include one more scene (to meet min length)
+            # Prefer extending forward if possible
+            if merge_end_idx + 1 < len(scenes):
+                # Merge with next scene
+                merge_end_idx += 1
+            elif merge_start_idx > 0 and merged_scenes:
+                # Can't extend forward, merge with previous scene
+                prev_scene = merged_scenes.pop()
+                merged_scenes.append((
+                    prev_scene[0],
+                    scenes[merge_end_idx][1]
+                ))
+                i = merge_end_idx + 1
+                continue
+
+            # Merge all scenes from merge_start_idx to merge_end_idx
+            merged_scenes.append((
+                scenes[merge_start_idx][0],
+                scenes[merge_end_idx][1]
+            ))
+            i = merge_end_idx + 1
+
     return merged_scenes
 
 
@@ -376,9 +442,24 @@ def gather_clip_frames_from_scenes(
         print("Warning: No scenes found in shot_scenes.txt, falling back to time-based clips")
         return gather_clip_frames(video_frame_folder, clip_secs, subtitle_file_path)
 
-    # Merge short scenes before processing
-    max_merge_frames = int(clip_secs * config.SHOT_DETECTION_FPS)
-    merged_scenes = merge_short_scenes(scenes, max_merge_frames)
+    # Merge scenes based on configuration
+    if config.MERGE_SHORT_SCENES:
+        merge_method = getattr(config, "SCENE_MERGE_METHOD", "max_length")
+
+        if merge_method == "min_length":
+            # Use minimum length merging strategy
+            min_length_secs = getattr(config, "SCENE_MIN_LENGTH_SECS", 5)
+            min_frames = int(min_length_secs * config.SHOT_DETECTION_FPS)
+            merged_scenes = merge_scenes_by_min_length(scenes, min_frames)
+            print(f"Merging scenes with min length {min_length_secs}s ({min_frames} frames)")
+        else:
+            # Use maximum length merging strategy (original behavior)
+            max_merge_frames = int(clip_secs * config.SHOT_DETECTION_FPS)
+            merged_scenes = merge_short_scenes(scenes, max_merge_frames)
+            print(f"Merging scenes with max length {clip_secs}s ({max_merge_frames} frames)")
+    else:
+        merged_scenes = scenes
+        print("Scene merging disabled")
 
     result = []
 
@@ -871,13 +952,13 @@ def process_video(
         for ts, parsed in results:
             if not parsed:
                 continue
-            
+
             # Check if this is a sub-clip by looking at the timestamp format
             if "_scene" in ts and "_sub" in ts:
                 # Extract scene_id from timestamp (format: {start}_{end}_scene{id}_sub{idx})
                 scene_part = ts.split("_scene")[1]
                 scene_id = int(scene_part.split("_sub")[0])
-                
+
                 if scene_id not in scene_groups:
                     scene_groups[scene_id] = []
                 scene_groups[scene_id].append((ts, parsed))
@@ -890,31 +971,44 @@ def process_video(
                     "clip_start_time": parsed.get("clip_start_time", ""),
                     "clip_end_time": parsed.get("clip_end_time", ""),
                 }
-        
-        # Merge sub-clips for each scene
-        for scene_id in sorted(scene_groups.keys()):
-            # sub_clips = sorted(scene_groups[scene_id], key=lambda x: x[0])
-            sub_clips = scene_groups[scene_id]
-            sub_clip_captions = [parsed for _, parsed in sub_clips]
-            
-            print(f"Merging {len(sub_clip_captions)} sub-clips for scene {scene_id}")
-            merged_caption = merge_scene_captions(sub_clip_captions)
-            
-            # Create a timestamp key for the merged scene
-            # Use the time range from first sub-clip start to last sub-clip end
-            first_ts = sub_clips[0][0].split("_scene")[0]  # e.g., "0_30"
-            last_ts = sub_clips[-1][0].split("_scene")[0]  # e.g., "30_60"
-            start_time = first_ts.split("_")[0]
-            end_time = last_ts.split("_")[1]
-            merged_ts = f"{start_time}_{end_time}"
-            
-            frame_captions[merged_ts] = {
-                "caption": merged_caption.get("clip_description", ""),
-                "shot_type": merged_caption.get("shot_type", ""),
-                "emotion": merged_caption.get("emotion", ""),
-                "clip_start_time": merged_caption.get("clip_start_time", ""),
-                "clip_end_time": merged_caption.get("clip_end_time", ""),
-            }
+
+        # Merge sub-clips for each scene (if enabled in config)
+        if config.MERGE_SHORT_SCENES:
+            for scene_id in sorted(scene_groups.keys()):
+                # sub_clips = sorted(scene_groups[scene_id], key=lambda x: x[0])
+                sub_clips = scene_groups[scene_id]
+                sub_clip_captions = [parsed for _, parsed in sub_clips]
+
+                print(f"Merging {len(sub_clip_captions)} sub-clips for scene {scene_id}")
+                merged_caption = merge_scene_captions(sub_clip_captions)
+
+                # Create a timestamp key for the merged scene
+                # Use the time range from first sub-clip start to last sub-clip end
+                first_ts = sub_clips[0][0].split("_scene")[0]  # e.g., "0_30"
+                last_ts = sub_clips[-1][0].split("_scene")[0]  # e.g., "30_60"
+                start_time = first_ts.split("_")[0]
+                end_time = last_ts.split("_")[1]
+                merged_ts = f"{start_time}_{end_time}"
+
+                frame_captions[merged_ts] = {
+                    "caption": merged_caption.get("clip_description", ""),
+                    "shot_type": merged_caption.get("shot_type", ""),
+                    "emotion": merged_caption.get("emotion", ""),
+                    "clip_start_time": merged_caption.get("clip_start_time", ""),
+                    "clip_end_time": merged_caption.get("clip_end_time", ""),
+                }
+        else:
+            # Keep sub-clips separate without merging
+            for scene_id in sorted(scene_groups.keys()):
+                sub_clips = scene_groups[scene_id]
+                for ts, parsed in sub_clips:
+                    frame_captions[ts] = {
+                        "caption": parsed["clip_description"],
+                        "shot_type": parsed.get("shot_type", ""),
+                        "emotion": parsed.get("emotion", ""),
+                        "clip_start_time": parsed.get("clip_start_time", ""),
+                        "clip_end_time": parsed.get("clip_end_time", ""),
+                    }
     else:
         # Time-based processing (original behavior)
         for ts, parsed in results:

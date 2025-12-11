@@ -4,412 +4,178 @@ Environment loaded.
 
 ========================================================
 LLM Service Starting on Compute Node
-Job ID: 3933
-Compute Node Hostname: gpuh13
-LLM Listening Port: 8658
+Job ID: 5046
+Compute Node Hostname: gpuh12
+LLM Listening Port: 8382
 
 --- Instructions for connecting from the LOGIN NODE ---
 1. Open a NEW terminal on the login node.
 2. Create an SSH tunnel with this command:
-   ssh -L 8889:localhost:8658 cit_shifangzhao@gpuh13
+   ssh -L 8889:localhost:8382 cit_shifangzhao@gpuh12
    (You can replace 8889 with another unused port on the login node if needed)
 3. Once the tunnel is active, you can interact with the LLM at:
    API Base URL: http://localhost:8889/v1
 ========================================================
 
-INFO 11-29 17:49:28 [__init__.py:216] Automatically detected platform cuda.
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [api_server.py:1839] vLLM API server version 0.11.0rc2.dev113+gf9e714813
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [utils.py:233] non-default args: {'model_tag': '/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B', 'port': 8658, 'model': '/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B', 'trust_remote_code': True, 'max_model_len': 8192}
-[1;36m(APIServer pid=84789)[0;0m WARNING 11-29 17:49:47 [__init__.py:2877] Found ulimit of 51200 and failed to automatically increase with error current limit exceeds maximum limit. This can cause fd limit errors like `OSError: [Errno 24] Too many open files`. Consider increasing with ulimit -n
-[1;36m(APIServer pid=84789)[0;0m The argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [config.py:739] Found sentence-transformers modules configuration.
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [config.py:759] Found pooling configuration.
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [model.py:807] Resolved `--runner auto` to `--runner pooling`. Pass the value explicitly to silence this message.
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [model.py:859] Resolved `--convert auto` to `--convert embed`. Pass the value explicitly to silence this message.
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [model.py:551] Resolved architecture: Qwen3ForCausalLM
-[1;36m(APIServer pid=84789)[0;0m `torch_dtype` is deprecated! Use `dtype` instead!
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [model.py:1538] Using max model len 8192
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [arg_utils.py:1577] (Enabling) chunked prefill by default
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:47 [arg_utils.py:1580] (Enabling) prefix caching by default
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:49:48 [scheduler.py:222] Chunked prefill is enabled with max_num_batched_tokens=8192.
-INFO 11-29 17:49:59 [__init__.py:216] Automatically detected platform cuda.
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:08 [core.py:648] Waiting for init message from front-end.
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:08 [core.py:78] Initializing a V1 LLM engine (v0.11.0rc2.dev113+gf9e714813) with config: model='/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B', speculative_config=None, tokenizer='/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B, enable_prefix_caching=True, chunked_prefill_enabled=True, pooler_config=PoolerConfig(pooling_type='LAST', normalize=True, dimensions=None, enable_chunked_processing=None, max_embed_len=None, activation=None, logit_bias=None, softmax=None, step_tag_id=None, returned_token_ids=None), compilation_config={'level': 3, 'debug_dump_path': None, 'cache_dir': '', 'backend': '', 'custom_ops': [], 'splitting_ops': ['vllm.unified_attention', 'vllm.unified_attention_with_output', 'vllm.mamba_mixer2', 'vllm.mamba_mixer', 'vllm.short_conv', 'vllm.linear_attention', 'vllm.plamo2_mamba_mixer', 'vllm.gdn_attention', 'vllm.sparse_attn_indexer'], 'use_inductor': True, 'compile_sizes': [], 'inductor_compile_config': {'enable_auto_functionalized_v2': False}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.PIECEWISE: 1>, 'use_cudagraph': True, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [512, 504, 496, 488, 480, 472, 464, 456, 448, 440, 432, 424, 416, 408, 400, 392, 384, 376, 368, 360, 352, 344, 336, 328, 320, 312, 304, 296, 288, 280, 272, 264, 256, 248, 240, 232, 224, 216, 208, 200, 192, 184, 176, 168, 160, 152, 144, 136, 128, 120, 112, 104, 96, 88, 80, 72, 64, 56, 48, 40, 32, 24, 16, 8, 4, 2, 1], 'cudagraph_copy_inputs': False, 'full_cuda_graph': False, 'use_inductor_graph_partition': False, 'pass_config': {}, 'max_capture_size': 512, 'local_cache_dir': None}
-[1;36m(EngineCore_DP0 pid=87197)[0;0m /public_hw/home/cit_shifangzhao/miniconda3/envs/VCA/lib/python3.12/site-packages/vllm/executor/uniproc_executor.py:60: UserWarning: Failed to get the IP address, using 0.0.0.0 by default.The value can be set by the environment variable VLLM_HOST_IP or HOST_IP.
-[1;36m(EngineCore_DP0 pid=87197)[0;0m   get_ip(), get_open_port())
+INFO 12-11 10:47:49 [__init__.py:216] Automatically detected platform cuda.
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [api_server.py:1839] vLLM API server version 0.11.0rc2.dev113+gf9e714813
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [utils.py:233] non-default args: {'model_tag': '/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B', 'port': 8382, 'model': '/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B', 'trust_remote_code': True, 'max_model_len': 8192}
+[1;36m(APIServer pid=764232)[0;0m WARNING 12-11 10:48:16 [__init__.py:2877] Found ulimit of 51200 and failed to automatically increase with error current limit exceeds maximum limit. This can cause fd limit errors like `OSError: [Errno 24] Too many open files`. Consider increasing with ulimit -n
+[1;36m(APIServer pid=764232)[0;0m The argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [config.py:739] Found sentence-transformers modules configuration.
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [config.py:759] Found pooling configuration.
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [model.py:807] Resolved `--runner auto` to `--runner pooling`. Pass the value explicitly to silence this message.
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [model.py:859] Resolved `--convert auto` to `--convert embed`. Pass the value explicitly to silence this message.
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [model.py:551] Resolved architecture: Qwen3ForCausalLM
+[1;36m(APIServer pid=764232)[0;0m `torch_dtype` is deprecated! Use `dtype` instead!
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [model.py:1538] Using max model len 8192
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [arg_utils.py:1577] (Enabling) chunked prefill by default
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:16 [arg_utils.py:1580] (Enabling) prefix caching by default
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:48:19 [scheduler.py:222] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 12-11 10:48:33 [__init__.py:216] Automatically detected platform cuda.
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:48:49 [core.py:648] Waiting for init message from front-end.
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:48:49 [core.py:78] Initializing a V1 LLM engine (v0.11.0rc2.dev113+gf9e714813) with config: model='/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B', speculative_config=None, tokenizer='/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B, enable_prefix_caching=True, chunked_prefill_enabled=True, pooler_config=PoolerConfig(pooling_type='LAST', normalize=True, dimensions=None, enable_chunked_processing=None, max_embed_len=None, activation=None, logit_bias=None, softmax=None, step_tag_id=None, returned_token_ids=None), compilation_config={'level': 3, 'debug_dump_path': None, 'cache_dir': '', 'backend': '', 'custom_ops': [], 'splitting_ops': ['vllm.unified_attention', 'vllm.unified_attention_with_output', 'vllm.mamba_mixer2', 'vllm.mamba_mixer', 'vllm.short_conv', 'vllm.linear_attention', 'vllm.plamo2_mamba_mixer', 'vllm.gdn_attention', 'vllm.sparse_attn_indexer'], 'use_inductor': True, 'compile_sizes': [], 'inductor_compile_config': {'enable_auto_functionalized_v2': False}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.PIECEWISE: 1>, 'use_cudagraph': True, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [512, 504, 496, 488, 480, 472, 464, 456, 448, 440, 432, 424, 416, 408, 400, 392, 384, 376, 368, 360, 352, 344, 336, 328, 320, 312, 304, 296, 288, 280, 272, 264, 256, 248, 240, 232, 224, 216, 208, 200, 192, 184, 176, 168, 160, 152, 144, 136, 128, 120, 112, 104, 96, 88, 80, 72, 64, 56, 48, 40, 32, 24, 16, 8, 4, 2, 1], 'cudagraph_copy_inputs': False, 'full_cuda_graph': False, 'use_inductor_graph_partition': False, 'pass_config': {}, 'max_capture_size': 512, 'local_cache_dir': None}
+[1;36m(EngineCore_DP0 pid=770543)[0;0m /public_hw/home/cit_shifangzhao/miniconda3/envs/VCA/lib/python3.12/site-packages/vllm/executor/uniproc_executor.py:60: UserWarning: Failed to get the IP address, using 0.0.0.0 by default.The value can be set by the environment variable VLLM_HOST_IP or HOST_IP.
+[1;36m(EngineCore_DP0 pid=770543)[0;0m   get_ip(), get_open_port())
 [Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
 [Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
 [Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
 [Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
 [Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
 [Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:11 [parallel_state.py:1208] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
-[1;36m(EngineCore_DP0 pid=87197)[0;0m WARNING 11-29 17:50:11 [topk_topp_sampler.py:66] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:11 [gpu_model_runner.py:2707] Starting to load model /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B...
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:11 [gpu_model_runner.py:2739] Loading model from scratch...
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:11 [cuda.py:356] Using Flash Attention backend on V1 engine.
-[1;36m(EngineCore_DP0 pid=87197)[0;0m Loading safetensors checkpoint shards:   0% Completed | 0/4 [00:00<?, ?it/s]
-[1;36m(EngineCore_DP0 pid=87197)[0;0m Loading safetensors checkpoint shards:  25% Completed | 1/4 [00:02<00:08,  2.75s/it]
-[1;36m(EngineCore_DP0 pid=87197)[0;0m Loading safetensors checkpoint shards:  50% Completed | 2/4 [00:03<00:02,  1.33s/it]
-[1;36m(EngineCore_DP0 pid=87197)[0;0m Loading safetensors checkpoint shards:  75% Completed | 3/4 [00:05<00:02,  2.01s/it]
-[1;36m(EngineCore_DP0 pid=87197)[0;0m Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:08<00:00,  2.23s/it]
-[1;36m(EngineCore_DP0 pid=87197)[0;0m Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:08<00:00,  2.12s/it]
-[1;36m(EngineCore_DP0 pid=87197)[0;0m 
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:20 [default_loader.py:267] Loading weights took 8.58 seconds
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:21 [gpu_model_runner.py:2758] Model loading took 14.1062 GiB and 9.197930 seconds
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:30 [backends.py:548] Using cache directory: /public_hw/home/cit_shifangzhao/.cache/vllm/torch_compile_cache/a4315012b0/rank_0_0/backbone for vLLM's torch.compile
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:30 [backends.py:559] Dynamo bytecode transform time: 9.39 s
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:36 [backends.py:164] Directly load the compiled graph(s) for dynamic shape from the cache, took 5.506 s
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:37 [monitor.py:32] torch.compile takes 9.39 s in total
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:38 [gpu_worker.py:298] Available KV cache memory: 56.18 GiB
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:38 [kv_cache_utils.py:1087] GPU KV cache size: 409,056 tokens
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:38 [kv_cache_utils.py:1091] Maximum concurrency for 8,192 tokens per request: 49.93x
-[1;36m(EngineCore_DP0 pid=87197)[0;0m Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/67 [00:00<?, ?it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   4%|▍         | 3/67 [00:00<00:02, 24.02it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   9%|▉         | 6/67 [00:00<00:02, 26.77it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  13%|█▎        | 9/67 [00:00<00:02, 27.81it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  18%|█▊        | 12/67 [00:00<00:01, 28.20it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  22%|██▏       | 15/67 [00:00<00:01, 28.50it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  28%|██▊       | 19/67 [00:00<00:01, 29.42it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  33%|███▎      | 22/67 [00:00<00:01, 29.47it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  39%|███▉      | 26/67 [00:00<00:01, 29.89it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  45%|████▍     | 30/67 [00:01<00:01, 29.87it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  49%|████▉     | 33/67 [00:01<00:01, 29.89it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  54%|█████▎    | 36/67 [00:01<00:01, 29.66it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  58%|█████▊    | 39/67 [00:01<00:01, 23.45it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  63%|██████▎   | 42/67 [00:01<00:01, 24.65it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  67%|██████▋   | 45/67 [00:01<00:00, 25.36it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  72%|███████▏  | 48/67 [00:01<00:00, 26.30it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  76%|███████▌  | 51/67 [00:01<00:00, 25.97it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  81%|████████  | 54/67 [00:01<00:00, 25.45it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  85%|████████▌ | 57/67 [00:02<00:00, 25.29it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  90%|████████▉ | 60/67 [00:02<00:00, 25.47it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  94%|█████████▍| 63/67 [00:02<00:00, 25.68it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  99%|█████████▊| 66/67 [00:02<00:00, 26.73it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 67/67 [00:02<00:00, 26.75it/s]
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:41 [gpu_model_runner.py:3583] Graph capturing finished in 3 secs, took 0.48 GiB
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:41 [core.py:211] init engine (profile, create kv cache, warmup model) took 20.34 seconds
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [loggers.py:147] Engine 000: vllm cache_config_info with initialization after num_gpu_blocks is: 25566
-[1;36m(EngineCore_DP0 pid=87197)[0;0m INFO 11-29 17:50:42 [gc_utils.py:41] GC Debug Config. enabled:False,top_objects:-1
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [api_server.py:1634] Supported_tasks: ['embed']
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [api_server.py:1912] Starting vLLM API server 0 on http://0.0.0.0:8658
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:34] Available routes are:
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /openapi.json, Methods: GET, HEAD
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /docs, Methods: GET, HEAD
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /docs/oauth2-redirect, Methods: GET, HEAD
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /redoc, Methods: GET, HEAD
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /health, Methods: GET
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /load, Methods: GET
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /ping, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /ping, Methods: GET
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /tokenize, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /detokenize, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/models, Methods: GET
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /version, Methods: GET
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/responses, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/responses/{response_id}, Methods: GET
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/responses/{response_id}/cancel, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/chat/completions, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/completions, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/embeddings, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /pooling, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /classify, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /score, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/score, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/audio/transcriptions, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/audio/translations, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /rerank, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v1/rerank, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /v2/rerank, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /scale_elastic_ep, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /is_scaling_elastic_ep, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /invocations, Methods: POST
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 17:50:42 [launcher.py:42] Route: /metrics, Methods: GET
-[1;36m(APIServer pid=84789)[0;0m INFO:     Started server process [84789]
-[1;36m(APIServer pid=84789)[0;0m INFO:     Waiting for application startup.
-[1;36m(APIServer pid=84789)[0;0m INFO:     Application startup complete.
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50882 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:05:02 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:37628 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:05:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:05:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:38802 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:09:32 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 25.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:38806 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:09:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 19.8%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:09:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 19.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:51704 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:51710 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:51718 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:47360 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:10:02 [loggers.py:127] Engine 000: Avg prompt throughput: 8.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 9.7%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:47372 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:10:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 8.9%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:10:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 8.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:43202 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:11:22 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 15.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:53722 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:11:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 21.9%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:11:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 21.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:54368 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:54382 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:11:52 [loggers.py:127] Engine 000: Avg prompt throughput: 6.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 17.1%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:12:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 17.1%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:58796 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:21:52 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 21.1%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:34132 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:22:02 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 24.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:43592 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:22:12 [loggers.py:127] Engine 000: Avg prompt throughput: 3.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 27.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:43602 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:22:22 [loggers.py:127] Engine 000: Avg prompt throughput: 2.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.6%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:22:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50792 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:23:32 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 31.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50802 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:23:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 30.5%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:23:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 30.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:58304 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:24:02 [loggers.py:127] Engine 000: Avg prompt throughput: 2.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.1%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:24:12 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.1%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:56842 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:24:22 [loggers.py:127] Engine 000: Avg prompt throughput: 3.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 30.4%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:24:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 30.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:57220 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:27:22 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 32.3%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44598 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:27:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 34.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:27:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 34.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:52330 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:27:52 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 35.8%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:28:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 35.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44284 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:28:22 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.4%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:28:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:56942 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:28:42 [loggers.py:127] Engine 000: Avg prompt throughput: 3.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 35.5%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:28:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 35.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50444 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:29:02 [loggers.py:127] Engine 000: Avg prompt throughput: 2.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 33.9%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:29:12 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 33.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50450 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:29:22 [loggers.py:127] Engine 000: Avg prompt throughput: 2.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 35.0%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:29:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 35.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:54736 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:32:32 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 36.3%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:48082 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:32:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.6%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:32:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:57150 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:33:12 [loggers.py:127] Engine 000: Avg prompt throughput: 3.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:33:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:34590 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:40:32 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:40:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:53448 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:41:22 [loggers.py:127] Engine 000: Avg prompt throughput: 1.1 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.7%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:41:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.7%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:33400 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:41:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.5 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.9%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:41:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44648 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:42:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.1%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:42:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.1%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:55460 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:42:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.3%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:42:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.3%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:33634 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:45:22 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.3%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:52344 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:45:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.1 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.7%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:51584 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:45:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.5 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.0%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:45:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:54524 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:46:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:48444 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:46:22 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 36.7%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:46:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 36.7%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:42072 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:46:42 [loggers.py:127] Engine 000: Avg prompt throughput: 2.1 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 35.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:57696 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:46:52 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 34.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:57710 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:52324 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:47:02 [loggers.py:127] Engine 000: Avg prompt throughput: 4.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 33.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:43830 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:47:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 32.6%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:47:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 32.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:36092 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:47:32 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 31.9%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:47:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 31.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:48182 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:47:52 [loggers.py:127] Engine 000: Avg prompt throughput: 1.3 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 31.5%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:48:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 31.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44548 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:38766 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:48:12 [loggers.py:127] Engine 000: Avg prompt throughput: 6.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.6%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:48:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:36090 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:48:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.1%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:48:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.1%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:51768 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:48:52 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 30.0%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:49:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 30.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:39298 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:51:02 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:35732 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:51:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 30.4%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:51:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 30.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:45328 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:51:32 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:33238 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:51:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:33250 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:33258 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:33272 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:47290 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:51:52 [loggers.py:127] Engine 000: Avg prompt throughput: 2.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.1%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:52:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.1%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:42144 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:53:02 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:52746 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:53:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.5%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:53:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 29.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44438 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44450 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44464 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44474 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44888 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:53:32 [loggers.py:127] Engine 000: Avg prompt throughput: 16.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 30.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44904 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:44908 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:53:42 [loggers.py:127] Engine 000: Avg prompt throughput: 22.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 35.1%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:60678 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:60694 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:53:52 [loggers.py:127] Engine 000: Avg prompt throughput: 32.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 42.3%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:54:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 42.3%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:45162 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:59:42 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 42.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:47390 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 18:59:52 [loggers.py:127] Engine 000: Avg prompt throughput: 1.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 42.3%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:00:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 42.3%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:58444 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:00:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 42.0%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:00:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 42.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:45304 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:00:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:35044 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:00:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:00:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:54806 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:01:02 [loggers.py:127] Engine 000: Avg prompt throughput: 1.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.9%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:01:12 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:38458 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:01:32 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:01:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:52592 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:02:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.9%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:02:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:45392 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:03:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:45398 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:03:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.3%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:03:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.3%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:43580 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:04:02 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:56064 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:04:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:57814 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:04:22 [loggers.py:127] Engine 000: Avg prompt throughput: 1.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.1%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:57824 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:04:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:46114 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:04:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:04:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:39264 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:05:02 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:46784 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:05:12 [loggers.py:127] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.8%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:05:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50288 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:05:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:05:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50936 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:05:52 [loggers.py:127] Engine 000: Avg prompt throughput: 2.1 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:38186 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:06:02 [loggers.py:127] Engine 000: Avg prompt throughput: 1.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:33720 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:06:12 [loggers.py:127] Engine 000: Avg prompt throughput: 2.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.8%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:06:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:40994 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:06:32 [loggers.py:127] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:49424 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:06:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:39892 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:06:52 [loggers.py:127] Engine 000: Avg prompt throughput: 2.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.0%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:07:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:57216 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:07:12 [loggers.py:127] Engine 000: Avg prompt throughput: 2.5 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 41.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:43734 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:07:22 [loggers.py:127] Engine 000: Avg prompt throughput: 5.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:07:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:37568 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:07:42 [loggers.py:127] Engine 000: Avg prompt throughput: 2.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:52386 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:07:52 [loggers.py:127] Engine 000: Avg prompt throughput: 2.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.8%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:08:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:52816 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:08:12 [loggers.py:127] Engine 000: Avg prompt throughput: 0.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.7%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:34092 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:08:22 [loggers.py:127] Engine 000: Avg prompt throughput: 1.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:60558 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:08:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.5%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:08:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:39666 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:08:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.4%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:09:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:38640 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:09:12 [loggers.py:127] Engine 000: Avg prompt throughput: 0.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50320 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:09:22 [loggers.py:127] Engine 000: Avg prompt throughput: 1.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.0%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:09:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 40.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50246 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:09:42 [loggers.py:127] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.6%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:09:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:37652 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:10:02 [loggers.py:127] Engine 000: Avg prompt throughput: 1.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.3%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:49544 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:10:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:49554 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:10:22 [loggers.py:127] Engine 000: Avg prompt throughput: 3.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:10:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 39.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:56536 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:50570 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:10:42 [loggers.py:127] Engine 000: Avg prompt throughput: 3.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.6%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:10:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:39704 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:11:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.5 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:54490 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:54496 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:11:12 [loggers.py:127] Engine 000: Avg prompt throughput: 0.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.4%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:11:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.4%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:40648 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:11:42 [loggers.py:127] Engine 000: Avg prompt throughput: 1.4 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:11:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:33798 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:12:22 [loggers.py:127] Engine 000: Avg prompt throughput: 2.3 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.9%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:12:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:53338 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:13:32 [loggers.py:127] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.2%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:13:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.2%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:47192 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:18:52 [loggers.py:127] Engine 000: Avg prompt throughput: 2.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.5%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:19:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.5%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:60916 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:53984 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:20:42 [loggers.py:127] Engine 000: Avg prompt throughput: 3.8 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.6%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:20:52 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:34386 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:34392 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:37076 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:37080 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:21:02 [loggers.py:127] Engine 000: Avg prompt throughput: 6.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:37090 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:37104 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:37116 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:21:12 [loggers.py:127] Engine 000: Avg prompt throughput: 6.5 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.0%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:52800 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:21:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.9 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:38488 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:21:32 [loggers.py:127] Engine 000: Avg prompt throughput: 0.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.8%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:21:42 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.8%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:55312 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:21:52 [loggers.py:127] Engine 000: Avg prompt throughput: 1.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.1%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:22:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 38.1%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:56018 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:22:12 [loggers.py:127] Engine 000: Avg prompt throughput: 1.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.9%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:22:22 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.9%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:48752 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:23:42 [loggers.py:127] Engine 000: Avg prompt throughput: 2.3 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.6%
-[1;36m(APIServer pid=84789)[0;0m INFO:     127.0.0.1:60830 - "POST /v1/embeddings HTTP/1.1" 200 OK
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:23:52 [loggers.py:127] Engine 000: Avg prompt throughput: 2.7 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.8%
-[1;36m(APIServer pid=84789)[0;0m INFO 11-29 19:24:02 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 37.8%
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:48:53 [parallel_state.py:1208] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+[1;36m(EngineCore_DP0 pid=770543)[0;0m WARNING 12-11 10:48:53 [topk_topp_sampler.py:66] FlashInfer is not available. Falling back to the PyTorch-native implementation of top-p & top-k sampling. For the best performance, please install FlashInfer.
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:48:53 [gpu_model_runner.py:2707] Starting to load model /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Embedding-8B...
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:48:53 [gpu_model_runner.py:2739] Loading model from scratch...
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:48:54 [cuda.py:356] Using Flash Attention backend on V1 engine.
+[1;36m(EngineCore_DP0 pid=770543)[0;0m Loading safetensors checkpoint shards:   0% Completed | 0/4 [00:00<?, ?it/s]
+[1;36m(EngineCore_DP0 pid=770543)[0;0m Loading safetensors checkpoint shards:  25% Completed | 1/4 [00:04<00:13,  4.43s/it]
+[1;36m(EngineCore_DP0 pid=770543)[0;0m Loading safetensors checkpoint shards:  50% Completed | 2/4 [00:04<00:04,  2.10s/it]
+[1;36m(EngineCore_DP0 pid=770543)[0;0m Loading safetensors checkpoint shards:  75% Completed | 3/4 [00:09<00:03,  3.18s/it]
+[1;36m(EngineCore_DP0 pid=770543)[0;0m Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:14<00:00,  3.93s/it]
+[1;36m(EngineCore_DP0 pid=770543)[0;0m Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:14<00:00,  3.61s/it]
+[1;36m(EngineCore_DP0 pid=770543)[0;0m 
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:09 [default_loader.py:267] Loading weights took 14.59 seconds
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:09 [gpu_model_runner.py:2758] Model loading took 14.1062 GiB and 15.455005 seconds
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:20 [backends.py:548] Using cache directory: /public_hw/home/cit_shifangzhao/.cache/vllm/torch_compile_cache/a4315012b0/rank_0_0/backbone for vLLM's torch.compile
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:20 [backends.py:559] Dynamo bytecode transform time: 10.84 s
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:28 [backends.py:164] Directly load the compiled graph(s) for dynamic shape from the cache, took 6.711 s
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:29 [monitor.py:32] torch.compile takes 10.84 s in total
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:30 [gpu_worker.py:298] Available KV cache memory: 56.18 GiB
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:30 [kv_cache_utils.py:1087] GPU KV cache size: 409,056 tokens
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:30 [kv_cache_utils.py:1091] Maximum concurrency for 8,192 tokens per request: 49.93x
+[1;36m(EngineCore_DP0 pid=770543)[0;0m Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/67 [00:00<?, ?it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   4%|▍         | 3/67 [00:00<00:02, 24.76it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   9%|▉         | 6/67 [00:00<00:02, 26.77it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  13%|█▎        | 9/67 [00:00<00:02, 27.45it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  18%|█▊        | 12/67 [00:00<00:01, 27.65it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  22%|██▏       | 15/67 [00:00<00:01, 27.78it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  27%|██▋       | 18/67 [00:00<00:01, 28.21it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  31%|███▏      | 21/67 [00:00<00:01, 28.72it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  36%|███▌      | 24/67 [00:00<00:01, 28.98it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  40%|████      | 27/67 [00:00<00:01, 28.81it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  45%|████▍     | 30/67 [00:01<00:01, 28.56it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  49%|████▉     | 33/67 [00:01<00:01, 28.66it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  54%|█████▎    | 36/67 [00:01<00:01, 28.45it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  58%|█████▊    | 39/67 [00:01<00:01, 23.07it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  63%|██████▎   | 42/67 [00:01<00:01, 24.20it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  67%|██████▋   | 45/67 [00:01<00:00, 24.58it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  72%|███████▏  | 48/67 [00:01<00:00, 25.50it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  76%|███████▌  | 51/67 [00:01<00:00, 24.54it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  81%|████████  | 54/67 [00:02<00:00, 24.13it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  85%|████████▌ | 57/67 [00:02<00:00, 24.01it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  90%|████████▉ | 60/67 [00:02<00:00, 24.15it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  94%|█████████▍| 63/67 [00:02<00:00, 24.41it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  99%|█████████▊| 66/67 [00:02<00:00, 25.50it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 67/67 [00:02<00:00, 25.80it/s]
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:33 [gpu_model_runner.py:3583] Graph capturing finished in 3 secs, took 0.48 GiB
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:33 [core.py:211] init engine (profile, create kv cache, warmup model) took 23.89 seconds
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [loggers.py:147] Engine 000: vllm cache_config_info with initialization after num_gpu_blocks is: 25566
+[1;36m(EngineCore_DP0 pid=770543)[0;0m INFO 12-11 10:49:34 [gc_utils.py:41] GC Debug Config. enabled:False,top_objects:-1
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [api_server.py:1634] Supported_tasks: ['embed']
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [api_server.py:1912] Starting vLLM API server 0 on http://0.0.0.0:8382
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:34] Available routes are:
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /openapi.json, Methods: HEAD, GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /docs, Methods: HEAD, GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /docs/oauth2-redirect, Methods: HEAD, GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /redoc, Methods: HEAD, GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /health, Methods: GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /load, Methods: GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /ping, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /ping, Methods: GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /tokenize, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /detokenize, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/models, Methods: GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /version, Methods: GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/responses, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/responses/{response_id}, Methods: GET
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/responses/{response_id}/cancel, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/chat/completions, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/completions, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/embeddings, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /pooling, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /classify, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /score, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/score, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/audio/transcriptions, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/audio/translations, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /rerank, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v1/rerank, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /v2/rerank, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /scale_elastic_ep, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /is_scaling_elastic_ep, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /invocations, Methods: POST
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:49:34 [launcher.py:42] Route: /metrics, Methods: GET
+[1;36m(APIServer pid=764232)[0;0m INFO:     Started server process [764232]
+[1;36m(APIServer pid=764232)[0;0m INFO:     Waiting for application startup.
+[1;36m(APIServer pid=764232)[0;0m INFO:     Application startup complete.
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37772 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37780 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37784 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37786 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37800 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37810 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37816 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37826 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37830 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37844 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:51:05 [loggers.py:127] Engine 000: Avg prompt throughput: 17291.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.3%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:39818 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:51:15 [loggers.py:127] Engine 000: Avg prompt throughput: 1.3 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.3%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:35588 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:51:25 [loggers.py:127] Engine 000: Avg prompt throughput: 2.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.3%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:49230 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:51:35 [loggers.py:127] Engine 000: Avg prompt throughput: 1.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.3%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:48266 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:51:45 [loggers.py:127] Engine 000: Avg prompt throughput: 2.3 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.3%
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:51:55 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.3%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:39230 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:52:05 [loggers.py:127] Engine 000: Avg prompt throughput: 3.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.3%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:50376 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:52:15 [loggers.py:127] Engine 000: Avg prompt throughput: 3.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:40542 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:52:25 [loggers.py:127] Engine 000: Avg prompt throughput: 0.5 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:35456 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:52:35 [loggers.py:127] Engine 000: Avg prompt throughput: 3.3 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:36434 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:52:45 [loggers.py:127] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:48734 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:52:55 [loggers.py:127] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:48750 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:53:05 [loggers.py:127] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:35752 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:53:15 [loggers.py:127] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37996 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:53:25 [loggers.py:127] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:48678 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:53:35 [loggers.py:127] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:60830 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:43238 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:53:45 [loggers.py:127] Engine 000: Avg prompt throughput: 5.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:53:55 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.4%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:42182 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:42188 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:42192 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:54:15 [loggers.py:127] Engine 000: Avg prompt throughput: 3880.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.5%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:48950 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:36908 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:54:25 [loggers.py:127] Engine 000: Avg prompt throughput: 5.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.5%
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:54:35 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.5%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:43782 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:54:45 [loggers.py:127] Engine 000: Avg prompt throughput: 3.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.5%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:60010 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:60012 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:60016 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:51906 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:51922 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:54:55 [loggers.py:127] Engine 000: Avg prompt throughput: 25.5 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.6%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:51932 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:51942 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:51662 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:51674 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:55:05 [loggers.py:127] Engine 000: Avg prompt throughput: 36.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.8%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:51686 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:51688 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37332 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:55:15 [loggers.py:127] Engine 000: Avg prompt throughput: 39.1 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 1.1%
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37338 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO:     127.0.0.1:37352 - "POST /v1/embeddings HTTP/1.1" 200 OK
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:55:25 [loggers.py:127] Engine 000: Avg prompt throughput: 32.2 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 1.3%
+[1;36m(APIServer pid=764232)[0;0m INFO 12-11 10:55:35 [loggers.py:127] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 1.3%

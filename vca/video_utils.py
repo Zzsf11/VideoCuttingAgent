@@ -9,6 +9,7 @@ from PIL import Image
 from qwen_omni_utils.v2_5.vision_process import fetch_video
 from vca.transnetv2_pytorch.transnetv2_pytorch.inference import TransNetV2Torch
 from vca.AutoShot.autoshot_wrapper import AutoShotTorch
+from vca.build_database.shot_det_VL import process_video
 
 
 def _resize_frame(frame: Image.Image, target_height: int, target_width: int) -> Image.Image:
@@ -225,10 +226,9 @@ def _transcribe_audio_with_whisper_timestamped(
     transcribe_kwargs: Dict[str, Any] = {
         "language": language,
         "task": "transcribe",
-        "vad": False,  # Enable VAD with default settings (more conservative)
         # Alternative VAD options to try:
         # "vad": False,  # Disable VAD entirely (may help with hallucinations)
-        # "vad": "silero:v4.0",  # More aggressive VAD (may cause over-segmentation)
+        "vad": "silero:6.0",  # More aggressive VAD (may cause over-segmentation)
         "detect_disfluencies": False,
         "compute_word_confidence": True,  # Get confidence scores for each word
         # Additional parameters to reduce hallucinations:
@@ -526,8 +526,8 @@ def decode_video_to_frames(
     if shot_detection:
         # Normalize model name
         shot_detection_model = shot_detection_model.lower()
-        if shot_detection_model not in ["transnetv2", "autoshot"]:
-            raise ValueError(f"Invalid shot_detection_model: {shot_detection_model}. Must be 'transnetv2' or 'autoshot'")
+        if shot_detection_model not in ["transnetv2", "autoshot", "qwen3vl"]:
+            raise ValueError(f"Invalid shot_detection_model: {shot_detection_model}. Must be 'transnetv2', 'autoshot' or 'qwen3vl'")
         
         # Determine output paths
         final_predictions_path = shot_predictions_path or os.path.join(frames_dir, "shot_predictions.txt")
@@ -554,56 +554,99 @@ def decode_video_to_frames(
         else:
             print(f"\n[Shot Detection] Starting {shot_detection_model.upper()} shot detection at {shot_detection_fps} FPS")
             
-            # Initialize model based on choice
-            if shot_detection_model == "autoshot":
-                shot_model = AutoShotTorch()
-            else:  # transnetv2
-                shot_model = TransNetV2Torch()
-            
-            # Calculate effective end_sec for shot detection to match frame extraction
-            # This ensures shot detection processes the same duration as the extracted frames
-            shot_end_sec = end_sec
-            if max_frames is not None:
-                # Calculate the duration based on extracted frames and fps
-                effective_duration = num_frames / float(sample_fps)
-                calculated_end_sec = (start_sec or 0.0) + effective_duration
+            if shot_detection_model == "qwen3vl":
+                # Use Qwen3VL for shot detection
+                # Note: process_video expects frames to be present in frame_folder
+                # We already extracted frames to frames_dir
                 
-                # Use the minimum of user-specified end_sec and calculated end_sec
-                if shot_end_sec is None:
-                    shot_end_sec = calculated_end_sec
+                # Determine output folder (process_video writes to output_folder/shot_scenes.txt)
+                output_folder = os.path.dirname(final_scenes_path)
+                
+                process_video(
+                    frame_folder=frames_dir,
+                    output_folder=output_folder,
+                    source_fps=sample_fps,
+                    target_fps=shot_detection_fps,
+                    visualize=False,  # Disable visualization to save time
+                )
+                
+                # process_video writes shot_scenes.txt to output_folder
+                # We need to load it into scenes
+                generated_scenes_path = os.path.join(output_folder, "shot_scenes.txt")
+                
+                if os.path.exists(generated_scenes_path):
+                    scenes = np.loadtxt(generated_scenes_path, dtype=int)
+                    if scenes.ndim == 1 and len(scenes) > 0:
+                        scenes = scenes.reshape(-1, 2)
+                    
+                    # If final_scenes_path is different from generated_scenes_path, move it
+                    if os.path.abspath(generated_scenes_path) != os.path.abspath(final_scenes_path):
+                        import shutil
+                        shutil.move(generated_scenes_path, final_scenes_path)
+                    
+                    print(f"[Shot Detection] Scene boundaries saved to {final_scenes_path}")
+                    print(f"[Shot Detection] Detected {len(scenes)} scenes")
                 else:
-                    shot_end_sec = min(shot_end_sec, calculated_end_sec)
+                    print("Warning: Qwen3VL shot detection did not produce shot_scenes.txt")
+                    scenes = np.array([])
                 
-                print(f"[Shot Detection] Limiting shot detection to match frame extraction: "
-                      f"{num_frames} frames @ {sample_fps} fps = {effective_duration:.2f}s "
-                      f"(end_sec: {shot_end_sec:.2f}s)")
-            
-            # Run shot detection on the video with time range limits
-            # Note: Model will extract frames internally at the specified FPS
-            frames, s_pred, a_pred = shot_model.predict_video(
-                video_path, 
-                target_fps=shot_detection_fps,
-                start_sec=start_sec,
-                end_sec=shot_end_sec
-            )
-            
-            # Save predictions (single shot and abrupt predictions)
-            pred_arr = np.stack([s_pred, a_pred], axis=1)
-            np.savetxt(final_predictions_path, pred_arr, fmt="%.6f")
-            print(f"[Shot Detection] Predictions saved to {final_predictions_path}")
-            
-            # Convert predictions to scene boundaries
-            print("shot_detection_threshold: ", shot_detection_threshold)
-            scenes = shot_model.predictions_to_scenes(s_pred, threshold=shot_detection_threshold)
-            np.savetxt(final_scenes_path, scenes, fmt="%d")
-            print(f"[Shot Detection] Scene boundaries saved to {final_scenes_path}")
-            print(f"[Shot Detection] Detected {len(scenes)} scenes")
-            
-            # Add to result
-            result["shot_predictions_path"] = final_predictions_path
-            result["shot_scenes_path"] = final_scenes_path
-            result["scenes"] = scenes.tolist()  # Convert numpy array to list for JSON serialization
-            result["shot_detection_fps"] = shot_detection_fps
-            result["shot_detection_model"] = shot_detection_model
+                # Add to result
+                result["shot_scenes_path"] = final_scenes_path
+                result["scenes"] = scenes.tolist()
+                result["shot_detection_fps"] = shot_detection_fps
+                result["shot_detection_model"] = shot_detection_model
+                
+            else:
+                # Initialize model based on choice
+                if shot_detection_model == "autoshot":
+                    shot_model = AutoShotTorch()
+                else:  # transnetv2
+                    shot_model = TransNetV2Torch()
+                
+                # Calculate effective end_sec for shot detection to match frame extraction
+                # This ensures shot detection processes the same duration as the extracted frames
+                shot_end_sec = end_sec
+                if max_frames is not None:
+                    # Calculate the duration based on extracted frames and fps
+                    effective_duration = num_frames / float(sample_fps)
+                    calculated_end_sec = (start_sec or 0.0) + effective_duration
+                    
+                    # Use the minimum of user-specified end_sec and calculated end_sec
+                    if shot_end_sec is None:
+                        shot_end_sec = calculated_end_sec
+                    else:
+                        shot_end_sec = min(shot_end_sec, calculated_end_sec)
+                    
+                    print(f"[Shot Detection] Limiting shot detection to match frame extraction: "
+                          f"{num_frames} frames @ {sample_fps} fps = {effective_duration:.2f}s "
+                          f"(end_sec: {shot_end_sec:.2f}s)")
+                
+                # Run shot detection on the video with time range limits
+                # Note: Model will extract frames internally at the specified FPS
+                frames, s_pred, a_pred = shot_model.predict_video(
+                    video_path, 
+                    target_fps=shot_detection_fps,
+                    start_sec=start_sec,
+                    end_sec=shot_end_sec
+                )
+                
+                # Save predictions (single shot and abrupt predictions)
+                pred_arr = np.stack([s_pred, a_pred], axis=1)
+                np.savetxt(final_predictions_path, pred_arr, fmt="%.6f")
+                print(f"[Shot Detection] Predictions saved to {final_predictions_path}")
+                
+                # Convert predictions to scene boundaries
+                print("shot_detection_threshold: ", shot_detection_threshold)
+                scenes = shot_model.predictions_to_scenes(s_pred, threshold=shot_detection_threshold)
+                np.savetxt(final_scenes_path, scenes, fmt="%d")
+                print(f"[Shot Detection] Scene boundaries saved to {final_scenes_path}")
+                print(f"[Shot Detection] Detected {len(scenes)} scenes")
+                
+                # Add to result
+                result["shot_predictions_path"] = final_predictions_path
+                result["shot_scenes_path"] = final_scenes_path
+                result["scenes"] = scenes.tolist()  # Convert numpy array to list for JSON serialization
+                result["shot_detection_fps"] = shot_detection_fps
+                result["shot_detection_model"] = shot_detection_model
 
     return result

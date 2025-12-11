@@ -58,8 +58,8 @@ vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-I
     --gpu-memory-utilization 0.9 \
     --trust-remote-code \
     --tensor-parallel-size 1 \
-    --enable-auto-tool-choice \
-    --tool-call-parser hermes \
+    # --enable-auto-tool-choice \
+    # --tool-call-parser hermes \
 
 echo "vLLM server has been stopped."
 

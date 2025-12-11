@@ -11,18 +11,18 @@ SHOT_DETECTION_FPS = 2.0 # frames per second
 SHOT_DETECTION_THRESHOLD = 0.3 # threshold for shot detection
 SHOT_DETECTION_PREDICTIONS_PATH = "shot_predictions.txt"
 SHOT_DETECTION_SCENES_PATH = "shot_scenes.txt"
-SHOT_DETECTION_MODEL = "autoshot"
-CLIP_SECS = 60 # max clip seconds
+SHOT_DETECTION_MODEL = "Qwen3VL" # "autoshot", "transnetv2", "Qwen3VL"
+CLIP_SECS = 30 # max clip seconds
+MERGE_SHORT_SCENES = True  # if True, merge consecutive short scenes into longer clips
+SCENE_MERGE_METHOD = "min_length"  # "max_length" or "min_length" - how to merge scenes
+SCENE_MIN_LENGTH_SECS = 3  # minimum scene length in seconds (used when SCENE_MERGE_METHOD="min_length")
 WHOLE_VIDEO_SUMMARY_BATCH_SIZE = 50  # number of clip captions per summary batch
-
-
-# Memory optimization settings
 USE_BATCH_PROCESSING = True  # If True, use ffmpeg direct extraction to avoid loading entire video into memory
-VIDEO_BATCH_SIZE = 500  # Number of frames to process at once (only used with legacy processing mode)
+
 
 # ------------------ Video model configuration ------------------ #
 # Video Analysis Model
-ASR_MODEL = "large-v3" # tiny, base, small, medium, large, large-v2, large-v3 from https://github.com/linto-ai/whisper-timestamped
+ASR_MODEL = "large-v3-turbo" # tiny, base, small, medium, large, large-v2, large-v3 from https://github.com/linto-ai/whisper-timestamped
 VIDEO_ANALYSIS_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct"
 VIDEO_ANALYSIS_MODEL_MAX_TOKEN = 16384  # Max tokens to generate (not total context length)
 VLLM_ENDPOINT = "http://localhost:8888/v1/chat/completions"  # vLLM base URL (will append /v1/chat/completions)

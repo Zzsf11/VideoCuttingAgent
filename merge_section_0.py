@@ -29,7 +29,7 @@ PROJECT_ROOT = Path("/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent").res
 AUDIO_PATH = PROJECT_ROOT / "reports/audio/proposal_section_2.mp3"
 VIDEO_GLOB = "output_section_2_*.mp4"
 OUTPUT_PATH = PROJECT_ROOT / "merged_section_2.mp4"
-
+``
 
 def extract_last_int_from_stem(path: Path) -> int:
     match = re.search(r"(\d+)(?!.*\d)", path.stem)

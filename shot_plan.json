@@ -1,48 +1,89 @@
 === STRUCTURE PROPOSAL ===
 {
-  "overall_theme": "The transformation of Bruce Wayne into Batman: A journey from trauma and loss to redemption, resilience, and the embrace of justice through personal sacrifice and inner strength.",
-  "narrative_logic": "The narrative follows a non-linear but emotionally coherent arc, beginning with the origin of Bruce Wayne’s trauma, tracing his physical and psychological evolution through isolation, training, and moral conflict, culminating in his emergence as Batman. The story emphasizes internal growth—fear transformed into purpose, pain into power—and concludes with a quiet, introspective resolution that underscores his enduring commitment to Gotham.",
+  "overall_theme": "The beauty and soul of Lisbon: a journey through vibrant culture, historic grandeur, and serene natural vistas, interwoven with emotional depth and quiet introspection.",
+  "narrative_logic": "The video follows a contemplative, emotional arc that mirrors the music’s progression—from introspection and melancholy to catharsis and hope. It begins with the quiet beauty of Lisbon’s hidden corners, moves through its bustling energy and sacred spaces, ascends to panoramic views that symbolize transcendence, and concludes with a harmonious blend of urban life and coastal serenity. The narrative is non-linear but emotionally coherent, using visual contrasts (light/dark, noise/quiet, movement/stillness) to reflect the music’s emotional journey.",
   "video_structure": [
     {
-      "content": "A young Bruce Wayne explores a dimly lit greenhouse, his curiosity piqued by a strange, glowing stone. He reaches for it, triggering a sudden collapse of the floor. He falls into a dark, echoing well, the camera spiraling downward as he screams. The scene cuts to a nightmare: his parents are shot in a dark alley, the sound of gunshots echoing as he watches helplessly. The image fades to black, leaving only the echo of his mother’s voice.",
-      "key_words": "young bruce wayne, greenhouse, falling, nightmare, parents murder",
+      "content": "Opening wide-angle shot of a sunlit cobblestone street in Lisbon, framed by ornate stone archways. A vintage tram glides past, while pedestrians stroll beneath rainbow umbrellas and floral decorations. The camera glides slowly, capturing the rhythm of daily life in the historic district. The scene is quiet yet alive, with soft ambient sounds of distant chatter and street music.",
+      "key_words": "Lisbon cobblestone street, vintage tram, rainbow umbrellas, historic archways, outdoor cafes",
       "audio_section": "Intro",
-      "emotion": "Melancholic, introspective, haunting",
+      "emotion": "Introspective, melancholic, longing",
       "start_time": "00:00",
       "end_time": "00:36"
     },
     {
-      "content": "Bruce, now a teenager, is shown in a bleak prison cell, bruised and exhausted. He is being interrogated by a shadowy figure. Flashbacks of his parents’ murder flash across his face. He is then dragged into a training chamber, where he is forced to confront his deepest fears—bats, darkness, and the sound of gunshots. He collapses, but rises again, determined. The scene ends with him standing before Ra's al Ghul, who watches him with cold intensity.",
-      "key_words": "prison, training, fear, Ra's al Ghul, determination",
+      "content": "Close-up of a woman sitting at a café table, sipping coffee, her gaze distant. The camera pans across pastel-colored buildings adorned with intricate blue-and-white azulejo tiles. A tuk-tuk weaves through a narrow alley, its bright colors contrasting with the muted stone. The scene feels intimate, as if observing a private moment in a city that moves too fast to notice.",
+      "key_words": "Lisbon café, azulejo tiles, tuk-tuk, pastel buildings, quiet observation",
       "audio_section": "Verse 1",
-      "emotion": "Somber, vulnerable, resilient",
+      "emotion": "Somber, reflective, emotionally vulnerable",
       "start_time": "00:36",
       "end_time": "01:10"
     },
     {
-      "content": "A montage of Bruce’s training: he runs through a forest at dawn, climbs sheer cliffs, fights in hand-to-hand combat, and meditates in silence. The camera captures his physical transformation—his body lean and strong, his eyes sharp and focused. The sequence culminates in a dramatic shot of him standing atop a mountain, the wind whipping around him, as the sun rises behind him. The music swells with a powerful cello melody.",
-      "key_words": "training montage, physical transformation, discipline, strength, sunrise",
+      "content": "Transition to the interior of a majestic Baroque church. The camera moves slowly through the nave, highlighting soaring stone arches, gilded altarpieces, and stained-glass windows casting warm, golden light. A single candle flickers in the silence. The stillness contrasts sharply with the outside world, evoking reverence and spiritual depth.",
+      "key_words": "Baroque church, stained-glass windows, gilded altarpiece, candlelight, sacred space",
       "audio_section": "Instrumental Bridge",
-      "emotion": "Dramatic, powerful, transcendent",
+      "emotion": "Dramatic, introspective, building intensity",
       "start_time": "01:11",
       "end_time": "01:42"
     },
     {
-      "content": "Bruce returns to Gotham, now as Batman. He confronts Dr. Crane in a dark, industrial warehouse, the air thick with smoke and the sound of bats. The fight is intense—Batman uses his agility and intellect to outmaneuver Crane, who is fueled by hallucinogenic toxin. The scene ends with Batman standing over Crane, who is screaming in terror as the warehouse erupts in flames. The music reaches a crescendo with the full vocal and instrumental force.",
-      "key_words": "Batman, Dr. Crane, fight, warehouse, fire, bats",
+      "content": "The camera ascends a historic stone staircase, revealing panoramic views of terracotta rooftops cascading toward the Tagus River. Cruise ships glide across the water, and the Santa Justa Lift rises like a mechanical sculpture against the sky. The scene expands in scale, symbolizing a shift from inner reflection to outward vision.",
+      "key_words": "Santa Justa Lift, terracotta rooftops, Tagus River, panoramic view, staircase ascent",
       "audio_section": "Chorus",
-      "emotion": "Cathartic, triumphant, hopeful",
+      "emotion": "Cathartic, hopeful, powerful",
       "start_time": "01:43",
       "end_time": "02:28"
     },
     {
-      "content": "Batman stands on a rooftop, rain falling around him. He watches the city below, his silhouette framed by the glow of neon lights. The camera slowly zooms in on his face, revealing a quiet resolve. He turns and walks away, disappearing into the shadows. The music fades gently, leaving only the sound of rain and a soft piano note.",
-      "key_words": "Batman, rooftop, rain, city, solitude, resolve",
+      "content": "Aerial drone shot sweeping over the city, capturing the vibrant energy of the streets below. A person in a Spider-Man costume walks through a crowd, adding a touch of whimsy and life. The camera then glides along a coastal promenade, where the city meets the sea. The final shot is a wide view of the ocean at sunset, with the city skyline silhouetted against the horizon.",
+      "key_words": "Aerial view, Spider-Man costume, coastal promenade, sunset, city skyline",
       "audio_section": "Outro",
-      "emotion": "Peaceful, reflective, somber",
+      "emotion": "Serene, peaceful, reflective",
       "start_time": "02:29",
       "end_time": "02:58"
     }
   ]
 }
+
+=== Draft_shot_plan ===
+{
+  "shots": [
+    {
+      "id": 1,
+      "time_duration": 12.0,
+      "content": "A wide-angle, slow-moving shot glides along a sunlit cobblestone street in Lisbon, framed by ornate stone archways. A vintage tram moves gently through the scene, while pedestrians stroll beneath rainbow umbrellas and floral decorations. The camera captures the quiet rhythm of daily life, with soft ambient sounds of distant chatter and street music. The scene is bathed in warm, golden light, emphasizing the historic charm and vibrant colors of the district.",
+      "story_beat": "Establishing the setting and mood of Lisbon’s historic district, introducing the viewer to the atmosphere of quiet life and cultural richness.",
+      "emotion": "Mysterious, calm, introspective",
+      "visuals": "Wide-angle static shot with slow camera glide, sun-drenched cobblestone street, ornate stone archways, vintage tram, rainbow umbrellas, floral decorations, pedestrians, outdoor cafes, soft natural lighting."
+    },
+    {
+      "id": 2,
+      "time_duration": 10.0,
+      "content": "The camera shifts to a closer, pensive view of a narrow cobblestone alley flanked by colorful buildings. A vintage tram passes slowly, its movement echoing the melancholic string melody. Pedestrians pause to watch, their expressions contemplative. The camera lingers on the interplay of light and shadow on the pastel facades, emphasizing the emotional weight of the moment.",
+      "story_beat": "Deepening the emotional resonance of the scene, transitioning from observation to introspection as the music builds.",
+      "emotion": "Pensive, melancholic, building anticipation",
+      "visuals": "Slow, deliberate camera movement through a narrow alley, pastel-colored buildings, vintage tram, pedestrians, soft shadows, warm sunlight, emotional focus on faces and architecture."
+    },
+    {
+      "id": 3,
+      "time_duration": 10.0,
+      "content": "The scene accelerates as the camera follows a vibrant yellow tram moving along the cobblestone street, now with a driving electronic beat. The camera tracks the tram’s motion, cutting between dynamic angles—low-angle shots of the wheels on the tracks, wide views of the bustling street, and close-ups of pedestrians moving with purpose. The rhythm of the music syncs with the tram’s pace, creating a sense of forward momentum.",
+      "story_beat": "Transitioning from introspection to action, mirroring the music’s shift to a driving rhythm and purposeful energy.",
+      "emotion": "Purposeful, determined, epic",
+      "visuals": "Fast-paced tracking shots, rhythmic cuts, low-angle tram shots, wide street views, dynamic pedestrian movement, bright sunlight, sync with drum beat."
+    },
+    {
+      "id": 4,
+      "time_duration": 4.0,
+      "content": "The climax unfolds with a powerful, wide-angle shot of the tram approaching the Arco da Rua Augusta, framed by the arch’s grandeur. The camera holds steady as the tram passes through, the music reaching its peak with full instrumentation. The scene is bathed in golden light, with a burst of color from rainbow umbrellas and floral decorations. The moment feels triumphant, as if the city itself is celebrating its vibrant life.",
+      "story_beat": "The emotional and visual climax of the sequence, culminating in a sense of triumph and unity with the city’s spirit.",
+      "emotion": "Triumphant, powerful, climactic",
+      "visuals": "Static wide shot of Arco da Rua Augusta, tram passing through, rainbow umbrellas, floral decorations, golden sunlight, sharp shadows, sync with drum hits and full musical crescendo."
+    }
+  ]
+}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 12.0, "content": "A wide-angle, slow-moving shot glides along a sunlit cobblestone street in Lisbon, framed by ornate stone archways. A vintage tram moves gently through the scene, while pedestrians stroll beneath rainbow umbrellas and floral decorations. The camera captures the quiet rhythm of daily life, with soft ambient sounds of distant chatter and street music. The scene is bathed in warm, golden light, emphasizing the historic charm and vibrant colors of the district.", "story_beat": "Establishing the setting and mood of Lisbon’s historic district, introducing the viewer to the atmosphere of quiet life and cultural richness.", "emotion": "Mysterious, calm, introspective", "visuals": "Wide-angle static shot with slow camera glide, sun-drenched cobblestone street, ornate stone archways, vintage tram, rainbow umbrellas, floral decorations, pedestrians, outdoor cafes, soft natural lighting."}
 

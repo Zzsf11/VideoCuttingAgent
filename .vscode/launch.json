@@ -39,15 +39,15 @@
             "justMyCode": false
         },
         {
-            "name": "Python: vca.build_database.audio_caption",
+            "name": "vca.build_database.audio_caption_madmom",
             "type": "python",
             "request": "launch",
-            "module": "vca.build_database.audio_caption",
+            "module": "vca.build_database.audio_caption_madmom",
             "console": "integratedTerminal",
             "justMyCode": false
         },
         {
-            "name": "Python: vca.build_database.build_vectorDB",
+            "name": "vca.build_database.build_vectorDB",
             "type": "python",
             "request": "launch",
             "module": "vca.build_database.build_vectorDB",
@@ -56,7 +56,7 @@
         }
         ,
         {
-            "name": "Python: vca.core",
+            "name": "vca.core",
             "type": "python",
             "request": "launch",
             "module": "vca.core",
@@ -64,10 +64,40 @@
             "justMyCode": false
         },
                 {
-            "name": "Python: vca.Screenwriter",
+            "name": "vca.Screenwriter",
             "type": "python",
             "request": "launch",
             "module": "vca.Screenwriter",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "vca.shot_VL",
+            "type": "python",
+            "request": "launch",
+            "module": "vca.shot_VL",
+            "args": [
+                "--frame_folder",
+                "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY/frames",
+                "--output_folder",
+                "shot_pre.json"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "vca.build_database.shot_det_VL",
+            "type": "python",
+            "request": "launch",
+            "module": "vca.build_database.shot_det_VL",
+            "args": [
+                "--frame_folder",
+                "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY/frames",
+                "--output_folder",
+                "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY/captions",
+                "--window_secs",
+                "30"
+            ],
             "console": "integratedTerminal",
             "justMyCode": false
         }
