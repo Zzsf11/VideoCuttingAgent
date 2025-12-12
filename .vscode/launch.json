@@ -39,10 +39,10 @@
             "justMyCode": false
         },
         {
-            "name": "vca.build_database.audio_caption_madmom",
+            "name": "vca.build_database.audio_caption_madmom_offline",
             "type": "python",
             "request": "launch",
-            "module": "vca.build_database.audio_caption_madmom",
+            "module": "vca.build_database.audio_caption_madmom_offline",
             "console": "integratedTerminal",
             "justMyCode": false
         },

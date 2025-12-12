@@ -37,6 +37,37 @@ VLLM_ENDPOINT = "http://localhost:8888/v1/chat/completions"  # vLLM base URL (wi
 # ------------------ Audio model configuration ------------------ #
 AUDIO_ANALYSIS_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Instruct"
 AUDIO_ANALYSIS_MODEL_MAX_TOKEN = 32768  # Max tokens to generate (not total context length)
+VLLM_AUDIO_ENDPOINT = "http://localhost:8890/v1/chat/completions"  # vLLM endpoint for Qwen3-Omni audio model
+# 启动audio服务的命令示例:
+# vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Instruct \
+#     --host 0.0.0.0 \
+#     --port 8890 \
+#     --max-model-len 32768 \
+#     --gpu-memory-utilization 0.9 \
+#     --trust-remote-code \
+#     --tensor-parallel-size 2
+
+# ------------------ Audio analysis with Madmom configuration ------------------ #
+# Madmom detection parameters
+AUDIO_ONSET_THRESHOLD = 0.6  # Onset detection threshold (higher = fewer onsets)
+AUDIO_ONSET_COMBINE = 3.0  # Time window for combining nearby onsets (seconds)
+AUDIO_MIN_BPM = 55.0  # Minimum BPM for beat detection
+AUDIO_MAX_BPM = 215.0  # Maximum BPM for beat detection
+
+# Segment filtering parameters
+AUDIO_MIN_SEGMENT_DURATION = 3.0  # Minimum segment duration in seconds
+AUDIO_MAX_SEGMENT_DURATION = 15.0  # Maximum segment duration in seconds
+AUDIO_MAX_SEGMENTS = 30  # Maximum number of segments to create
+AUDIO_MERGE_CLOSE = 0.1  # Merge keypoints closer than this threshold (seconds)
+
+# Section-based filtering parameters
+AUDIO_USE_STAGE1_SECTIONS = True  # Whether to use AI-identified sections for filtering
+AUDIO_SECTION_TOP_K = 3  # Number of keypoints to keep per section
+AUDIO_SECTION_MIN_INTERVAL = 0.0  # Minimum interval between keypoints within each section
+AUDIO_SECTION_ENERGY_PERCENTILE = 70.0  # Energy percentile threshold within each section
+
+# Batch processing
+AUDIO_BATCH_SIZE = 4  # Number of audio segments to process in parallel
 
 
 # ------------------ Text embedding model configuration ------------------ #

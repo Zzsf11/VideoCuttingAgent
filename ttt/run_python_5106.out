@@ -1,0 +1,17 @@
+========================================================
+Loading environment modules...
+Environment loaded.
+
+========================================================
+Job ID: 5106
+Node: gpuh04
+Start time: 2025年 12月 11日 星期四 17:44:08 CST
+Command: python /public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/vca/build_database/audio_caption_madmom.py
+========================================================
+Traceback (most recent call last):
+  File "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/vca/build_database/audio_caption_madmom.py", line 40, in <module>
+    from ..audio_utils import process_mm_info_no_librosa
+ImportError: attempted relative import with no known parent package
+========================================================
+End time: 2025年 12月 11日 星期四 17:44:44 CST
+========================================================

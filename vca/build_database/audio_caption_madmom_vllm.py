@@ -1,23 +1,23 @@
 """
-Audio Caption Module using Madmom-based Segmentation
+Audio Caption Module using Madmom-based Segmentation (vLLM Version)
 
 This module provides audio captioning functionality using Qwen3-Omni model
-with Madmom keypoint detection for intelligent audio segmentation.
+via vLLM server with Madmom keypoint detection for intelligent audio segmentation.
 
 Features:
     - Madmom integration: use music keypoints (beats, onsets) for segmentation
+    - vLLM server integration: call Qwen3-Omni via HTTP API
     - Batch processing for efficient parallel analysis of multiple segments
     - Configurable parameters with config file defaults
 
 Requirements:
-    - transformers
-    - torch
+    - requests
     - soundfile
     - madmom
     - numpy
 
 Usage:
-    from vca.build_database.audio_caption_madmom import caption_audio_with_madmom_segments
+    from vca.build_database.audio_caption_madmom_vllm import caption_audio_with_madmom_segments
 
     result = caption_audio_with_madmom_segments(
         audio_path="/path/to/audio.mp3",
@@ -25,19 +25,19 @@ Usage:
     )
 """
 
+import base64
 import json
 import os
 import re
 import sys
 import tempfile
+from mimetypes import guess_type
 from typing import Dict, List, Optional
 
+import requests
 import soundfile as sf
 import numpy as np
-from transformers import Qwen3OmniMoeForConditionalGeneration, Qwen3OmniMoeProcessor
 
-# Use our custom audio processing without librosa
-from ..audio_utils import process_mm_info_no_librosa
 from .. import config
 
 # --------------------------------------------------------------------------- #
@@ -81,68 +81,169 @@ Output format (JSON):
 }
 """
 
-# Global variables to store loaded model and processor
-_MODEL = None
-_PROCESSOR = None
+# --------------------------------------------------------------------------- #
+#                           vLLM API Configuration                            #
+# --------------------------------------------------------------------------- #
+# Default vLLM endpoint for Qwen3-Omni audio model
+# Can be overridden via config.VLLM_AUDIO_ENDPOINT
+VLLM_AUDIO_ENDPOINT = getattr(config, 'VLLM_AUDIO_ENDPOINT', 'http://localhost:8890')
+VLLM_AUDIO_MODEL = getattr(config, 'AUDIO_ANALYSIS_MODEL', '/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Instruct')
 
 
 # --------------------------------------------------------------------------- #
-#                           Model Loading Function                            #
+#                           Audio Encoding Function                           #
 # --------------------------------------------------------------------------- #
-def load_model_and_processor(
-    model_path: str = None,
-    device_map: str = "auto",
-    dtype: str = "auto",
-    use_flash_attn2: bool = False,
-):
+def local_audio_to_data_url(audio_path: str) -> str:
     """
-    Load Qwen3-Omni model and processor.
-
+    Encode a local audio file into data URL format.
+    
     Args:
-        model_path: Path to the model checkpoint
-        device_map: Device map for model loading
-        dtype: Data type for model loading
-        use_flash_attn2: Whether to use flash attention 2
-
+        audio_path: Path to the audio file
+        
     Returns:
-        Tuple of (model, processor)
+        Data URL string (data:audio/xxx;base64,...)
     """
-    global _MODEL, _PROCESSOR
+    # Guess the MIME type of the audio based on the file extension
+    mime_type, _ = guess_type(audio_path)
+    if mime_type is None:
+        # Default to wav if cannot determine
+        mime_type = "audio/wav"
+    
+    # Read and encode the audio file
+    with open(audio_path, "rb") as audio_file:
+        base64_encoded_data = base64.b64encode(audio_file.read()).decode("utf-8")
+    
+    # Construct the data URL
+    return f"data:{mime_type};base64,{base64_encoded_data}"
 
-    # Return cached model if already loaded
-    if _MODEL is not None and _PROCESSOR is not None:
-        return _MODEL, _PROCESSOR
 
-    # Use config defaults if not specified
-    if model_path is None:
-        model_path = getattr(config, 'AUDIO_ANALYSIS_MODEL', config.VIDEO_ANALYSIS_MODEL)
-
-    print(f"Loading model from: {model_path}")
-
-    # Load model with optional flash attention
-    if use_flash_attn2:
-        model = Qwen3OmniMoeForConditionalGeneration.from_pretrained(
-            model_path,
-            dtype=dtype,
-            attn_implementation='flash_attention_2',
-            device_map=device_map
-        )
+# --------------------------------------------------------------------------- #
+#                           vLLM API Call Function                            #
+# --------------------------------------------------------------------------- #
+def call_vllm_audio_model(
+    messages: List[Dict],
+    endpoint: str = None,
+    model_name: str = None,
+    api_key: str = "EMPTY",
+    audio_paths: List[str] = None,
+    max_tokens: int = 4096,
+    temperature: float = 0.7,
+    top_p: float = 0.95,
+    return_json: bool = False,
+) -> Dict:
+    """
+    Call vLLM Qwen3-Omni model with audio input via OpenAI-compatible API.
+    
+    Args:
+        messages: List of message dictionaries with 'role' and 'content'
+        endpoint: vLLM server endpoint URL (e.g., "http://localhost:8890")
+        model_name: Name of the model to use
+        api_key: API key for authentication (default: "EMPTY" for local vLLM)
+        audio_paths: List of paths to audio files to include in the request
+        max_tokens: Maximum number of tokens to generate
+        temperature: Sampling temperature
+        top_p: Top-p sampling parameter
+        return_json: Whether to return JSON formatted response
+        
+    Returns:
+        dict: Response containing 'content'
+    """
+    import copy
+    
+    # Use defaults from config if not specified
+    if endpoint is None:
+        endpoint = VLLM_AUDIO_ENDPOINT
+    if model_name is None:
+        model_name = VLLM_AUDIO_MODEL
+    
+    headers = {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer ' + api_key
+    }
+    
+    # Construct URL
+    endpoint = endpoint.rstrip('/')
+    if '/v1/chat/completions' in endpoint:
+        url = endpoint
+    elif endpoint.endswith('/v1'):
+        url = f"{endpoint}/chat/completions"
     else:
-        model = Qwen3OmniMoeForConditionalGeneration.from_pretrained(
-            model_path,
-            device_map=device_map,
-            dtype=dtype
-        )
-
-    # Load processor
-    processor = Qwen3OmniMoeProcessor.from_pretrained(model_path)
-
-    # Cache the model and processor
-    _MODEL = model
-    _PROCESSOR = processor
-
-    print("Model and processor loaded successfully!")
-    return model, processor
+        url = f"{endpoint}/v1/chat/completions"
+    
+    payload = {
+        "model": model_name,
+        "messages": copy.deepcopy(messages),
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "top_p": top_p,
+    }
+    
+    if return_json:
+        payload["response_format"] = {"type": "json_object"}
+    
+    # Add audio files to the message content
+    if audio_paths:
+        # Check if last message is from user
+        if not payload['messages'] or payload['messages'][-1]['role'] != 'user':
+            payload['messages'].append({"role": "user", "content": []})
+        else:
+            # Convert string content to list if needed
+            if isinstance(payload['messages'][-1]['content'], str):
+                text_content = payload['messages'][-1]['content']
+                payload['messages'][-1]['content'] = [{"type": "text", "text": text_content}]
+            elif not isinstance(payload['messages'][-1]['content'], list):
+                payload['messages'][-1]['content'] = []
+        
+        # Add audio files to content
+        for audio_path in audio_paths:
+            audio_data_url = local_audio_to_data_url(audio_path)
+            # Use audio_url type for vLLM/Qwen3-Omni (similar to video_url format)
+            payload['messages'][-1]['content'].insert(0, {
+                "type": "audio_url",
+                "audio_url": {"url": audio_data_url},
+            })
+    
+    # Make request with retry logic
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            # Debug: show payload size
+            import json as json_module
+            payload_str = json_module.dumps(payload)
+            payload_size_mb = len(payload_str) / (1024 * 1024)
+            print(f"  [DEBUG] Sending request to {url} (payload size: {payload_size_mb:.2f} MB)...")
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            
+            if response.status_code != 200:
+                error_text = response.text
+                if attempt < max_retries - 1:
+                    print(f"Retry {attempt + 1}/{max_retries}: vLLM API returned status {response.status_code}")
+                    import time
+                    time.sleep(2 ** attempt)
+                    continue
+                raise Exception(f"vLLM API returned status {response.status_code}: {error_text}")
+            
+            response_data = response.json()
+            message = response_data['choices'][0]['message']
+            return {"content": message.get('content', '').strip()}
+            
+        except requests.exceptions.Timeout:
+            if attempt < max_retries - 1:
+                print(f"Retry {attempt + 1}/{max_retries}: Request timed out")
+                import time
+                time.sleep(2 ** attempt)
+                continue
+            raise
+        except Exception as e:
+            if attempt < max_retries - 1 and "rate limit" in str(e).lower():
+                print(f"Retry {attempt + 1}/{max_retries}: {e}")
+                import time
+                time.sleep(2 ** attempt)
+                continue
+            raise
+    
+    return {"content": ""}
 
 
 # --------------------------------------------------------------------------- #
@@ -241,24 +342,25 @@ def segment_audio_file(
 def generate_audio_captions_batch(
     audio_paths: List[str],
     prompt: str,
-    model,
-    processor,
+    endpoint: str = None,
+    model_name: str = None,
     temperature: float = 0.7,
     top_p: float = 0.95,
-    top_k: int = 20,
     max_tokens: int = 4096,
 ) -> List[str]:
     """
-    Generate audio captions for multiple audio files in a batch.
+    Generate audio captions for multiple audio files via vLLM API.
+    
+    Note: vLLM doesn't support true batch inference for audio via OpenAI API,
+    so this function processes each audio file sequentially.
 
     Args:
         audio_paths: List of paths to audio files
         prompt: User prompt for caption generation
-        model: Loaded Qwen3-Omni model
-        processor: Loaded Qwen3-Omni processor
+        endpoint: vLLM server endpoint URL
+        model_name: Name of the model to use
         temperature: Sampling temperature
         top_p: Top-p sampling parameter
-        top_k: Top-k sampling parameter
         max_tokens: Maximum tokens to generate
 
     Returns:
@@ -267,77 +369,31 @@ def generate_audio_captions_batch(
     if not audio_paths:
         return []
 
-    # Prepare batch messages
-    batch_messages = []
+    responses = []
+    
     for audio_path in audio_paths:
         messages = [
             {
                 "role": "user",
-                "content": [
-                    {"type": "audio", "audio": audio_path},
-                    {"type": "text", "text": prompt}
-                ],
+                "content": prompt
             }
         ]
-        batch_messages.append(messages)
-
-    USE_AUDIO_IN_VIDEO = True
-
-    # Process each message and prepare batch inputs
-    batch_texts = []
-    batch_audios = []
-
-    for messages in batch_messages:
-        # Apply chat template
-        text = processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
-        batch_texts.append(text)
-
-        # Process multimodal information
-        audios, _, _ = process_mm_info_no_librosa(messages, use_audio_in_video=USE_AUDIO_IN_VIDEO)
-        # audios is a list, we take the first one for each message
-        if audios:
-            batch_audios.append(audios[0])
-
-    # Prepare batch inputs
-    inputs = processor(
-        text=batch_texts,
-        audio=batch_audios if batch_audios else None,
-        images=None,
-        videos=None,
-        return_tensors="pt",
-        use_audio_in_video=USE_AUDIO_IN_VIDEO,
-        padding=True,  # Enable padding for batch processing
-        audio_kwargs={
-            "max_length": 4800000,
-            "return_attention_mask": True,
-        }
-    )
-
-    # Move inputs to model device
-    inputs = inputs.to(model.device).to(model.dtype)
-
-    # Generate response for batch
-    # Note: Batch inference doesn't support audio output, so we set thinker_return_dict_in_generate=False
-    text_ids, _ = model.generate(
-        **inputs,
-        thinker_return_dict_in_generate=False,  # No audio output in batch mode
-        thinker_max_new_tokens=max_tokens,
-        thinker_do_sample=True,
-        thinker_temperature=temperature,
-        thinker_top_p=top_p,
-        thinker_top_k=top_k,
-        return_audio = False,
-        use_audio_in_video=USE_AUDIO_IN_VIDEO
-    )
-
-    # Decode responses
-    # When thinker_return_dict_in_generate=False, text_ids is the output directly
-    responses = processor.batch_decode(
-        text_ids[:, inputs["input_ids"].shape[1]:],
-        skip_special_tokens=True,
-        clean_up_tokenization_spaces=False,
-    )
-
+        
+        try:
+            response = call_vllm_audio_model(
+                messages=messages,
+                endpoint=endpoint,
+                model_name=model_name,
+                audio_paths=[audio_path],
+                max_tokens=max_tokens,
+                temperature=temperature,
+                top_p=top_p,
+            )
+            responses.append(response.get('content', ''))
+        except Exception as e:
+            print(f"Error processing audio {audio_path}: {e}")
+            responses.append('')
+    
     return responses
 
 
@@ -346,23 +402,21 @@ def generate_audio_captions_batch(
 # --------------------------------------------------------------------------- #
 def generate_overall_analysis(
     audio_path: str,
-    model,
-    processor,
+    endpoint: str = None,
+    model_name: str = None,
     temperature: float = 0.7,
     top_p: float = 0.95,
-    top_k: int = 20,
     max_tokens: int = 4096,
 ) -> str:
     """
-    Generate overall analysis for the entire audio file.
+    Generate overall analysis for the entire audio file via vLLM API.
 
     Args:
         audio_path: Path to the audio file
-        model: Loaded Qwen3-Omni model
-        processor: Loaded Qwen3-Omni processor
+        endpoint: vLLM server endpoint URL
+        model_name: Name of the model to use
         temperature: Sampling temperature
         top_p: Top-p sampling parameter
-        top_k: Top-k sampling parameter
         max_tokens: Maximum tokens to generate
 
     Returns:
@@ -371,59 +425,21 @@ def generate_overall_analysis(
     messages = [
         {
             "role": "user",
-            "content": [
-                {"type": "audio", "audio": audio_path},
-                {"type": "text", "text": AUDIO_OVERALL_PROMPT}
-            ],
+            "content": AUDIO_OVERALL_PROMPT
         }
     ]
 
-    USE_AUDIO_IN_VIDEO = True
-
-    # Apply chat template
-    text = processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
-
-    # Process multimodal information
-    audios, _, _ = process_mm_info_no_librosa(messages, use_audio_in_video=USE_AUDIO_IN_VIDEO)
-
-    # Prepare inputs
-    inputs = processor(
-        text=text,
-        audio=audios if audios else None,
-        images=None,
-        videos=None,
-        return_tensors="pt",
-        use_audio_in_video=USE_AUDIO_IN_VIDEO,
-        audio_kwargs={
-            "max_length": 4800000,
-            "return_attention_mask": True,
-        }
+    response = call_vllm_audio_model(
+        messages=messages,
+        endpoint=endpoint,
+        model_name=model_name,
+        audio_paths=[audio_path],
+        max_tokens=max_tokens,
+        temperature=temperature,
+        top_p=top_p,
     )
 
-    # Move inputs to model device
-    inputs = inputs.to(model.device).to(model.dtype)
-
-    # Generate response
-    text_ids, _ = model.generate(
-        **inputs,
-        thinker_return_dict_in_generate=False,
-        thinker_max_new_tokens=max_tokens,
-        thinker_do_sample=True,
-        thinker_temperature=temperature,
-        thinker_top_p=top_p,
-        thinker_top_k=top_k,
-        return_audio=False,
-        use_audio_in_video=USE_AUDIO_IN_VIDEO
-    )
-
-    # Decode response
-    response = processor.batch_decode(
-        text_ids[:, inputs["input_ids"].shape[1]:],
-        skip_special_tokens=True,
-        clean_up_tokenization_spaces=False,
-    )[0]
-
-    return response
+    return response.get('content', '')
 
 
 # --------------------------------------------------------------------------- #
@@ -432,12 +448,11 @@ def generate_overall_analysis(
 def caption_audio_with_madmom_segments(
     audio_path: str,
     output_path: Optional[str] = None,
-    model_path: str = None,
+    endpoint: str = None,
+    model_name: str = None,
     max_tokens: int = 4096,
     temperature: float = 0.7,
     top_p: float = 0.95,
-    top_k: int = 20,
-    use_flash_attn2: bool = True,
     batch_size: int = None,
     # Madmom detection parameters
     onset_threshold: float = None,
@@ -466,20 +481,21 @@ def caption_audio_with_madmom_segments(
 ) -> Dict:
     """
     Generate caption for an audio file using Madmom keypoints for segmentation.
+    
+    This version uses vLLM server via HTTP API instead of loading model locally.
 
     This function performs a two-stage analysis:
     1. Detect audio keypoints using Madmom (beats, onsets, spectral changes)
-    2. Segment audio based on keypoints and analyze each segment
+    2. Segment audio based on keypoints and analyze each segment via vLLM API
 
     Args:
         audio_path: Path to the audio file
         output_path: Optional path to save the caption as JSON
-        model_path: Model checkpoint path (default: from config)
+        endpoint: vLLM server endpoint URL (default: from config.VLLM_AUDIO_ENDPOINT)
+        model_name: Model name (default: from config.AUDIO_ANALYSIS_MODEL)
         max_tokens: Maximum tokens to generate
         temperature: Sampling temperature
         top_p: Top-p sampling parameter
-        top_k: Top-k sampling parameter
-        use_flash_attn2: Whether to use flash attention 2
         batch_size: Number of audio segments to process in parallel
 
         # Madmom detection parameters
@@ -866,20 +882,22 @@ def caption_audio_with_madmom_segments(
     print("STAGE 2: Generating overall audio analysis")
     print("="*80)
 
-    # Load model and processor
-    model, processor = load_model_and_processor(
-        model_path=model_path,
-        use_flash_attn2=use_flash_attn2
-    )
+    # Use vLLM endpoint defaults if not specified
+    if endpoint is None:
+        endpoint = VLLM_AUDIO_ENDPOINT
+    if model_name is None:
+        model_name = VLLM_AUDIO_MODEL
+    
+    print(f"\nUsing vLLM endpoint: {endpoint}")
+    print(f"Model: {model_name}")
 
     print("\nGenerating overall analysis for the entire audio...")
     overall_analysis_text = generate_overall_analysis(
         audio_path=audio_path,
-        model=model,
-        processor=processor,
+        endpoint=endpoint,
+        model_name=model_name,
         temperature=temperature,
         top_p=top_p,
-        top_k=top_k,
         max_tokens=max_tokens,
     )
 
@@ -957,15 +975,14 @@ def caption_audio_with_madmom_segments(
             idx, seg = path_to_info[path]
             print(f"  - Segment {idx+1}: {seg['start_time']:.2f}s - {seg['end_time']:.2f}s")
 
-        # Batch generate captions
+        # Batch generate captions via vLLM API
         batch_caption_texts = generate_audio_captions_batch(
             audio_paths=batch_paths,
             prompt=AUDIO_SEG_KEYPOINT_PROMPT,
-            model=model,
-            processor=processor,
+            endpoint=endpoint,
+            model_name=model_name,
             temperature=temperature,
             top_p=top_p,
-            top_k=top_k,
             max_tokens=max_tokens,
         )
 
@@ -1064,15 +1081,18 @@ def caption_audio_with_madmom_segments(
 #                                    main                                     #
 # --------------------------------------------------------------------------- #
 def main():
-    """Example usage of audio caption function with Madmom-based segmentation."""
+    """Example usage of audio caption function with Madmom-based segmentation via vLLM."""
     # Example audio file path
     audio_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Way_down_we_go/Way Down We Go-Kaleo#1NrOG.mp3"
 
     # Generate caption with Madmom-based segmentation
+    # Uses vLLM server via HTTP API
     # All parameters will use config defaults if not specified
     result = caption_audio_with_madmom_segments(
         audio_path=audio_path,
         output_path="./Ascend_caption_madmom_output.json",
+        # endpoint: vLLM server endpoint (default: config.VLLM_AUDIO_ENDPOINT or http://localhost:8890)
+        # model_name: model name (default: config.AUDIO_ANALYSIS_MODEL)
         max_tokens=config.AUDIO_ANALYSIS_MODEL_MAX_TOKEN,
         # All other parameters will be loaded from config automatically
     )
@@ -1087,4 +1107,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-# 0.11.0rc2.dev113+gf9e714813

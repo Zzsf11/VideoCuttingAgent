@@ -1,23 +1,23 @@
 """
-Audio Caption Module using Madmom-based Segmentation
+Audio Caption Module using Madmom-based Segmentation (vLLM Offline Version)
 
 This module provides audio captioning functionality using Qwen3-Omni model
-with Madmom keypoint detection for intelligent audio segmentation.
+via vLLM offline inference with Madmom keypoint detection for intelligent audio segmentation.
 
 Features:
     - Madmom integration: use music keypoints (beats, onsets) for segmentation
+    - vLLM offline inference: directly load and run Qwen3-Omni model
     - Batch processing for efficient parallel analysis of multiple segments
     - Configurable parameters with config file defaults
 
 Requirements:
-    - transformers
-    - torch
+    - vllm
     - soundfile
     - madmom
     - numpy
 
 Usage:
-    from vca.build_database.audio_caption_madmom import caption_audio_with_madmom_segments
+    from vca.build_database.audio_caption_madmom_offline import caption_audio_with_madmom_segments
 
     result = caption_audio_with_madmom_segments(
         audio_path="/path/to/audio.mp3",
@@ -30,14 +30,12 @@ import os
 import re
 import sys
 import tempfile
+import subprocess
 from typing import Dict, List, Optional
 
-import soundfile as sf
 import numpy as np
-from transformers import Qwen3OmniMoeForConditionalGeneration, Qwen3OmniMoeProcessor
+from vllm import LLM, SamplingParams
 
-# Use our custom audio processing without librosa
-from ..audio_utils import process_mm_info_no_librosa
 from .. import config
 
 # --------------------------------------------------------------------------- #
@@ -81,68 +79,198 @@ Output format (JSON):
 }
 """
 
-# Global variables to store loaded model and processor
-_MODEL = None
-_PROCESSOR = None
+# --------------------------------------------------------------------------- #
+#                           vLLM Model Configuration                          #
+# --------------------------------------------------------------------------- #
+VLLM_AUDIO_MODEL = getattr(config, 'AUDIO_ANALYSIS_MODEL',
+    '/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Instruct')
+
+# System prompt for Qwen3-Omni
+DEFAULT_SYSTEM_PROMPT = (
+    "You are Qwen, a virtual human developed by the Qwen Team, Alibaba "
+    "Group, capable of perceiving auditory and visual inputs, as well as "
+    "generating text and speech."
+)
 
 
 # --------------------------------------------------------------------------- #
-#                           Model Loading Function                            #
+#                           vLLM Offline Inference Functions                  #
 # --------------------------------------------------------------------------- #
-def load_model_and_processor(
+
+# Global LLM instance (initialized once and reused)
+_llm_instance = None
+
+def get_llm_instance(
     model_path: str = None,
-    device_map: str = "auto",
-    dtype: str = "auto",
-    use_flash_attn2: bool = False,
-):
+    max_model_len: int = 32768,
+    tensor_parallel_size: int = 2,
+    gpu_memory_utilization: float = 0.9,
+) -> LLM:
     """
-    Load Qwen3-Omni model and processor.
+    Get or create the global LLM instance.
 
     Args:
-        model_path: Path to the model checkpoint
-        device_map: Device map for model loading
-        dtype: Data type for model loading
-        use_flash_attn2: Whether to use flash attention 2
+        model_path: Path to the model
+        max_model_len: Maximum model length
+        tensor_parallel_size: Number of GPUs for tensor parallelism
+        gpu_memory_utilization: GPU memory utilization
 
     Returns:
-        Tuple of (model, processor)
+        LLM instance
     """
-    global _MODEL, _PROCESSOR
+    global _llm_instance
 
-    # Return cached model if already loaded
-    if _MODEL is not None and _PROCESSOR is not None:
-        return _MODEL, _PROCESSOR
+    if _llm_instance is None:
+        if model_path is None:
+            model_path = VLLM_AUDIO_MODEL
 
-    # Use config defaults if not specified
-    if model_path is None:
-        model_path = getattr(config, 'AUDIO_ANALYSIS_MODEL', config.VIDEO_ANALYSIS_MODEL)
+        print(f"\n{'='*80}")
+        print("Initializing vLLM model (this may take a few minutes)...")
+        print(f"Model: {model_path}")
+        print(f"Max model length: {max_model_len}")
+        print(f"Tensor parallel size: {tensor_parallel_size}")
+        print(f"GPU memory utilization: {gpu_memory_utilization}")
+        print(f"{'='*80}\n")
 
-    print(f"Loading model from: {model_path}")
-
-    # Load model with optional flash attention
-    if use_flash_attn2:
-        model = Qwen3OmniMoeForConditionalGeneration.from_pretrained(
-            model_path,
-            dtype=dtype,
-            attn_implementation='flash_attention_2',
-            device_map=device_map
-        )
-    else:
-        model = Qwen3OmniMoeForConditionalGeneration.from_pretrained(
-            model_path,
-            device_map=device_map,
-            dtype=dtype
+        _llm_instance = LLM(
+            model=model_path,
+            max_model_len=max_model_len,
+            tensor_parallel_size=tensor_parallel_size,
+            gpu_memory_utilization=gpu_memory_utilization,
+            trust_remote_code=True,
+            limit_mm_per_prompt={"audio": 1},  # Allow 1 audio per prompt
         )
 
-    # Load processor
-    processor = Qwen3OmniMoeProcessor.from_pretrained(model_path)
+        print(f"✓ Model loaded successfully\n")
 
-    # Cache the model and processor
-    _MODEL = model
-    _PROCESSOR = processor
+    return _llm_instance
 
-    print("Model and processor loaded successfully!")
-    return model, processor
+
+def preprocess_audio_fast(
+    audio_path: str,
+    target_sr: int = 16000,
+) -> tuple:
+    """
+    Preprocess audio using ffmpeg + soundfile hybrid approach (fast and compatible).
+
+    Strategy:
+    1. Use ffmpeg to quickly convert to 16kHz mono WAV (fast!)
+    2. Use soundfile to load the preprocessed WAV (no resampling needed, compatible with vLLM)
+
+    Args:
+        audio_path: Path to the audio file
+        target_sr: Target sample rate (default: 16000 Hz for Qwen3-Omni)
+
+    Returns:
+        Tuple of (audio_data, sample_rate) in the same format as vLLM expects
+    """
+    try:
+        import soundfile as sf
+    except ImportError:
+        raise ImportError("soundfile is required for audio processing. Install with: pip install soundfile")
+
+    # Create temporary preprocessed file
+    temp_fd, temp_path = tempfile.mkstemp(suffix=".wav")
+    os.close(temp_fd)
+
+    try:
+        # Step 1: Use ffmpeg to quickly convert to target format (very fast!)
+        cmd = [
+            'ffmpeg',
+            '-i', audio_path,
+            '-ar', str(target_sr),  # Resample to 16kHz
+            '-ac', '1',  # Convert to mono
+            '-f', 'wav',  # WAV format
+            '-y',  # Overwrite
+            temp_path
+        ]
+
+        subprocess.run(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True
+        )
+
+        # Step 2: Use soundfile to load (no resampling, just loading)
+        # This ensures the data format is compatible with vLLM
+        audio_data, sample_rate = sf.read(temp_path, dtype='float32')
+
+        return audio_data, sample_rate
+
+    finally:
+        # Cleanup temp file
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+
+def call_vllm_audio_model_offline(
+    user_prompt: str,
+    audio_path: str,
+    model_path: str = None,
+    max_tokens: int = 4096,
+    temperature: float = 0.7,
+    top_p: float = 0.95,
+    system_prompt: str = None,
+) -> Dict:
+    """
+    Call vLLM Qwen3-Omni model with audio input via offline inference.
+
+    Args:
+        user_prompt: User prompt text
+        audio_path: Path to the audio file
+        model_path: Path to the model (default: from config)
+        max_tokens: Maximum number of tokens to generate
+        temperature: Sampling temperature
+        top_p: Top-p sampling parameter
+        system_prompt: System prompt (default: Qwen3-Omni default)
+
+    Returns:
+        dict: Response containing 'content'
+    """
+    if system_prompt is None:
+        system_prompt = DEFAULT_SYSTEM_PROMPT
+
+    # Preprocess audio using ffmpeg + soundfile hybrid (fast and compatible)
+    print(f"  Preprocessing audio (ffmpeg + soundfile)...")
+    audio_data, sample_rate = preprocess_audio_fast(audio_path, target_sr=16000)
+    print(f"  ✓ Audio preprocessed: {len(audio_data)/sample_rate:.2f}s @ {sample_rate}Hz")
+    print(f"  ✓ Audio shape: {audio_data.shape}, dtype: {audio_data.dtype}, range: [{audio_data.min():.3f}, {audio_data.max():.3f}]")
+
+    # Construct prompt with Qwen3-Omni format
+    prompt = (
+        f"<|im_start|>system\n{system_prompt}<|im_end|>\n"
+        f"<|im_start|>user\n<|audio_start|><|audio_pad|><|audio_end|>"
+        f"{user_prompt}<|im_end|>\n"
+        f"<|im_start|>assistant\n"
+    )
+
+    # Get LLM instance
+    llm = get_llm_instance(model_path=model_path)
+
+    # Prepare inputs
+    inputs = {
+        "prompt": prompt,
+        "multi_modal_data": {
+            "audio": (audio_data, sample_rate),
+        },
+    }
+
+    # Sampling parameters
+    sampling_params = SamplingParams(
+        temperature=temperature,
+        top_p=top_p,
+        max_tokens=max_tokens,
+    )
+
+    # Generate
+    print(f"  Generating response...")
+    outputs = llm.generate(inputs, sampling_params=sampling_params)
+
+    # Extract generated text
+    generated_text = outputs[0].outputs[0].text
+
+    return {"content": generated_text.strip()}
 
 
 # --------------------------------------------------------------------------- #
@@ -202,7 +330,7 @@ def segment_audio_file(
     output_path: str = None
 ) -> str:
     """
-    Extract a segment from an audio file.
+    Extract a segment from an audio file using ffmpeg.
 
     Args:
         audio_path: Path to the source audio file
@@ -213,24 +341,31 @@ def segment_audio_file(
     Returns:
         Path to the segmented audio file
     """
-    # Read the audio file
-    audio_data, sample_rate = sf.read(audio_path)
-
-    # Calculate start and end samples
-    start_sample = int(start_time * sample_rate)
-    end_sample = int(end_time * sample_rate)
-
-    # Extract the segment
-    segment = audio_data[start_sample:end_sample]
-
     # Create output path if not specified
     if output_path is None:
-        # Create a temporary file
         temp_fd, output_path = tempfile.mkstemp(suffix=".wav")
-        os.close(temp_fd)  # Close the file descriptor
+        os.close(temp_fd)
 
-    # Write the segment to file
-    sf.write(output_path, segment, sample_rate)
+    # Use ffmpeg to extract segment (much faster than loading entire file)
+    duration = end_time - start_time
+    cmd = [
+        'ffmpeg',
+        '-ss', str(start_time),  # Start time
+        '-i', audio_path,  # Input file
+        '-t', str(duration),  # Duration
+        '-ar', '16000',  # Resample to 16kHz
+        '-ac', '1',  # Convert to mono
+        '-f', 'wav',  # Output format
+        '-y',  # Overwrite
+        output_path
+    ]
+
+    subprocess.run(
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=True
+    )
 
     return output_path
 
@@ -241,24 +376,22 @@ def segment_audio_file(
 def generate_audio_captions_batch(
     audio_paths: List[str],
     prompt: str,
-    model,
-    processor,
+    model_path: str = None,
     temperature: float = 0.7,
     top_p: float = 0.95,
-    top_k: int = 20,
     max_tokens: int = 4096,
 ) -> List[str]:
     """
-    Generate audio captions for multiple audio files in a batch.
+    Generate audio captions for multiple audio files via vLLM offline inference.
+
+    Note: Processes each audio file sequentially.
 
     Args:
         audio_paths: List of paths to audio files
         prompt: User prompt for caption generation
-        model: Loaded Qwen3-Omni model
-        processor: Loaded Qwen3-Omni processor
+        model_path: Path to the model
         temperature: Sampling temperature
         top_p: Top-p sampling parameter
-        top_k: Top-k sampling parameter
         max_tokens: Maximum tokens to generate
 
     Returns:
@@ -267,76 +400,22 @@ def generate_audio_captions_batch(
     if not audio_paths:
         return []
 
-    # Prepare batch messages
-    batch_messages = []
+    responses = []
+
     for audio_path in audio_paths:
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "audio", "audio": audio_path},
-                    {"type": "text", "text": prompt}
-                ],
-            }
-        ]
-        batch_messages.append(messages)
-
-    USE_AUDIO_IN_VIDEO = True
-
-    # Process each message and prepare batch inputs
-    batch_texts = []
-    batch_audios = []
-
-    for messages in batch_messages:
-        # Apply chat template
-        text = processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
-        batch_texts.append(text)
-
-        # Process multimodal information
-        audios, _, _ = process_mm_info_no_librosa(messages, use_audio_in_video=USE_AUDIO_IN_VIDEO)
-        # audios is a list, we take the first one for each message
-        if audios:
-            batch_audios.append(audios[0])
-
-    # Prepare batch inputs
-    inputs = processor(
-        text=batch_texts,
-        audio=batch_audios if batch_audios else None,
-        images=None,
-        videos=None,
-        return_tensors="pt",
-        use_audio_in_video=USE_AUDIO_IN_VIDEO,
-        padding=True,  # Enable padding for batch processing
-        audio_kwargs={
-            "max_length": 4800000,
-            "return_attention_mask": True,
-        }
-    )
-
-    # Move inputs to model device
-    inputs = inputs.to(model.device).to(model.dtype)
-
-    # Generate response for batch
-    # Note: Batch inference doesn't support audio output, so we set thinker_return_dict_in_generate=False
-    text_ids, _ = model.generate(
-        **inputs,
-        thinker_return_dict_in_generate=False,  # No audio output in batch mode
-        thinker_max_new_tokens=max_tokens,
-        thinker_do_sample=True,
-        thinker_temperature=temperature,
-        thinker_top_p=top_p,
-        thinker_top_k=top_k,
-        return_audio = False,
-        use_audio_in_video=USE_AUDIO_IN_VIDEO
-    )
-
-    # Decode responses
-    # When thinker_return_dict_in_generate=False, text_ids is the output directly
-    responses = processor.batch_decode(
-        text_ids[:, inputs["input_ids"].shape[1]:],
-        skip_special_tokens=True,
-        clean_up_tokenization_spaces=False,
-    )
+        try:
+            response = call_vllm_audio_model_offline(
+                user_prompt=prompt,
+                audio_path=audio_path,
+                model_path=model_path,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                top_p=top_p,
+            )
+            responses.append(response.get('content', ''))
+        except Exception as e:
+            print(f"Error processing audio {audio_path}: {e}")
+            responses.append('')
 
     return responses
 
@@ -346,84 +425,34 @@ def generate_audio_captions_batch(
 # --------------------------------------------------------------------------- #
 def generate_overall_analysis(
     audio_path: str,
-    model,
-    processor,
+    model_path: str = None,
     temperature: float = 0.7,
     top_p: float = 0.95,
-    top_k: int = 20,
     max_tokens: int = 4096,
 ) -> str:
     """
-    Generate overall analysis for the entire audio file.
+    Generate overall analysis for the entire audio file via vLLM offline inference.
 
     Args:
         audio_path: Path to the audio file
-        model: Loaded Qwen3-Omni model
-        processor: Loaded Qwen3-Omni processor
+        model_path: Path to the model
         temperature: Sampling temperature
         top_p: Top-p sampling parameter
-        top_k: Top-k sampling parameter
         max_tokens: Maximum tokens to generate
 
     Returns:
         Generated overall analysis text
     """
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {"type": "audio", "audio": audio_path},
-                {"type": "text", "text": AUDIO_OVERALL_PROMPT}
-            ],
-        }
-    ]
-
-    USE_AUDIO_IN_VIDEO = True
-
-    # Apply chat template
-    text = processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
-
-    # Process multimodal information
-    audios, _, _ = process_mm_info_no_librosa(messages, use_audio_in_video=USE_AUDIO_IN_VIDEO)
-
-    # Prepare inputs
-    inputs = processor(
-        text=text,
-        audio=audios if audios else None,
-        images=None,
-        videos=None,
-        return_tensors="pt",
-        use_audio_in_video=USE_AUDIO_IN_VIDEO,
-        audio_kwargs={
-            "max_length": 4800000,
-            "return_attention_mask": True,
-        }
+    response = call_vllm_audio_model_offline(
+        user_prompt=AUDIO_OVERALL_PROMPT,
+        audio_path=audio_path,
+        model_path=model_path,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        top_p=top_p,
     )
 
-    # Move inputs to model device
-    inputs = inputs.to(model.device).to(model.dtype)
-
-    # Generate response
-    text_ids, _ = model.generate(
-        **inputs,
-        thinker_return_dict_in_generate=False,
-        thinker_max_new_tokens=max_tokens,
-        thinker_do_sample=True,
-        thinker_temperature=temperature,
-        thinker_top_p=top_p,
-        thinker_top_k=top_k,
-        return_audio=False,
-        use_audio_in_video=USE_AUDIO_IN_VIDEO
-    )
-
-    # Decode response
-    response = processor.batch_decode(
-        text_ids[:, inputs["input_ids"].shape[1]:],
-        skip_special_tokens=True,
-        clean_up_tokenization_spaces=False,
-    )[0]
-
-    return response
+    return response.get('content', '')
 
 
 # --------------------------------------------------------------------------- #
@@ -436,8 +465,6 @@ def caption_audio_with_madmom_segments(
     max_tokens: int = 4096,
     temperature: float = 0.7,
     top_p: float = 0.95,
-    top_k: int = 20,
-    use_flash_attn2: bool = True,
     batch_size: int = None,
     # Madmom detection parameters
     onset_threshold: float = None,
@@ -467,20 +494,20 @@ def caption_audio_with_madmom_segments(
     """
     Generate caption for an audio file using Madmom keypoints for segmentation.
 
+    This version uses vLLM offline inference instead of HTTP API.
+
     This function performs a two-stage analysis:
     1. Detect audio keypoints using Madmom (beats, onsets, spectral changes)
-    2. Segment audio based on keypoints and analyze each segment
+    2. Segment audio based on keypoints and analyze each segment via vLLM offline
 
     Args:
         audio_path: Path to the audio file
         output_path: Optional path to save the caption as JSON
-        model_path: Model checkpoint path (default: from config)
+        model_path: Path to the model (default: from config)
         max_tokens: Maximum tokens to generate
         temperature: Sampling temperature
         top_p: Top-p sampling parameter
-        top_k: Top-k sampling parameter
-        use_flash_attn2: Whether to use flash attention 2
-        batch_size: Number of audio segments to process in parallel
+        batch_size: Number of audio segments to process in parallel (ignored for now)
 
         # Madmom detection parameters
         onset_threshold: Onset detection threshold (higher = fewer onsets)
@@ -557,15 +584,23 @@ def caption_audio_with_madmom_segments(
             raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
     print("\n" + "="*80)
-    print("MADMOM-BASED SEGMENTATION ANALYSIS")
+    print("MADMOM-BASED SEGMENTATION ANALYSIS (Offline vLLM)")
     print("="*80)
 
-    # Get audio duration
+    # Get audio duration using ffprobe (ffmpeg's companion tool)
     audio_duration = None
     try:
         if not audio_path.startswith("http://") and not audio_path.startswith("https://"):
-            info = sf.info(audio_path)
-            audio_duration = info.duration
+            # Use ffprobe to get duration
+            cmd = [
+                'ffprobe',
+                '-v', 'error',
+                '-show_entries', 'format=duration',
+                '-of', 'default=noprint_wrappers=1:nokey=1',
+                audio_path
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            audio_duration = float(result.stdout.strip())
             duration_str = f"{int(audio_duration // 60):02d}:{int(audio_duration % 60):02d}"
             print(f"\n✓ Audio duration: {duration_str} ({audio_duration:.2f} seconds)")
     except Exception as e:
@@ -690,48 +725,23 @@ def caption_audio_with_madmom_segments(
 
     # Helper function to find nearest keypoint
     def find_nearest_keypoint_in_range(target_time, start_time, end_time, keypoint_list, search_radius=5.0):
-        """
-        Find the nearest keypoint to target_time within [start_time, end_time]
-        Search within ±search_radius of target_time
-
-        Args:
-            target_time: Target time to find keypoint near
-            start_time: Start time of the search range
-            end_time: End time of the search range
-            keypoint_list: List of keypoints to search from
-            search_radius: Search radius around target_time
-
-        Returns: keypoint time or None if no suitable keypoint found
-        """
+        """Find the nearest keypoint to target_time within [start_time, end_time]"""
         search_start = max(start_time, target_time - search_radius)
         search_end = min(end_time, target_time + search_radius)
 
-        # Find all keypoints within the search range
         candidates = [kp['time'] for kp in keypoint_list
                      if search_start <= kp['time'] <= search_end]
 
         if not candidates:
             return None
 
-        # Return the closest one to target_time
         return min(candidates, key=lambda t: abs(t - target_time))
 
     # Helper function to recursively split long segments at keypoints
     def split_long_segment(seg_start, seg_end, segments_list, all_keypoints, depth=0, max_depth=10):
-        """
-        Recursively split a long segment at keypoints near the midpoint
-
-        Args:
-            seg_start: Segment start time
-            seg_end: Segment end time
-            segments_list: List to append resulting segments
-            all_keypoints: List of all original keypoints (before filtering)
-            depth: Current recursion depth
-            max_depth: Maximum recursion depth to prevent infinite loops
-        """
+        """Recursively split a long segment at keypoints near the midpoint"""
         duration = seg_end - seg_start
 
-        # Base case: segment is within acceptable range
         if duration <= max_segment_duration:
             segments_list.append({
                 "start_time": seg_start,
@@ -740,7 +750,6 @@ def caption_audio_with_madmom_segments(
             })
             return
 
-        # Prevent infinite recursion
         if depth >= max_depth:
             print(f"  ⚠ Warning: Max recursion depth reached for segment [{seg_start:.2f}-{seg_end:.2f}]")
             segments_list.append({
@@ -750,12 +759,9 @@ def caption_audio_with_madmom_segments(
             })
             return
 
-        # Find midpoint
         midpoint = (seg_start + seg_end) / 2.0
-        search_radius = min(5.0, duration * 0.2)  # Search within 5s or 20% of duration
+        search_radius = min(5.0, duration * 0.2)
 
-        # Try to find a keypoint near the midpoint
-        # First, try filtered keypoints
         split_point = find_nearest_keypoint_in_range(
             target_time=midpoint,
             start_time=seg_start,
@@ -765,9 +771,8 @@ def caption_audio_with_madmom_segments(
         )
 
         if split_point is not None:
-            print(f"  Splitting at filtered keypoint: [{seg_start:.2f}-{seg_end:.2f}] -> [{seg_start:.2f}-{split_point:.2f}] + [{split_point:.2f}-{seg_end:.2f}] (filtered keypoint at {split_point:.2f}s)")
+            print(f"  Splitting at filtered keypoint: [{seg_start:.2f}-{seg_end:.2f}] -> [{seg_start:.2f}-{split_point:.2f}] + [{split_point:.2f}-{seg_end:.2f}]")
         else:
-            # If no filtered keypoint found, try original keypoints
             split_point = find_nearest_keypoint_in_range(
                 target_time=midpoint,
                 start_time=seg_start,
@@ -777,13 +782,11 @@ def caption_audio_with_madmom_segments(
             )
 
             if split_point is not None:
-                print(f"  Splitting at original keypoint: [{seg_start:.2f}-{seg_end:.2f}] -> [{seg_start:.2f}-{split_point:.2f}] + [{split_point:.2f}-{seg_end:.2f}] (original keypoint at {split_point:.2f}s)")
+                print(f"  Splitting at original keypoint: [{seg_start:.2f}-{seg_end:.2f}] -> [{seg_start:.2f}-{split_point:.2f}] + [{split_point:.2f}-{seg_end:.2f}]")
             else:
-                # No keypoint found at all, split at midpoint
                 split_point = midpoint
-                print(f"  Splitting at midpoint: [{seg_start:.2f}-{seg_end:.2f}] -> [{seg_start:.2f}-{split_point:.2f}] + [{split_point:.2f}-{seg_end:.2f}] (no keypoint found)")
+                print(f"  Splitting at midpoint: [{seg_start:.2f}-{seg_end:.2f}] -> [{seg_start:.2f}-{split_point:.2f}] + [{split_point:.2f}-{seg_end:.2f}]")
 
-        # Recursively split both parts
         split_long_segment(seg_start, split_point, segments_list, all_keypoints, depth + 1, max_depth)
         split_long_segment(split_point, seg_end, segments_list, all_keypoints, depth + 1, max_depth)
 
@@ -798,59 +801,51 @@ def caption_audio_with_madmom_segments(
     while i < len(initial_segments):
         current_seg = initial_segments[i]
 
-        # If segment is too short, try to merge with adjacent segments
         if current_seg['duration'] < min_segment_duration:
             merged = False
 
-            # Try to merge with next segment first
             if i + 1 < len(initial_segments):
                 next_seg = initial_segments[i + 1]
                 merged_duration = next_seg['end_time'] - current_seg['start_time']
 
-                # Check if merged segment is within acceptable range
                 if merged_duration <= max_segment_duration:
                     merged_seg = {
                         "start_time": current_seg['start_time'],
                         "end_time": next_seg['end_time'],
                         "duration": merged_duration
                     }
-                    print(f"  Merging with next: [{current_seg['start_time']:.2f}-{current_seg['end_time']:.2f}] + [{next_seg['start_time']:.2f}-{next_seg['end_time']:.2f}] -> [{merged_seg['start_time']:.2f}-{merged_seg['end_time']:.2f}] ({merged_duration:.2f}s)")
+                    print(f"  Merging with next: [{current_seg['start_time']:.2f}-{current_seg['end_time']:.2f}] + [{next_seg['start_time']:.2f}-{next_seg['end_time']:.2f}]")
                     segments.append(merged_seg)
-                    i += 2  # Skip both merged segments
+                    i += 2
                     merged = True
 
-            # If not merged with next, try to merge with previous
             if not merged and segments:
                 prev_seg = segments[-1]
                 merged_duration = current_seg['end_time'] - prev_seg['start_time']
 
                 if merged_duration <= max_segment_duration:
-                    # Replace previous segment with merged one
                     segments[-1] = {
                         "start_time": prev_seg['start_time'],
                         "end_time": current_seg['end_time'],
                         "duration": merged_duration
                     }
-                    print(f"  Merging with previous: [{prev_seg['start_time']:.2f}-{prev_seg['end_time']:.2f}] + [{current_seg['start_time']:.2f}-{current_seg['end_time']:.2f}] -> [{segments[-1]['start_time']:.2f}-{segments[-1]['end_time']:.2f}] ({merged_duration:.2f}s)")
+                    print(f"  Merging with previous: [{prev_seg['start_time']:.2f}-{prev_seg['end_time']:.2f}] + [{current_seg['start_time']:.2f}-{current_seg['end_time']:.2f}]")
                     i += 1
                     merged = True
 
-            # If still not merged, keep the short segment (better than losing data)
             if not merged:
-                print(f"  ⚠ Warning: Cannot merge short segment (would exceed max duration): [{current_seg['start_time']:.2f}-{current_seg['end_time']:.2f}] ({current_seg['duration']:.2f}s) - keeping as-is")
+                print(f"  ⚠ Warning: Cannot merge short segment: [{current_seg['start_time']:.2f}-{current_seg['end_time']:.2f}] - keeping as-is")
                 segments.append(current_seg)
                 i += 1
 
             continue
 
-        # If segment is too long, split it at keypoints
         elif current_seg['duration'] > max_segment_duration:
             print(f"  Long segment detected: [{current_seg['start_time']:.2f}-{current_seg['end_time']:.2f}] ({current_seg['duration']:.2f}s)")
             split_long_segment(current_seg['start_time'], current_seg['end_time'], segments, keypoints)
             i += 1
             continue
 
-        # Segment is within acceptable range
         else:
             segments.append(current_seg)
             i += 1
@@ -866,20 +861,17 @@ def caption_audio_with_madmom_segments(
     print("STAGE 2: Generating overall audio analysis")
     print("="*80)
 
-    # Load model and processor
-    model, processor = load_model_and_processor(
-        model_path=model_path,
-        use_flash_attn2=use_flash_attn2
-    )
+    if model_path is None:
+        model_path = VLLM_AUDIO_MODEL
+
+    print(f"\nModel: {model_path}")
 
     print("\nGenerating overall analysis for the entire audio...")
     overall_analysis_text = generate_overall_analysis(
         audio_path=audio_path,
-        model=model,
-        processor=processor,
+        model_path=model_path,
         temperature=temperature,
         top_p=top_p,
-        top_k=top_k,
         max_tokens=max_tokens,
     )
 
@@ -905,7 +897,7 @@ def caption_audio_with_madmom_segments(
     print("Step 1: Extracting audio segments...")
     print(f"{'-'*80}")
 
-    segment_info_list = []  # Store (segment_index, segment_dict, segment_path)
+    segment_info_list = []
 
     for i, seg in enumerate(segments):
         start_time = seg['start_time']
@@ -913,7 +905,6 @@ def caption_audio_with_madmom_segments(
         duration = seg['duration']
 
         try:
-            # Segment the audio
             segment_path = segment_audio_file(audio_path, start_time, end_time)
             temp_files.append(segment_path)
 
@@ -925,9 +916,9 @@ def caption_audio_with_madmom_segments(
             print(f"✗ Segment {i+1}: Error extracting segment - {e}")
             segment_info_list.append((i, seg, None))
 
-    # Step 2: Process segments in batches
+    # Step 2: Process segments sequentially
     print(f"\n{'-'*80}")
-    print(f"Step 2: Processing {len([s for s in segment_info_list if s[2] is not None])} segments in batches of {batch_size}...")
+    print(f"Step 2: Processing {len([s for s in segment_info_list if s[2] is not None])} segments...")
     print(f"{'-'*80}")
 
     # Create a mapping from segment_path to segment info
@@ -939,41 +930,33 @@ def caption_audio_with_madmom_segments(
             path_to_info[segment_path] = (idx, seg)
             valid_segment_paths.append(segment_path)
 
-    # Process in batches
-    segment_captions = {}  # Maps segment_path to caption text
+    # Process segments
+    segment_captions = {}
 
-    for batch_start in range(0, len(valid_segment_paths), batch_size):
-        batch_end = min(batch_start + batch_size, len(valid_segment_paths))
-        batch_paths = valid_segment_paths[batch_start:batch_end]
-
-        batch_num = batch_start // batch_size + 1
-        total_batches = (len(valid_segment_paths) + batch_size - 1) // batch_size
+    for i, segment_path in enumerate(valid_segment_paths):
+        idx, seg = path_to_info[segment_path]
 
         print(f"\n{'·'*80}")
-        print(f"Processing Batch {batch_num}/{total_batches} ({len(batch_paths)} segments)")
+        print(f"Processing Segment {i+1}/{len(valid_segment_paths)}")
+        print(f"  - Segment {idx+1}: {seg['start_time']:.2f}s - {seg['end_time']:.2f}s")
         print(f"{'·'*80}")
 
-        for path in batch_paths:
-            idx, seg = path_to_info[path]
-            print(f"  - Segment {idx+1}: {seg['start_time']:.2f}s - {seg['end_time']:.2f}s")
+        try:
+            caption_text = call_vllm_audio_model_offline(
+                user_prompt=AUDIO_SEG_KEYPOINT_PROMPT,
+                audio_path=segment_path,
+                model_path=model_path,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                top_p=top_p,
+            )['content']
 
-        # Batch generate captions
-        batch_caption_texts = generate_audio_captions_batch(
-            audio_paths=batch_paths,
-            prompt=AUDIO_SEG_KEYPOINT_PROMPT,
-            model=model,
-            processor=processor,
-            temperature=temperature,
-            top_p=top_p,
-            top_k=top_k,
-            max_tokens=max_tokens,
-        )
+            segment_captions[segment_path] = caption_text
+            print(f"✓ Segment {idx+1} completed successfully")
 
-        # Store results
-        for path, caption_text in zip(batch_paths, batch_caption_texts):
-            segment_captions[path] = caption_text
-
-        print(f"✓ Batch {batch_num} completed successfully")
+        except Exception as e:
+            print(f"✗ Segment {idx+1} failed: {e}")
+            segment_captions[segment_path] = ''
 
     # Step 3: Merge results
     print(f"\n{'-'*80}")
@@ -983,7 +966,6 @@ def caption_audio_with_madmom_segments(
     sections = []
 
     for idx, seg, segment_path in segment_info_list:
-        # Create section with proper format
         section = {
             "name": f"Section {idx + 1}",
             "description": "",
@@ -996,7 +978,6 @@ def caption_audio_with_madmom_segments(
             sections.append(section)
             continue
 
-        # Get caption for this segment
         caption_text = segment_captions.get(segment_path)
 
         if caption_text is None:
@@ -1004,15 +985,12 @@ def caption_audio_with_madmom_segments(
             sections.append(section)
             continue
 
-        # Try to parse JSON from caption
         segment_json = extract_json_from_text(caption_text)
 
         if segment_json and isinstance(segment_json, dict):
-            # Extract description from summary if available
             if "summary" in segment_json:
                 section["description"] = segment_json["summary"]
 
-            # Add detailed_analysis
             section["detailed_analysis"] = segment_json
             print(f"✓ Segment {idx+1}: Detailed analysis added")
         else:
@@ -1032,7 +1010,7 @@ def caption_audio_with_madmom_segments(
         except Exception as e:
             print(f"⚠ Warning: Could not remove temp file {temp_file}: {e}")
 
-    # Prepare final result in the target format
+    # Prepare final result
     result_data = {
         "audio_path": audio_path,
         "overall_analysis": {
@@ -1044,12 +1022,10 @@ def caption_audio_with_madmom_segments(
 
     # Save to file if output_path is specified
     if output_path:
-        # Create output directory if needed
         output_dir = os.path.dirname(output_path)
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
 
-        # Save to file
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(result_data, f, indent=2, ensure_ascii=False)
 
@@ -1064,17 +1040,16 @@ def caption_audio_with_madmom_segments(
 #                                    main                                     #
 # --------------------------------------------------------------------------- #
 def main():
-    """Example usage of audio caption function with Madmom-based segmentation."""
+    """Example usage of audio caption function with Madmom-based segmentation via vLLM offline."""
     # Example audio file path
     audio_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Way_down_we_go/Way Down We Go-Kaleo#1NrOG.mp3"
 
     # Generate caption with Madmom-based segmentation
-    # All parameters will use config defaults if not specified
+    # Uses vLLM offline inference
     result = caption_audio_with_madmom_segments(
         audio_path=audio_path,
-        output_path="./Ascend_caption_madmom_output.json",
+        output_path="./Ascend_caption_madmom_offline_output.json",
         max_tokens=config.AUDIO_ANALYSIS_MODEL_MAX_TOKEN,
-        # All other parameters will be loaded from config automatically
     )
 
     print(f"\n{'='*80}")
@@ -1083,8 +1058,5 @@ def main():
     print(f"{'='*80}")
 
 
-
 if __name__ == "__main__":
     main()
-
-# 0.11.0rc2.dev113+gf9e714813
