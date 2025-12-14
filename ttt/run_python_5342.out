@@ -3,12 +3,11 @@ Loading environment modules...
 Environment loaded.
 
 ========================================================
-Job ID: 4155
+Job ID: 5342
 Node: gpuh07
-Start time: 2025年 12月 01日 星期一 16:31:45 CST
-Command: python allin1 -h
+Start time: 2025年 12月 14日 星期日 17:40:57 CST
+Command: python ./local_run.py --Audio_Path /public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Yongjibeichangqingge/Yongjibeichangqingge.mp3
 ========================================================
-/opt/gridview/slurm/spool/slurmd/job04155/slurm_script: line 38: allin1: command not found
 ========================================================
-End time: 2025年 12月 01日 星期一 16:31:45 CST
+End time: 2025年 12月 14日 星期日 17:41:17 CST
 ========================================================

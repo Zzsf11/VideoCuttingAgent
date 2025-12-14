@@ -10,7 +10,7 @@ import argparse
 # from vca.utils import load_video, decode_video_to_frames, download_srt_subtitle
 from vca.video_utils import decode_video_to_frames
 from vca.build_database.video_caption import process_video
-from vca.build_database.audio_caption import caption_audio_with_segments
+from vca.build_database.audio_caption_madmom import caption_audio_with_madmom_segments
 import vca.config as config
 
 def main():
@@ -64,35 +64,34 @@ def main():
 
     
     # Get video captions
-    caption_file = os.path.join(video_captions_dir, "captions.json")
-    if not os.path.exists(caption_file):
-        print("Processing video to get captions...")
-        shot_scenes_file = os.path.join(frames_dir, "shot_scenes.txt")
-        process_video(
-            frame_folder=frames_dir,
-            output_caption_folder=video_captions_dir,
-            subtitle_file_path=srt_path,
-            shot_scenes_path=shot_scenes_file if os.path.exists(shot_scenes_file) else None,
-        )
-        print("Captions generated.")
-    else:
-        print(f"Captions already exist at {caption_file}.")
-
-
-
-    # # Analyze music
-    # audio_caption_file = os.path.join(audio_captions_dir, "captions.json")
-    # if not os.path.exists(audio_caption_file):
-    #     print("Processing audio to get captions...")
-    #     caption_audio_with_segments(
-    #         audio_path=Audio_Path,
-    #         max_tokens=config.AUDIO_ANALYSIS_MODEL_MAX_TOKEN,
-    #         output_path=audio_caption_file,
-    #         batch_size=4  # Process 4 segments in parallel for better efficiency
+    # caption_file = os.path.join(video_captions_dir, "captions.json")
+    # if not os.path.exists(caption_file):
+    #     print("Processing video to get captions...")
+    #     shot_scenes_file = os.path.join(frames_dir, "shot_scenes.txt")
+    #     process_video(
+    #         frame_folder=frames_dir,
+    #         output_caption_folder=video_captions_dir,
+    #         subtitle_file_path=srt_path,
+    #         shot_scenes_path=shot_scenes_file if os.path.exists(shot_scenes_file) else None,
     #     )
     #     print("Captions generated.")
     # else:
-    #     print(f"Captions already exist at {audio_caption_file}.")
+    #     print(f"Captions already exist at {caption_file}.")
+
+
+
+    # Analyze music
+    audio_caption_file = os.path.join(audio_captions_dir, "captions.json")
+    if not os.path.exists(audio_caption_file):
+        print("Processing audio to get captions...")
+        caption_audio_with_madmom_segments(
+            audio_path=Audio_Path,
+            max_tokens=config.AUDIO_ANALYSIS_MODEL_MAX_TOKEN,
+            output_path=audio_caption_file,
+        )
+        print("Captions generated.")
+    else:
+        print(f"Captions already exist at {audio_caption_file}.")
 
     # Initialize DVDCoreAgent
     # print("Initializing DVDCoreAgent...")

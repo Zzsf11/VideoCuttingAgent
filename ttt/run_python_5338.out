@@ -1,0 +1,331 @@
+========================================================
+Loading environment modules...
+Environment loaded.
+
+========================================================
+Job ID: 5338
+Node: gpuh07
+Start time: 2025年 12月 14日 星期日 17:19:45 CST
+Command: python ./local_run.py
+========================================================
+Unrecognized keys in `rope_scaling` for 'rope_type'='default': {'interleaved', 'mrope_section', 'mrope_interleaved'}
+You are attempting to use Flash Attention 2 without specifying a torch dtype. This might lead to unexpected behaviour
+Processing audio to get captions...
+⚠️  未找到中文字体，将使用英文标签
+
+================================================================================
+MADMOM-BASED SEGMENTATION ANALYSIS
+================================================================================
+
+Processing Pipeline:
+  1. Madmom keypoint detection + Rule-based filtering
+  2. AI-based Level 1 section segmentation
+  3. AI-based caption for each sub-segment
+  4. Merge into two-level output format
+
+✓ Audio duration: 02:58 (178.21 seconds)
+
+================================================================================
+STAGE 1: Madmom keypoint detection + Rule-based filtering
+================================================================================
+
+[Step 1.1] Detecting audio keypoints with Madmom...
+正在分析音频: /public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Call_of_Slience/CallofSilence.mp3 ...
+ -> 检测节奏 (Beats/Downbeats)...
+    参数: beats_per_bar=[4], BPM范围=[55.0, 215.0], transition_lambda=100
+ -> 检测冲击点 (Onsets, threshold=0.6, combine=3.0)...
+ -> 计算能量动态...
+ -> 检测频谱通量变化 (人声/乐器变化, threshold=0.3)...
+    检测到 196 个频谱变化点
+ -> 检测能量突变点 (threshold=0.15)...
+    检测到 211 个能量突变点
+ -> 检测频谱质心变化 (音色变化, threshold=0.2)...
+    检测到 79 个音色变化点
+ -> 识别调性与情感基调...
+
+✓ Detected 399 keypoints
+  - 73 downbeats
+  - 46 onsets
+  - 196 spectral changes
+  - 211 energy changes
+  - 79 timbre changes
+
+[Step 1.2] Applying rule-based filtering...
+  Parameters: merge_close=0.1s, min_interval=0.0s, 
+              top_k=0, energy_percentile=0.0, max_segments=20
+    按类型归一化强度:
+      - Timbre Change (音色变化): 27 个点, 原始强度 [0.423, 0.700] -> 归一化 [0, 1]
+      - Strong Attack (冲击): 42 个点, 原始强度 [0.516, 0.942] -> 归一化 [0, 1]
+      - Downbeat (重拍): 73 个点, 原始强度 [0.704, 1.000] -> 归一化 [0, 1]
+      - Energy Change (能量变化): 98 个点, 原始强度 [0.576, 0.872] -> 归一化 [0, 1]
+      - Spectral Change (频谱变化): 159 个点, 原始强度 [0.546, 0.905] -> 归一化 [0, 1]
+    合并相近点后: 369 个关键点 (merge_close=0.1s)
+✓ After rule-based filtering: 369 keypoints
+
+[Step 1.3] Applying type-based filtering...
+
+    🏷️  按类型过滤关键点 (mode=only):
+       优先类型: ['Downbeat', 'Energy', 'Onset']
+       - Timbre Change (音色变化): 27 -> 0
+       - Strong Attack (冲击): 40 -> 0
+       - Spectral Change (频谱变化): 142 -> 0
+       过滤前: 369 个, 过滤后: 160 个
+✓ After type-based filtering: 160 keypoints
+
+================================================================================
+STAGE 2: AI-based Level 1 section segmentation
+================================================================================
+
+Using AI model to identify high-level sections (Intro, Verse, Chorus, etc.)...
+Loading model from: /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Captioner
+Loading checkpoint shards:   0%|          | 0/16 [00:00<?, ?it/s]Loading checkpoint shards:   6%|▋         | 1/16 [00:01<00:15,  1.03s/it]Loading checkpoint shards:  12%|█▎        | 2/16 [00:02<00:15,  1.09s/it]Loading checkpoint shards:  19%|█▉        | 3/16 [00:03<00:14,  1.11s/it]Loading checkpoint shards:  25%|██▌       | 4/16 [00:04<00:13,  1.11s/it]Loading checkpoint shards:  31%|███▏      | 5/16 [00:05<00:12,  1.12s/it]Loading checkpoint shards:  38%|███▊      | 6/16 [00:06<00:11,  1.12s/it]Loading checkpoint shards:  44%|████▍     | 7/16 [00:07<00:10,  1.12s/it]Loading checkpoint shards:  50%|█████     | 8/16 [00:08<00:08,  1.12s/it]Loading checkpoint shards:  56%|█████▋    | 9/16 [00:10<00:07,  1.12s/it]Loading checkpoint shards:  62%|██████▎   | 10/16 [00:11<00:06,  1.12s/it]Loading checkpoint shards:  69%|██████▉   | 11/16 [00:12<00:05,  1.12s/it]Loading checkpoint shards:  75%|███████▌  | 12/16 [00:13<00:04,  1.12s/it]Loading checkpoint shards:  81%|████████▏ | 13/16 [00:14<00:03,  1.12s/it]Loading checkpoint shards:  88%|████████▊ | 14/16 [00:15<00:02,  1.13s/it]Loading checkpoint shards:  94%|█████████▍| 15/16 [00:16<00:01,  1.13s/it]Loading checkpoint shards: 100%|██████████| 16/16 [00:17<00:00,  1.04s/it]Loading checkpoint shards: 100%|██████████| 16/16 [00:17<00:00,  1.10s/it]
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
+Model and processor loaded successfully!
+
+Generating overall analysis for the entire audio...
+✓ Overall analysis generated successfully
+  Found 7 Level 1 sections from overall analysis
+
+--------------------------------------------------------------------------------
+[Step 2.5] Applying section-based keypoint filtering...
+--------------------------------------------------------------------------------
+  Filtering based on 7 sections
+  (dynamic_top_k enabled: min top_k=0, max_segment_duration=15.0s)
+  (section_min_interval=3.0s to avoid short segments)
+    按类型归一化强度:
+      - Downbeat (重拍): 72 个点, 原始强度 [0.704, 1.000] -> 归一化 [0, 1]
+      - Energy Change (能量变化): 88 个点, 原始强度 [0.576, 0.872] -> 归一化 [0, 1]
+
+    📂 基于 7 个音乐段落进行过滤:
+       [Intro] 0.0s-11.0s (11.0s): 保留 1/2 个点
+       [Verse 1] 11.0s-40.0s (29.0s): 保留 4/23 个点
+       [Chorus 1] 40.0s-70.0s (30.0s): 保留 5/20 个点
+       [Instrumental Interlude] 70.0s-100.0s (30.0s): 保留 4/28 个点
+       [Verse 2] 100.0s-110.0s (10.0s): 保留 2/12 个点
+       [Chorus 2] 110.0s-146.0s (36.0s): 保留 7/42 个点
+       [Outro] 146.0s-158.0s (12.0s): 保留 2/17 个点
+    段落过滤后共: 25 个关键点
+✓ After section-based filtering: 25 keypoints
+✓ Limited to max 20 segments: 20 keypoints
+
+✓ Using 20 filtered keypoints for segmentation
+
+--------------------------------------------------------------------------------
+[DEBUG] Final keypoints for segmentation:
+--------------------------------------------------------------------------------
+  # |     Time | Type                           | Intensity |  Norm_Int | Section        
+----------------------------------------------------------------------------------------------------
+  1 |   19.87s | Downbeat (重拍)                  |    0.9458 |    0.8174 | Verse 1        
+  2 |   23.75s | Downbeat (重拍)                  |    0.9600 |    0.8651 | Verse 1        
+  3 |   30.02s | Energy Change (能量变化)           |    0.8093 |    0.7887 | Verse 1        
+  4 |   33.44s | Energy Change (能量变化)           |    0.8717 |    1.0000 | Verse 1        
+  5 |   62.46s | Downbeat (重拍)                  |    0.9461 |    0.8182 | Chorus 1       
+  6 |   68.73s | Energy Change (能量变化)           |    0.8368 |    0.8820 | Chorus 1       
+  7 |   84.68s | Energy Change (能量变化)           |    0.8253 |    0.8430 | Instrumental In
+  8 |   88.07s | Energy Change (能量变化)           |    0.8278 |    0.8515 | Instrumental In
+  9 |   89.56s | Downbeat (重拍)                  |    0.9387 |    0.7934 | Instrumental In
+ 10 |  105.03s | Downbeat (重拍)                  |    0.9315 |    0.7691 | Verse 2        
+ 11 |  108.90s | Downbeat (重拍)                  |    0.9530 |    0.8415 | Verse 2        
+ 12 |  112.77s | Downbeat (重拍)                  |    0.9450 |    0.8148 | Chorus 2       
+ 13 |  116.65s | Downbeat (重拍)                  |    0.9999 |    1.0000 | Chorus 2       
+ 14 |  120.52s | Downbeat (重拍)                  |    0.9536 |    0.8436 | Chorus 2       
+ 15 |  124.39s | Downbeat (重拍)                  |    0.9655 |    0.8839 | Chorus 2       
+ 16 |  128.25s | Downbeat (重拍)                  |    0.9138 |    0.7095 | Chorus 2       
+ 17 |  134.06s | Downbeat (重拍)                  |    0.9211 |    0.7339 | Chorus 2       
+ 18 |  143.74s | Downbeat (重拍)                  |    0.9189 |    0.7264 | Chorus 2       
+ 19 |  147.61s | Downbeat (重拍)                  |    0.9315 |    0.7691 | Outro          
+ 20 |  155.60s | Energy Change (能量变化)           |    0.8534 |    0.9380 | Outro          
+----------------------------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+[Step 2.6] Snapping Level 1 section boundaries to nearest keypoints...
+--------------------------------------------------------------------------------
+  [Intro] 00:00.0-00:11.0 -> 00:00.0-00:19.9
+  [Verse 1] 00:11.0-00:40.0 -> 00:19.9-00:33.4
+  [Chorus 1] 00:40.0-01:10.0 -> 00:33.4-01:08.7
+  [Instrumental Interlude] 01:10.0-01:40.0 -> 01:08.7-01:45.0
+  [Verse 2] 01:40.0-01:50.0 -> 01:45.0-01:48.9
+  [Chorus 2] 01:50.0-02:26.0 -> 01:48.9-02:27.6
+  [Outro] 02:26.0-02:38.0 -> 02:27.6-02:58.2
+✓ Section boundaries snapped to 20 keypoints
+
+================================================================================
+STAGE 3: Creating Level 2 sub-segments based on filtered keypoints
+================================================================================
+
+Mapping filtered keypoints to Level 1 sections...
+
+--------------------------------------------------------------------------------
+Level 1 Section 1: Intro [0.00s - 19.90s]
+--------------------------------------------------------------------------------
+  Found 1 filtered keypoints within this section
+  Created 2 Level 2 sub-segments
+
+--------------------------------------------------------------------------------
+Level 1 Section 2: Verse 1 [19.90s - 33.40s]
+--------------------------------------------------------------------------------
+  Found 2 filtered keypoints within this section
+  Created 3 Level 2 sub-segments
+
+--------------------------------------------------------------------------------
+Level 1 Section 3: Chorus 1 [33.40s - 68.70s]
+--------------------------------------------------------------------------------
+  Found 2 filtered keypoints within this section
+    ⚠ Segment [41.1s-62.5s] still too long (21.4s), searching for 2-way split points
+      ✓ midpoint 51.78s → keypoint 54.13s (+2.35s, type=Timbre Change (音色变化), intensity=0.597)
+  Created 4 Level 2 sub-segments
+
+--------------------------------------------------------------------------------
+Level 1 Section 4: Instrumental Interlude [68.70s - 105.00s]
+--------------------------------------------------------------------------------
+  Found 4 filtered keypoints within this section
+  Created 5 Level 2 sub-segments
+
+--------------------------------------------------------------------------------
+Level 1 Section 5: Verse 2 [105.00s - 108.90s]
+--------------------------------------------------------------------------------
+  Found 1 filtered keypoints within this section
+  Created 1 Level 2 sub-segments
+
+--------------------------------------------------------------------------------
+Level 1 Section 6: Chorus 2 [108.90s - 147.60s]
+--------------------------------------------------------------------------------
+  Found 8 filtered keypoints within this section
+  Created 8 Level 2 sub-segments
+
+--------------------------------------------------------------------------------
+Level 1 Section 7: Outro [147.60s - 178.20s]
+--------------------------------------------------------------------------------
+  Found 2 filtered keypoints within this section
+  Created 3 Level 2 sub-segments
+
+================================================================================
+STAGE 4: AI-based caption generation for sub-segments
+================================================================================
+
+Using AI model to caption 26 sub-segments (between keypoints)...
+
+--------------------------------------------------------------------------------
+Step 1: Extracting audio sub-segments...
+--------------------------------------------------------------------------------
+✓ Section 1, Sub-segment 1: 0.00s - 6.43s (6.4s)
+✓ Section 1, Sub-segment 2: 6.43s - 19.87s (13.4s)
+✓ Section 2, Sub-segment 1: 19.90s - 23.75s (3.9s)
+✓ Section 2, Sub-segment 2: 23.75s - 30.02s (6.3s)
+✓ Section 2, Sub-segment 3: 30.02s - 33.40s (3.4s)
+✓ Section 3, Sub-segment 1: 33.44s - 41.09s (7.7s)
+✓ Section 3, Sub-segment 2: 41.09s - 54.13s (13.0s)
+✓ Section 3, Sub-segment 3: 54.13s - 62.46s (8.3s)
+✓ Section 3, Sub-segment 4: 62.46s - 68.70s (6.2s)
+✓ Section 4, Sub-segment 1: 68.73s - 77.93s (9.2s)
+✓ Section 4, Sub-segment 2: 77.93s - 84.68s (6.8s)
+✓ Section 4, Sub-segment 3: 84.68s - 89.56s (4.9s)
+✓ Section 4, Sub-segment 4: 89.56s - 97.28s (7.7s)
+✓ Section 4, Sub-segment 5: 97.28s - 105.00s (7.7s)
+✓ Section 5, Sub-segment 1: 105.03s - 108.90s (3.9s)
+✓ Section 6, Sub-segment 1: 108.90s - 112.77s (3.9s)
+✓ Section 6, Sub-segment 2: 112.77s - 116.65s (3.9s)
+✓ Section 6, Sub-segment 3: 116.65s - 120.52s (3.9s)
+✓ Section 6, Sub-segment 4: 120.52s - 124.39s (3.9s)
+✓ Section 6, Sub-segment 5: 124.39s - 128.25s (3.9s)
+✓ Section 6, Sub-segment 6: 128.25s - 134.06s (5.8s)
+✓ Section 6, Sub-segment 7: 134.06s - 143.74s (9.7s)
+✓ Section 6, Sub-segment 8: 143.74s - 147.60s (3.9s)
+✓ Section 7, Sub-segment 1: 147.61s - 155.60s (8.0s)
+✓ Section 7, Sub-segment 2: 155.60s - 165.73s (10.1s)
+✓ Section 7, Sub-segment 3: 165.73s - 178.20s (12.5s)
+
+--------------------------------------------------------------------------------
+Step 2: Processing 26 sub-segments in batches of 16...
+--------------------------------------------------------------------------------
+
+················································································
+Processing Batch 1/2 (16 sub-segments)
+················································································
+  - Section 1, Sub 1: 0.00s - 6.43s
+  - Section 1, Sub 2: 6.43s - 19.87s
+  - Section 2, Sub 1: 19.90s - 23.75s
+  - Section 2, Sub 2: 23.75s - 30.02s
+  - Section 2, Sub 3: 30.02s - 33.40s
+  - Section 3, Sub 1: 33.44s - 41.09s
+  - Section 3, Sub 2: 41.09s - 54.13s
+  - Section 3, Sub 3: 54.13s - 62.46s
+  - Section 3, Sub 4: 62.46s - 68.70s
+  - Section 4, Sub 1: 68.73s - 77.93s
+  - Section 4, Sub 2: 77.93s - 84.68s
+  - Section 4, Sub 3: 84.68s - 89.56s
+  - Section 4, Sub 4: 89.56s - 97.28s
+  - Section 4, Sub 5: 97.28s - 105.00s
+  - Section 5, Sub 1: 105.03s - 108.90s
+  - Section 6, Sub 1: 108.90s - 112.77s
+✓ Batch 1 completed successfully
+
+················································································
+Processing Batch 2/2 (10 sub-segments)
+················································································
+  - Section 6, Sub 2: 112.77s - 116.65s
+  - Section 6, Sub 3: 116.65s - 120.52s
+  - Section 6, Sub 4: 120.52s - 124.39s
+  - Section 6, Sub 5: 124.39s - 128.25s
+  - Section 6, Sub 6: 128.25s - 134.06s
+  - Section 6, Sub 7: 134.06s - 143.74s
+  - Section 6, Sub 8: 143.74s - 147.60s
+  - Section 7, Sub 1: 147.61s - 155.60s
+  - Section 7, Sub 2: 155.60s - 165.73s
+  - Section 7, Sub 3: 165.73s - 178.20s
+✓ Batch 2 completed successfully
+
+--------------------------------------------------------------------------------
+Step 3: Building two-level structure...
+--------------------------------------------------------------------------------
+✓ Section 1, Sub 1: Detailed analysis added
+✓ Section 1, Sub 2: Detailed analysis added
+✓ Section 2, Sub 1: Detailed analysis added
+✓ Section 2, Sub 2: Detailed analysis added
+✓ Section 2, Sub 3: Detailed analysis added
+✓ Section 3, Sub 1: Detailed analysis added
+✓ Section 3, Sub 2: Detailed analysis added
+✓ Section 3, Sub 3: Detailed analysis added
+✓ Section 3, Sub 4: Detailed analysis added
+✓ Section 4, Sub 1: Detailed analysis added
+✓ Section 4, Sub 2: Detailed analysis added
+✓ Section 4, Sub 3: Detailed analysis added
+✓ Section 4, Sub 4: Detailed analysis added
+✓ Section 4, Sub 5: Detailed analysis added
+✓ Section 5, Sub 1: Detailed analysis added
+✓ Section 6, Sub 1: Detailed analysis added
+✓ Section 6, Sub 2: Detailed analysis added
+✓ Section 6, Sub 3: Detailed analysis added
+✓ Section 6, Sub 4: Detailed analysis added
+✓ Section 6, Sub 5: Detailed analysis added
+✓ Section 6, Sub 6: Detailed analysis added
+✓ Section 6, Sub 7: Detailed analysis added
+✓ Section 6, Sub 8: Detailed analysis added
+✓ Section 7, Sub 1: Detailed analysis added
+✓ Section 7, Sub 2: Detailed analysis added
+✓ Section 7, Sub 3: Detailed analysis added
+
+================================================================================
+STAGE 5: Merging into two-level output format
+================================================================================
+
+--------------------------------------------------------------------------------
+Cleaning up temporary files...
+
+================================================================================
+✓ Processing Complete!
+  - Level 1 sections: 7
+  - Level 2 sub-segments: 26
+  - Keypoints used: 20
+  - Output saved to: ./video_database/Database/CallofSilence/captions/captions.json
+  - Debug info: _debug_keypoints, _debug_config (in JSON)
+================================================================================
+Captions generated.
+========================================================
+End time: 2025年 12月 14日 星期日 17:24:40 CST
+========================================================

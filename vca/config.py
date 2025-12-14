@@ -35,7 +35,7 @@ VLLM_ENDPOINT = "http://localhost:8888/v1/chat/completions"  # vLLM base URL (wi
 #     --trust-remote-code \
 #     --tensor-parallel-size 2
 # ------------------ Audio model configuration ------------------ #
-AUDIO_ANALYSIS_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Instruct"
+AUDIO_ANALYSIS_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Captioner"
 AUDIO_ANALYSIS_MODEL_MAX_TOKEN = 32768  # Max tokens to generate (not total context length)
 VLLM_AUDIO_ENDPOINT = "http://localhost:8890/v1/chat/completions"  # vLLM endpoint for Qwen3-Omni audio model
 # 启动audio服务的命令示例:
@@ -57,17 +57,25 @@ AUDIO_MAX_BPM = 215.0  # Maximum BPM for beat detection
 # Segment filtering parameters
 AUDIO_MIN_SEGMENT_DURATION = 3.0  # Minimum segment duration in seconds
 AUDIO_MAX_SEGMENT_DURATION = 15.0  # Maximum segment duration in seconds
-AUDIO_MAX_SEGMENTS = 30  # Maximum number of segments to create
+AUDIO_MAX_SEGMENTS = 20  # Maximum number of segments to create
 AUDIO_MERGE_CLOSE = 0.1  # Merge keypoints closer than this threshold (seconds)
 
 # Section-based filtering parameters
 AUDIO_USE_STAGE1_SECTIONS = True  # Whether to use AI-identified sections for filtering
-AUDIO_SECTION_TOP_K = 3  # Number of keypoints to keep per section
+AUDIO_SECTION_TOP_K = 0  # Number of keypoints to keep per section, 0 means using energy percentile filtering
 AUDIO_SECTION_MIN_INTERVAL = 0.0  # Minimum interval between keypoints within each section
 AUDIO_SECTION_ENERGY_PERCENTILE = 70.0  # Energy percentile threshold within each section
 
+# Type-based filtering parameters (以重音和音量为主)
+# Available types: "Downbeat" (重拍), "Onset"/"Attack" (冲击点), "Energy" (能量变化),
+#                  "Spectral" (频谱变化), "Timbre" (音色变化)
+# 设置为 None 可以禁用类型过滤，保留所有类型
+AUDIO_PREFERRED_TYPES = ["Downbeat", "Energy", "Onset"]  # 优先保留的关键点类型（保留所有类型）
+AUDIO_TYPE_FILTER_MODE = "only"  # "only" = 只保留指定类型, "boost" = 增强指定类型权重, "exclude" = 排除指定类型
+AUDIO_TYPE_BOOST_FACTOR = 1.5  # 当 mode="boost" 时的权重增强因子
+
 # Batch processing
-AUDIO_BATCH_SIZE = 4  # Number of audio segments to process in parallel
+AUDIO_BATCH_SIZE = 16  # Number of audio segments to process in parallel
 
 
 # ------------------ Text embedding model configuration ------------------ #

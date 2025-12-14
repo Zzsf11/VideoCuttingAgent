@@ -549,6 +549,56 @@ class SensoryKeypointDetector:
         }
 
 
+def normalize_intensity_by_type(keypoints: List[dict]) -> List[dict]:
+    """
+    按类型归一化关键点强度，使不同类型的关键点可以公平比较
+
+    不同类型的关键点有不同的强度计算公式和范围：
+    - Downbeat: 0.7 ~ 1.0
+    - Onset: 0.5 ~ 1.0
+    - Spectral Change: 0.4 ~ 1.0
+    - Energy Change: 0.5 ~ 1.0
+    - Timbre Change: 0.35 ~ 1.0
+
+    归一化后所有类型的强度都在 0 ~ 1 范围内
+
+    Args:
+        keypoints: 原始关键点列表
+
+    Returns:
+        添加了 normalized_intensity 字段的关键点列表
+    """
+    if not keypoints:
+        return []
+
+    # 按类型分组
+    by_type = {}
+    for kp in keypoints:
+        kp_type = kp.get('type', 'Unknown')
+        by_type.setdefault(kp_type, []).append(kp)
+
+    print(f"    按类型归一化强度:")
+
+    # 对每种类型分别归一化
+    for type_name, points in by_type.items():
+        intensities = [p['intensity'] for p in points]
+        min_i = min(intensities)
+        max_i = max(intensities)
+        range_i = max_i - min_i
+
+        for p in points:
+            if range_i > 1e-6:
+                p['normalized_intensity'] = (p['intensity'] - min_i) / range_i
+            else:
+                # 如果该类型所有点强度相同，归一化为 0.5
+                p['normalized_intensity'] = 0.5
+
+        print(f"      - {type_name}: {len(points)} 个点, "
+              f"原始强度 [{min_i:.3f}, {max_i:.3f}] -> 归一化 [0, 1]")
+
+    return keypoints
+
+
 def filter_significant_keypoints(
     keypoints: List[dict],
     min_interval: float = 0.0,
@@ -556,11 +606,12 @@ def filter_significant_keypoints(
     energy_percentile: float = 0.0,
     merge_close: float = 0.1,
     segment_duration: float = 0.0,
-    segment_top_k: int = 0
+    segment_top_k: int = 0,
+    use_normalized_intensity: bool = True
 ) -> List[dict]:
     """
     过滤关键点，只保留显著的点
-    
+
     Args:
         keypoints: 原始关键点列表
         min_interval: 最小间隔（秒），间隔内只保留最强的点
@@ -569,15 +620,54 @@ def filter_significant_keypoints(
         merge_close: 合并间隔小于此值的相邻点
         segment_duration: 分段时长（秒），与segment_top_k配合使用
         segment_top_k: 每个时间段内保留的最强点数量，0表示不使用分段过滤
-    
+        use_normalized_intensity: 是否使用归一化后的强度进行过滤（推荐True）
+
     Returns:
         过滤后的关键点列表
     """
     if not keypoints:
         return []
-    
+
     filtered = list(keypoints)
-    
+
+    # 0. 先按类型归一化强度
+    if use_normalized_intensity:
+        filtered = normalize_intensity_by_type(filtered)
+        intensity_key = 'normalized_intensity'
+    else:
+        intensity_key = 'intensity'
+        # 确保所有点都有 normalized_intensity 字段（设为原始值）
+        for kp in filtered:
+            kp['normalized_intensity'] = kp['intensity']
+
+    # 0.5 分段保留（优先执行，确保每个时间段都有代表性关键点）
+    # 这一步在其他过滤之前执行，保证时间均匀分布
+    if segment_duration > 0 and segment_top_k > 0 and filtered:
+        filtered.sort(key=lambda x: x['time'])
+        max_time = max(kp['time'] for kp in filtered)
+
+        segment_filtered = []
+        segment_start = 0
+
+        while segment_start < max_time:
+            segment_end = segment_start + segment_duration
+            # 获取该段内的所有点
+            segment_points = [kp for kp in filtered
+                            if segment_start <= kp['time'] < segment_end]
+
+            if segment_points:
+                # 按强度排序，取前segment_top_k个（使用归一化强度）
+                segment_points.sort(key=lambda x: x[intensity_key], reverse=True)
+                segment_filtered.extend(segment_points[:segment_top_k])
+
+            segment_start = segment_end
+
+        # 按时间重新排序
+        segment_filtered.sort(key=lambda x: x['time'])
+        filtered = segment_filtered
+        print(f"    分段预过滤: {len(filtered)} 个关键点 "
+              f"(每{segment_duration}s保留{segment_top_k}个最强点，确保时间均匀)")
+
     # 1. 合并相近的点（保留强度最高的）
     if merge_close > 0:
         filtered.sort(key=lambda x: x['time'])
@@ -590,78 +680,54 @@ def filter_significant_keypoints(
             while j < len(filtered) and filtered[j]['time'] - filtered[i]['time'] < merge_close:
                 group.append(filtered[j])
                 j += 1
-            # 保留强度最高的点
-            best = max(group, key=lambda x: x['intensity'])
+            # 保留强度最高的点（使用归一化强度比较）
+            best = max(group, key=lambda x: x[intensity_key])
             merged.append(best)
             i = j
         filtered = merged
         print(f"    合并相近点后: {len(filtered)} 个关键点 (merge_close={merge_close}s)")
-    
-    # 2. 按强度百分位数过滤
+
+    # 2. 按强度百分位数过滤（使用归一化强度）
     if energy_percentile > 0 and filtered:
-        intensities = [kp['intensity'] for kp in filtered]
+        intensities = [kp[intensity_key] for kp in filtered]
         threshold = np.percentile(intensities, energy_percentile)
-        filtered = [kp for kp in filtered if kp['intensity'] >= threshold]
-        print(f"    强度过滤后: {len(filtered)} 个关键点 (保留强度>={threshold:.3f}的点)")
-    
+        filtered = [kp for kp in filtered if kp[intensity_key] >= threshold]
+        print(f"    强度过滤后: {len(filtered)} 个关键点 "
+              f"(保留归一化强度>={threshold:.3f}的点, percentile={energy_percentile})")
+
     # 3. 按最小间隔过滤（在每个间隔内只保留最强的点）
     if min_interval > 0 and filtered:
         filtered.sort(key=lambda x: x['time'])
         interval_filtered = []
         current_interval_start = filtered[0]['time']
         current_best = filtered[0]
-        
+
         for kp in filtered[1:]:
             if kp['time'] - current_interval_start < min_interval:
-                # 在同一间隔内，保留强度更高的
-                if kp['intensity'] > current_best['intensity']:
+                # 在同一间隔内，保留强度更高的（使用归一化强度比较）
+                if kp[intensity_key] > current_best[intensity_key]:
                     current_best = kp
             else:
                 # 新间隔，保存之前的最佳点
                 interval_filtered.append(current_best)
                 current_interval_start = kp['time']
                 current_best = kp
-        
+
         # 添加最后一个
         interval_filtered.append(current_best)
         filtered = interval_filtered
         print(f"    最小间隔过滤后: {len(filtered)} 个关键点 (min_interval={min_interval}s)")
-    
-    # 4. 只保留 top_k 个
+
+    # 4. 只保留 top_k 个（使用归一化强度排序）
     if top_k > 0 and len(filtered) > top_k:
         # 按强度排序，取前k个，然后再按时间排序
-        filtered.sort(key=lambda x: x['intensity'], reverse=True)
+        filtered.sort(key=lambda x: x[intensity_key], reverse=True)
         filtered = filtered[:top_k]
         filtered.sort(key=lambda x: x['time'])
         print(f"    Top-K 过滤后: {len(filtered)} 个关键点 (top_k={top_k})")
-    
-    # 5. 分段过滤：每个时间段保留segment_top_k个最强的点（保证各段都有代表）
-    if segment_duration > 0 and segment_top_k > 0 and filtered:
-        filtered.sort(key=lambda x: x['time'])
-        max_time = max(kp['time'] for kp in filtered)
-        
-        segment_filtered = []
-        segment_start = 0
-        
-        while segment_start < max_time:
-            segment_end = segment_start + segment_duration
-            # 获取该段内的所有点
-            segment_points = [kp for kp in filtered 
-                            if segment_start <= kp['time'] < segment_end]
-            
-            if segment_points:
-                # 按强度排序，取前segment_top_k个
-                segment_points.sort(key=lambda x: x['intensity'], reverse=True)
-                segment_filtered.extend(segment_points[:segment_top_k])
-            
-            segment_start = segment_end
-        
-        # 按时间重新排序
-        segment_filtered.sort(key=lambda x: x['time'])
-        filtered = segment_filtered
-        print(f"    分段过滤后: {len(filtered)} 个关键点 "
-              f"(每{segment_duration}s保留{segment_top_k}个最强点)")
-    
+
+    # 注意: 分段过滤已移至 Step 0.5 优先执行，确保时间均匀分布
+
     return filtered
 
 
@@ -719,77 +785,212 @@ def load_sections_from_caption(caption_path: str) -> List[dict]:
     return sections
 
 
+def filter_by_type(
+    keypoints: List[dict],
+    preferred_types: List[str] = None,
+    mode: str = "boost",
+    boost_factor: float = 1.5
+) -> List[dict]:
+    """
+    按关键点类型进行过滤或增强
+
+    关键点类型包括:
+    - "Downbeat" (重拍): 节奏上的强拍
+    - "Onset"/"Attack" (冲击点): 音符起始点
+    - "Energy" (能量变化): 音量突变点
+    - "Spectral" (频谱变化): 人声/乐器变化
+    - "Timbre" (音色变化): 音色明暗变化
+
+    Args:
+        keypoints: 原始关键点列表
+        preferred_types: 优先类型列表，支持部分匹配
+                        例如 ["Downbeat", "Energy"] 会匹配包含这些词的类型
+        mode: 过滤模式
+              - "only": 只保留指定类型的关键点
+              - "boost": 增强指定类型的权重（乘以 boost_factor）
+              - "exclude": 排除指定类型
+        boost_factor: 当 mode="boost" 时，增强因子（默认 1.5）
+
+    Returns:
+        过滤或增强后的关键点列表
+    """
+    if not keypoints:
+        return []
+
+    if not preferred_types:
+        return keypoints
+
+    # 将 preferred_types 转为小写以便匹配
+    preferred_lower = [t.lower() for t in preferred_types]
+
+    def type_matches(kp_type: str, preferred_list: List[str]) -> bool:
+        """检查关键点类型是否匹配优先类型列表"""
+        kp_type_lower = kp_type.lower()
+        for preferred in preferred_list:
+            if preferred in kp_type_lower:
+                return True
+        return False
+
+    filtered = []
+
+    print(f"\n    🏷️  按类型过滤关键点 (mode={mode}):")
+    print(f"       优先类型: {preferred_types}")
+
+    # 统计各类型数量
+    type_counts_before = {}
+    for kp in keypoints:
+        kp_type = kp.get('type', 'Unknown')
+        type_counts_before[kp_type] = type_counts_before.get(kp_type, 0) + 1
+
+    if mode == "only":
+        # 只保留指定类型
+        for kp in keypoints:
+            kp_type = kp.get('type', 'Unknown')
+            if type_matches(kp_type, preferred_lower):
+                filtered.append(kp)
+
+    elif mode == "exclude":
+        # 排除指定类型
+        for kp in keypoints:
+            kp_type = kp.get('type', 'Unknown')
+            if not type_matches(kp_type, preferred_lower):
+                filtered.append(kp)
+
+    elif mode == "boost":
+        # 增强指定类型的权重
+        for kp in keypoints:
+            kp_copy = dict(kp)
+            kp_type = kp_copy.get('type', 'Unknown')
+            if type_matches(kp_type, preferred_lower):
+                # 增强强度
+                if 'normalized_intensity' in kp_copy:
+                    kp_copy['normalized_intensity'] = min(1.0, kp_copy['normalized_intensity'] * boost_factor)
+                if 'intensity' in kp_copy:
+                    kp_copy['intensity'] = kp_copy['intensity'] * boost_factor
+                kp_copy['type_boosted'] = True
+            filtered.append(kp_copy)
+
+    else:
+        print(f"       ⚠️ 未知模式 '{mode}'，返回原始关键点")
+        return keypoints
+
+    # 统计过滤后各类型数量
+    type_counts_after = {}
+    for kp in filtered:
+        kp_type = kp.get('type', 'Unknown')
+        type_counts_after[kp_type] = type_counts_after.get(kp_type, 0) + 1
+
+    # 打印统计信息
+    for kp_type, count_before in type_counts_before.items():
+        count_after = type_counts_after.get(kp_type, 0)
+        if count_before != count_after:
+            print(f"       - {kp_type}: {count_before} -> {count_after}")
+        elif mode == "boost" and type_matches(kp_type, preferred_lower):
+            print(f"       - {kp_type}: {count_before} (权重增强 x{boost_factor})")
+
+    print(f"       过滤前: {len(keypoints)} 个, 过滤后: {len(filtered)} 个")
+
+    return filtered
+
+
 def filter_by_sections(
     keypoints: List[dict],
     sections: List[dict],
     section_top_k: int = 3,
     section_min_interval: float = 0.0,
-    section_energy_percentile: float = 0.0
+    section_energy_percentile: float = 0.0,
+    use_normalized_intensity: bool = True,
+    dynamic_top_k: bool = True,
+    max_segment_duration: float = 15.0,
 ) -> List[dict]:
     """
     基于音乐段落（sections）进行关键点过滤
     确保每个段落都有代表性的关键点
-    
+
     Args:
         keypoints: 原始关键点列表
         sections: 段落列表，每个包含 name, start_time, end_time
-        section_top_k: 每个段落保留的最强点数量
+        section_top_k: 每个段落保留的最强点数量（基准值）
         section_min_interval: 每个段落内的最小间隔
         section_energy_percentile: 每个段落内的强度百分位数阈值(0-100)，只保留高于该阈值的点
-    
+        use_normalized_intensity: 是否使用归一化后的强度进行过滤（推荐True）
+        dynamic_top_k: 是否根据段落时长动态调整 top_k（默认True）
+        max_segment_duration: 用于计算动态 top_k 的最大片段时长（默认15s）
+
     Returns:
         过滤后的关键点列表
     """
     if not keypoints or not sections:
         return keypoints
-    
+
+    # 先按类型归一化强度
+    if use_normalized_intensity:
+        keypoints = normalize_intensity_by_type(list(keypoints))
+        intensity_key = 'normalized_intensity'
+    else:
+        intensity_key = 'intensity'
+        # 确保所有点都有 normalized_intensity 字段
+        for kp in keypoints:
+            if 'normalized_intensity' not in kp:
+                kp['normalized_intensity'] = kp['intensity']
+
     filtered = []
-    
+
     print(f"\n    📂 基于 {len(sections)} 个音乐段落进行过滤:")
-    
+
     for sec in sections:
         name = sec.get('name', 'Unknown')
-        
+
         # 兼容不同的键名和时间格式
         start_val = sec.get('start_time', sec.get('Start_Time', 0))
         end_val = sec.get('end_time', sec.get('End_Time', 0))
-        
+
         try:
             start = parse_time_str(start_val)
             end = parse_time_str(end_val)
         except Exception as e:
             print(f"       ⚠️ 跳过无效时间段: {name} ({start_val}-{end_val}) - {e}")
             continue
-            
+
         duration = sec.get('duration', end - start)
-        
+
+        # 动态计算该 section 需要保留的关键点数量
+        if dynamic_top_k and section_top_k > 0 and max_segment_duration > 0:
+            # 根据时长计算：确保最终每个片段不超过 max_segment_duration
+            # 需要的分割点数 = ceil(duration / max_segment_duration)
+            # 但至少保留 section_top_k 个
+            min_needed = int(np.ceil(duration / max_segment_duration))
+            actual_top_k = max(section_top_k, min_needed)
+        else:
+            actual_top_k = section_top_k
+
         # 获取该段落内的所有关键点
-        section_points = [kp for kp in keypoints 
+        section_points = [kp for kp in keypoints
                          if start <= kp['time'] < end]
-        
+
         if not section_points:
             print(f"       [{name}] {start:.1f}s-{end:.1f}s: 无关键点")
             continue
-        
-        # 1. 如果设置了段落内百分位数过滤，先应用
+
+        # 1. 如果设置了段落内百分位数过滤，先应用（使用归一化强度）
         if section_energy_percentile > 0 and len(section_points) > 1:
-            intensities = [kp['intensity'] for kp in section_points]
+            intensities = [kp[intensity_key] for kp in section_points]
             threshold = np.percentile(intensities, section_energy_percentile)
             before_count = len(section_points)
-            section_points = [kp for kp in section_points if kp['intensity'] >= threshold]
+            section_points = [kp for kp in section_points if kp[intensity_key] >= threshold]
             if len(section_points) < before_count:
                 pass  # 过滤成功
-        
-        # 2. 如果设置了最小间隔，在段落内应用
+
+        # 2. 如果设置了最小间隔，在段落内应用（使用归一化强度比较）
         if section_min_interval > 0 and section_points:
             section_points.sort(key=lambda x: x['time'])
             interval_filtered = []
             current_start = section_points[0]['time']
             current_best = section_points[0]
-            
+
             for kp in section_points[1:]:
                 if kp['time'] - current_start < section_min_interval:
-                    if kp['intensity'] > current_best['intensity']:
+                    if kp[intensity_key] > current_best[intensity_key]:
                         current_best = kp
                 else:
                     interval_filtered.append(current_best)
@@ -797,29 +998,32 @@ def filter_by_sections(
                     current_best = kp
             interval_filtered.append(current_best)
             section_points = interval_filtered
-        
-        # 3. 按强度排序，如果设置了 section_top_k 则取前 K 个
-        section_points.sort(key=lambda x: x['intensity'], reverse=True)
-        if section_top_k > 0:
-            selected = section_points[:section_top_k]
+
+        # 3. 按强度排序，如果设置了 actual_top_k 则取前 K 个（使用归一化强度）
+        section_points.sort(key=lambda x: x[intensity_key], reverse=True)
+        if actual_top_k > 0:
+            selected = section_points[:actual_top_k]
         else:
-            # section_top_k=0 表示不限制数量，保留所有经过前面过滤的点
+            # actual_top_k=0 表示不限制数量，保留所有经过前面过滤的点
             selected = section_points
-        
+
         # 为选中的点添加段落信息
         for pt in selected:
             pt['section'] = name
-        
+
         filtered.extend(selected)
-        
+
+        # 打印保留信息，如果 top_k 被动态调整则显示
+        top_k_info = f"top_k={actual_top_k}" if actual_top_k != section_top_k else ""
         print(f"       [{name}] {start:.1f}s-{end:.1f}s ({duration:.1f}s): "
-              f"保留 {len(selected)}/{len([kp for kp in keypoints if start <= kp['time'] < end])} 个点")
-    
+              f"保留 {len(selected)}/{len([kp for kp in keypoints if start <= kp['time'] < end])} 个点"
+              f"{' (' + top_k_info + ')' if top_k_info else ''}")
+
     # 按时间排序
     filtered.sort(key=lambda x: x['time'])
-    
+
     print(f"    段落过滤后共: {len(filtered)} 个关键点")
-    
+
     return filtered
 
 
@@ -1353,9 +1557,9 @@ def main():
                         help='生成颜色变化视频（纯色画面配音频，关键点处切换颜色）')
     output_group.add_argument('--output', '-o', type=str, default=None,
                         help='可视化图片或视频输出路径')
-    output_group.add_argument('--video-fps', type=int, default=30,
+    output_group.add_argument('--video-fps', type=int, default=15,
                         help='生成视频的帧率，默认30')
-    output_group.add_argument('--resolution', type=str, default='1920x1080',
+    output_group.add_argument('--resolution', type=str, default='480x480',
                         help='生成视频的分辨率，默认1920x1080')
     output_group.add_argument('--downbeats-only', action='store_true',
                         help='只使用强拍作为分割点（减少分割数量）')

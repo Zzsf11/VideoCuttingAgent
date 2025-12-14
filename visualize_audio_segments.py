@@ -92,37 +92,108 @@ def time_str_to_seconds(time_str):
         return float(time_str)
 
 
-def normalize_segments(data):
-    """标准化segments格式，支持多种输入格式"""
+def normalize_segments(data, flatten_sub_sections=True):
+    """标准化segments格式，支持多种输入格式
+
+    Args:
+        data: JSON数据
+        flatten_sub_sections: 是否将子sections展平为独立的关键点
+    """
     # 检查是使用 'sections' 还是 'segments'
     segments_raw = data.get('segments') or data.get('sections', [])
 
     normalized = []
-    for idx, seg in enumerate(segments_raw):
+    global_idx = 0
+
+    for parent_idx, seg in enumerate(segments_raw):
         # 处理时间字段 - 支持不同的字段名和格式
-        start_time = seg.get('start_time') or seg.get('Start_Time', 0)
-        end_time = seg.get('end_time') or seg.get('End_Time', 0)
+        parent_start = seg.get('start_time') or seg.get('Start_Time', 0)
+        parent_end = seg.get('end_time') or seg.get('End_Time', 0)
 
         # 转换时间格式
-        start_time = time_str_to_seconds(start_time)
-        end_time = time_str_to_seconds(end_time)
+        parent_start = time_str_to_seconds(parent_start)
+        parent_end = time_str_to_seconds(parent_end)
 
-        # 计算duration
-        duration = end_time - start_time
+        # 处理 detailed_analysis - 适配新的madmom格式
+        detailed_analysis = seg.get('detailed_analysis', {})
+        parent_name = seg.get('name', f'Segment {parent_idx + 1}')
+        parent_description = seg.get('description', '')
 
-        # 标准化segment
-        normalized_seg = {
-            'segment_id': seg.get('segment_id', idx + 1),
-            'start_time': start_time,
-            'end_time': end_time,
-            'duration': duration,
-            'detailed_analysis': seg.get('detailed_analysis', {
-                'summary': seg.get('description', 'No description'),
-                'emotional_tone': seg.get('name', 'N/A'),
-                'energy_level': 'N/A'
-            })
-        }
-        normalized.append(normalized_seg)
+        # 新格式：detailed_analysis 包含 summary 和 sections 数组
+        if flatten_sub_sections and 'sections' in detailed_analysis and isinstance(detailed_analysis.get('sections'), list):
+            sub_sections = detailed_analysis['sections']
+
+            # 将每个子section展平为独立的关键点
+            for sub_idx, sub_sec in enumerate(sub_sections):
+                # 子section的时间是相对于父section的偏移
+                sub_start_rel = time_str_to_seconds(sub_sec.get('Start_Time', 0))
+                sub_end_rel = time_str_to_seconds(sub_sec.get('End_Time', 0))
+
+                # 转换为绝对时间
+                sub_start_abs = parent_start + sub_start_rel
+                sub_end_abs = parent_start + sub_end_rel
+
+                # 确保不超过父section的结束时间
+                sub_end_abs = min(sub_end_abs, parent_end)
+
+                duration = sub_end_abs - sub_start_abs
+
+                # 构建名称：父section名 + 子section名
+                sub_name = sub_sec.get('name', f'Sub {sub_idx + 1}')
+                full_name = f"{parent_name} - {sub_name}"
+
+                normalized_seg = {
+                    'segment_id': global_idx + 1,
+                    'segment_name': full_name,
+                    'parent_name': parent_name,
+                    'sub_name': sub_name,
+                    'start_time': sub_start_abs,
+                    'end_time': sub_end_abs,
+                    'duration': duration,
+                    'description': sub_sec.get('description', parent_description),
+                    'level': 2,  # 标记为子级别
+                    'detailed_analysis': {
+                        'summary': sub_sec.get('description', detailed_analysis.get('summary', 'No description')),
+                        'emotional_tone': sub_sec.get('Emotional_Tone', 'N/A'),
+                        'energy_level': sub_sec.get('energy', 'N/A'),
+                        'rhythm': sub_sec.get('rhythm', 'N/A')
+                    }
+                }
+                normalized.append(normalized_seg)
+                global_idx += 1
+        else:
+            # 旧格式或不展平子sections
+            duration = parent_end - parent_start
+
+            if isinstance(detailed_analysis, dict) and 'summary' in detailed_analysis:
+                normalized_detailed = {
+                    'summary': detailed_analysis.get('summary', parent_description),
+                    'emotional_tone': detailed_analysis.get('emotional_tone', 'N/A'),
+                    'energy_level': detailed_analysis.get('energy_level', 'N/A'),
+                    'rhythm': detailed_analysis.get('rhythm', 'N/A')
+                }
+            else:
+                normalized_detailed = {
+                    'summary': parent_description or 'No description',
+                    'emotional_tone': parent_name,
+                    'energy_level': 'N/A',
+                    'rhythm': 'N/A'
+                }
+
+            normalized_seg = {
+                'segment_id': global_idx + 1,
+                'segment_name': parent_name,
+                'parent_name': parent_name,
+                'sub_name': None,
+                'start_time': parent_start,
+                'end_time': parent_end,
+                'duration': duration,
+                'description': parent_description,
+                'level': 1,  # 标记为父级别
+                'detailed_analysis': normalized_detailed
+            }
+            normalized.append(normalized_seg)
+            global_idx += 1
 
     return normalized
 
@@ -162,18 +233,34 @@ def create_visualization_video(json_path, output_path, width=1920, height=1080, 
     print(f"Video params: {width}x{height} @ {fps}fps")
     print(f"Total duration: {total_duration:.2f}s ({total_frames} frames)")
 
-    # 创建视频写入器（先不添加音频）
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    temp_video_path = output_path.replace('.mp4', '_temp.mp4')
+    # 创建视频写入器（使用无损编码保证质量）
+    # 使用 AVI + MJPG 或 FFV1 作为无损中间格式
+    temp_video_path = output_path.replace('.mp4', '_temp.avi')
+    # 尝试使用 FFV1 无损编码，如果不可用则回退到高质量 MJPG
+    fourcc = cv2.VideoWriter_fourcc(*'FFV1')  # 无损编码
     out = cv2.VideoWriter(temp_video_path, fourcc, fps, (width, height))
+    if not out.isOpened():
+        # 回退到 MJPG（高质量有损）
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        out = cv2.VideoWriter(temp_video_path, fourcc, fps, (width, height))
+        print("Using MJPG encoder (high quality)")
 
-    # 字体设置
+    # 字体设置 - 根据分辨率自动缩放
+    # 基准分辨率为 1920x1080，按比例缩放
+    base_width = 1920
+    scale_factor = width / base_width
+
     font = cv2.FONT_HERSHEY_SIMPLEX
-    title_font_scale = 1.2
-    text_font_scale = 0.7
-    small_font_scale = 0.5
-    thickness = 2
+    title_font_scale = max(0.4, 1.2 * scale_factor)
+    text_font_scale = max(0.3, 0.7 * scale_factor)
+    small_font_scale = max(0.25, 0.5 * scale_factor)
+    thickness = max(1, int(2 * scale_factor))
     text_color = (255, 255, 255)  # 白色
+
+    # 布局参数也按比例缩放
+    margin = max(15, int(50 * scale_factor))
+    padding_large = max(5, int(15 * scale_factor))
+    padding_small = max(3, int(10 * scale_factor))
 
     current_segment_idx = 0
 
@@ -212,20 +299,33 @@ def create_visualization_video(json_path, output_path, width=1920, height=1080, 
         # 绘制标题
         if is_in_gap:
             title = "Gap (No Segment)"
+            level_indicator = ""
         else:
-            title = f"Segment {segment['segment_id']}"
-        y_offset = 80
-        draw_text_with_background(frame, title, (50, y_offset), font, title_font_scale,
-                                 text_color, (0, 0, 0), thickness + 1, padding=15)
+            # 优先使用 segment_name，否则使用 segment_id
+            segment_name = segment.get('segment_name', f"Segment {segment['segment_id']}")
+            title = f"{segment_name}"
+            # 层级指示器
+            level = segment.get('level', 1)
+            level_indicator = f"[L{level}] " if level else ""
+
+        y_offset = max(30, int(80 * scale_factor))
+        # 显示层级指示
+        if level_indicator and not is_in_gap:
+            level_color = (100, 255, 100) if segment.get('level', 1) == 1 else (255, 200, 100)
+            cv2.putText(frame, level_indicator, (margin, y_offset - int(30 * scale_factor)), font, small_font_scale,
+                       level_color, thickness, cv2.LINE_AA)
+
+        draw_text_with_background(frame, title, (margin, y_offset), font, title_font_scale,
+                                 text_color, (0, 0, 0), thickness + 1, padding=padding_large)
 
         # 绘制时间信息
-        y_offset += 60
+        y_offset += max(20, int(60 * scale_factor))
         time_info = f"Time: {current_time:.1f}s / {total_duration:.1f}s"
-        draw_text_with_background(frame, time_info, (50, y_offset), font, text_font_scale,
-                                 text_color, (0, 0, 0), thickness, padding=10)
+        draw_text_with_background(frame, time_info, (margin, y_offset), font, text_font_scale,
+                                 text_color, (0, 0, 0), thickness, padding=padding_small)
 
         # 绘制片段时间范围
-        y_offset += 50
+        y_offset += max(18, int(50 * scale_factor))
         if is_in_gap:
             # 在间隙中显示前后片段信息
             if current_time < segment['start_time']:
@@ -240,14 +340,14 @@ def create_visualization_video(json_path, output_path, width=1920, height=1080, 
                     segment_time = f"After last segment (ended at {segment['end_time']:.1f}s)"
         else:
             segment_time = f"Segment: {segment['start_time']:.1f}s - {segment['end_time']:.1f}s ({segment['duration']:.1f}s)"
-        draw_text_with_background(frame, segment_time, (50, y_offset), font, small_font_scale,
-                                 text_color, (0, 0, 0), thickness, padding=10)
+        draw_text_with_background(frame, segment_time, (margin, y_offset), font, small_font_scale,
+                                 text_color, (0, 0, 0), thickness, padding=padding_small)
 
         # 绘制进度条
-        y_offset += 50
-        progress_width = width - 100
-        progress_height = 30
-        progress_x = 50
+        y_offset += max(18, int(50 * scale_factor))
+        progress_width = width - 2 * margin
+        progress_height = max(10, int(30 * scale_factor))
+        progress_x = margin
         progress_y = y_offset
 
         # 绘制进度条背景
@@ -282,38 +382,48 @@ def create_visualization_video(json_path, output_path, width=1920, height=1080, 
                     (255, 255, 255), 1)
 
         # 绘制Caption区域
-        y_offset += 80
+        y_offset += max(25, int(80 * scale_factor))
         caption_y = y_offset
 
         # Caption标题
-        cv2.putText(frame, "Music Analysis:", (50, caption_y), font, text_font_scale,
+        cv2.putText(frame, "Music Analysis:", (margin, caption_y), font, text_font_scale,
                    (255, 255, 0), thickness, cv2.LINE_AA)
 
         # 绘制摘要
-        y_offset += 50
+        y_offset += max(15, int(50 * scale_factor))
         summary = segment['detailed_analysis'].get('summary', 'No description')
-        max_text_width = width - 100
-        lines = wrap_text(summary, font, small_font_scale, thickness - 1, max_text_width)
+        max_text_width = width - 2 * margin
+        lines = wrap_text(summary, font, small_font_scale, max(1, thickness - 1), max_text_width)
 
         for line in lines:
-            y_offset += draw_text_with_background(frame, line, (50, y_offset), font, small_font_scale,
-                                                 text_color, (0, 0, 0), thickness - 1, padding=8)
+            y_offset += draw_text_with_background(frame, line, (margin, y_offset), font, small_font_scale,
+                                                 text_color, (0, 0, 0), max(1, thickness - 1), padding=max(3, int(8 * scale_factor)))
+
+        # 绘制父级section名称（如果是子级）
+        if segment.get('level', 1) == 2 and segment.get('parent_name'):
+            y_offset += max(8, int(20 * scale_factor))
+            parent_info = f"Parent: {segment['parent_name']}"
+            cv2.putText(frame, parent_info, (margin, y_offset), font, small_font_scale,
+                       (150, 200, 255), max(1, thickness - 1), cv2.LINE_AA)
 
         # 绘制其他分析信息
-        y_offset += 30
+        y_offset += max(10, int(30 * scale_factor))
         info_items = [
             ('Emotion', segment['detailed_analysis'].get('emotional_tone', 'N/A')),
-            ('Energy', segment['detailed_analysis'].get('energy_level', 'N/A'))
+            ('Energy', segment['detailed_analysis'].get('energy_level', 'N/A')),
+            ('Rhythm', segment['detailed_analysis'].get('rhythm', 'N/A'))
         ]
 
+        tiny_font_scale = max(0.2, small_font_scale - 0.1)
         for label, value in info_items:
-            y_offset += 40
-            text = f"{label}: {value}"
-            lines = wrap_text(text, font, small_font_scale - 0.1, thickness - 1, max_text_width)
-            for line in lines:
-                y_offset += draw_text_with_background(frame, line, (50, y_offset), font,
-                                                     small_font_scale - 0.1, text_color,
-                                                     (0, 0, 0), thickness - 1, padding=8)
+            if value and value != 'N/A':  # 只显示有效值
+                y_offset += max(12, int(40 * scale_factor))
+                text = f"{label}: {value}"
+                lines = wrap_text(text, font, tiny_font_scale, max(1, thickness - 1), max_text_width)
+                for line in lines:
+                    y_offset += draw_text_with_background(frame, line, (margin, y_offset), font,
+                                                         tiny_font_scale, text_color,
+                                                         (0, 0, 0), max(1, thickness - 1), padding=max(3, int(8 * scale_factor)))
 
         # 写入帧
         out.write(frame)
@@ -333,8 +443,10 @@ def create_visualization_video(json_path, output_path, width=1920, height=1080, 
                 '-i', temp_video_path,
                 '-i', audio_path,
                 '-c:v', 'libx264',
-                '-preset', 'medium',
-                '-crf', '23',
+                '-preset', 'veryslow',  # 最慢但质量最好
+                '-crf', '0',           # 0为无损模式
+                '-tune', 'stillimage',  # 优化静态图像/文字
+                '-pix_fmt', 'yuv420p',
                 '-c:a', 'aac',
                 '-b:a', '192k',
                 '-map', '0:v:0',
@@ -365,8 +477,29 @@ def create_visualization_video(json_path, output_path, width=1920, height=1080, 
             print(f"Using video without audio: {temp_video_path}")
             Path(temp_video_path).rename(output_path)
     else:
-        print("\nNo audio file provided, creating video without audio")
-        Path(temp_video_path).rename(output_path)
+        # 没有音频时，也用 FFmpeg 重编码以提高质量
+        print("\nNo audio file, re-encoding with FFmpeg for better quality...")
+        try:
+            import subprocess
+            cmd = [
+                'ffmpeg', '-y',
+                '-i', temp_video_path,
+                '-c:v', 'libx264',
+                '-preset', 'veryslow',
+                '-crf', '15',
+                '-tune', 'stillimage',
+                '-pix_fmt', 'yuv420p',
+                output_path
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                Path(temp_video_path).unlink()
+                print(f"✓ Re-encoded successfully")
+            else:
+                print(f"✗ FFmpeg re-encode failed, using original")
+                Path(temp_video_path).rename(output_path)
+        except Exception:
+            Path(temp_video_path).rename(output_path)
 
     print(f"\n✓ Video generation complete: {output_path}")
     print(f"Total frames: {total_frames}")
@@ -384,9 +517,9 @@ def main():
     parser.add_argument('--audio', type=str,
                        default=None,
                        help='Audio file path (optional, defaults to JSON path)')
-    parser.add_argument('--width', type=int, default=480, help='Video width')
-    parser.add_argument('--height', type=int, default=480, help='Video height')
-    parser.add_argument('--fps', type=int, default=15, help='Frame rate')
+    parser.add_argument('--width', type=int, default=1920, help='Video width')
+    parser.add_argument('--height', type=int, default=1080, help='Video height')
+    parser.add_argument('--fps', type=int, default=10, help='Frame rate')
 
     args = parser.parse_args()
 

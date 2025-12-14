@@ -1,0 +1,13 @@
+========================================================
+Loading environment modules...
+Environment loaded.
+
+========================================================
+Job ID: 5343
+Node: gpuh07
+Start time: 2025年 12月 14日 星期日 17:43:58 CST
+Command: python ./local_run.py --Audio_Path /public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Luv(sic)Pt2/Luv(sic)Pt2.mp3
+========================================================
+========================================================
+End time: 2025年 12月 14日 星期日 17:44:18 CST
+========================================================
