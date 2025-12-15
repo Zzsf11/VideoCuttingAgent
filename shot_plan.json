@@ -1,89 +1,456 @@
 === STRUCTURE PROPOSAL ===
 {
-  "overall_theme": "The beauty and soul of Lisbon: a journey through vibrant culture, historic grandeur, and serene natural vistas, interwoven with emotional depth and quiet introspection.",
-  "narrative_logic": "The video follows a contemplative, emotional arc that mirrors the music’s progression—from introspection and melancholy to catharsis and hope. It begins with the quiet beauty of Lisbon’s hidden corners, moves through its bustling energy and sacred spaces, ascends to panoramic views that symbolize transcendence, and concludes with a harmonious blend of urban life and coastal serenity. The narrative is non-linear but emotionally coherent, using visual contrasts (light/dark, noise/quiet, movement/stillness) to reflect the music’s emotional journey.",
+  "overall_theme": "The beauty and soul of Lisbon: a harmonious blend of vibrant urban life, historic grandeur, and serene natural vistas, captured through a cinematic lens that mirrors the gentle melancholy and hopeful uplift of a nostalgic folk-pop journey.",
+  "narrative_logic": "The video follows a contemplative, ascending arc—from the bustling energy of Lisbon’s streets to the quiet reverence of its sacred spaces, then to panoramic heights and coastal serenity—mirroring the emotional progression of the music: from gentle reflection to emotional depth, and finally to peaceful resolution. The narrative is non-linear in structure but linear in emotional journey, using visual transitions to echo the musical development.",
   "video_structure": [
     {
-      "content": "Opening wide-angle shot of a sunlit cobblestone street in Lisbon, framed by ornate stone archways. A vintage tram glides past, while pedestrians stroll beneath rainbow umbrellas and floral decorations. The camera glides slowly, capturing the rhythm of daily life in the historic district. The scene is quiet yet alive, with soft ambient sounds of distant chatter and street music.",
-      "key_words": "Lisbon cobblestone street, vintage tram, rainbow umbrellas, historic archways, outdoor cafes",
-      "audio_section": "Intro",
-      "emotion": "Introspective, melancholic, longing",
-      "start_time": "00:00",
-      "end_time": "00:36"
+      "content": "Opening wide-angle shot of a sunlit cobblestone street in Lisbon, framed by ornate stone archways and pastel-colored buildings. A vintage tram glides past, while outdoor cafes buzz with activity. Rainbow umbrellas and floral decorations line the alley, and a tuk-tuk weaves through the scene. The camera glides forward, capturing the rhythm of daily life and the city’s vibrant energy.",
+      "key_words": "Lisbon street, cobblestone, vintage tram, outdoor cafes, rainbow umbrellas, tuk-tuk, colorful buildings",
+      "audio_section": "Section 1: Introduction and Main Theme",
+      "emotion": "Serene, contemplative, nostalgic",
+      "start_time": "00:00.0",
+      "end_time": "00:10.1"
     },
     {
-      "content": "Close-up of a woman sitting at a café table, sipping coffee, her gaze distant. The camera pans across pastel-colored buildings adorned with intricate blue-and-white azulejo tiles. A tuk-tuk weaves through a narrow alley, its bright colors contrasting with the muted stone. The scene feels intimate, as if observing a private moment in a city that moves too fast to notice.",
-      "key_words": "Lisbon café, azulejo tiles, tuk-tuk, pastel buildings, quiet observation",
-      "audio_section": "Verse 1",
-      "emotion": "Somber, reflective, emotionally vulnerable",
-      "start_time": "00:36",
-      "end_time": "01:10"
+      "content": "Close-up of intricate blue-and-white azulejo tiles on a building facade, transitioning to a slow pan across a bustling pedestrian walkway. People stroll, laugh, and sip coffee. The camera moves through narrow alleys, capturing the interplay of light and shadow on historic stone walls. A child runs past, laughing, as a street musician plays a guitar.",
+      "key_words": "Azulejo tiles, pedestrian walkway, street musician, historic stone, light and shadow",
+      "audio_section": "Section 1: Introduction and Main Theme",
+      "emotion": "Nostalgic, reflective",
+      "start_time": "00:10.1",
+      "end_time": "00:30.0"
     },
     {
-      "content": "Transition to the interior of a majestic Baroque church. The camera moves slowly through the nave, highlighting soaring stone arches, gilded altarpieces, and stained-glass windows casting warm, golden light. A single candle flickers in the silence. The stillness contrasts sharply with the outside world, evoking reverence and spiritual depth.",
-      "key_words": "Baroque church, stained-glass windows, gilded altarpiece, candlelight, sacred space",
-      "audio_section": "Instrumental Bridge",
-      "emotion": "Dramatic, introspective, building intensity",
-      "start_time": "01:11",
-      "end_time": "01:42"
+      "content": "The camera ascends a winding staircase, revealing terracotta rooftops and sweeping views of the city. A person in a Spider-Man costume walks up the steps, adding a whimsical touch. The scene transitions to the Santa Justa Lift, its iron structure rising against the sky, with a tram passing below. The camera glides upward, capturing the city’s verticality and charm.",
+      "key_words": "Winding staircase, terracotta rooftops, Santa Justa Lift, Spider-Man costume, vertical city",
+      "audio_section": "Section 2: Development and Variation",
+      "emotion": "Reflective, longing, emotionally rich",
+      "start_time": "00:30.0",
+      "end_time": "01:00.0"
     },
     {
-      "content": "The camera ascends a historic stone staircase, revealing panoramic views of terracotta rooftops cascading toward the Tagus River. Cruise ships glide across the water, and the Santa Justa Lift rises like a mechanical sculpture against the sky. The scene expands in scale, symbolizing a shift from inner reflection to outward vision.",
-      "key_words": "Santa Justa Lift, terracotta rooftops, Tagus River, panoramic view, staircase ascent",
-      "audio_section": "Chorus",
-      "emotion": "Cathartic, hopeful, powerful",
-      "start_time": "01:43",
-      "end_time": "02:28"
+      "content": "Interior of a majestic Baroque church: soaring stone arches, gilded altarpieces, and stained-glass windows cast warm, golden light across the space. The camera slowly pans across the ornate details, capturing the stillness and reverence. A single candle flickers in the dim light, emphasizing the sacred atmosphere.",
+      "key_words": "Baroque church, stone arches, gilded altarpiece, stained-glass windows, golden light, sacred stillness",
+      "audio_section": "Section 2: Development and Variation",
+      "emotion": "Reverent, introspective, emotionally deep",
+      "start_time": "01:00.0",
+      "end_time": "01:30.0"
     },
     {
-      "content": "Aerial drone shot sweeping over the city, capturing the vibrant energy of the streets below. A person in a Spider-Man costume walks through a crowd, adding a touch of whimsy and life. The camera then glides along a coastal promenade, where the city meets the sea. The final shot is a wide view of the ocean at sunset, with the city skyline silhouetted against the horizon.",
-      "key_words": "Aerial view, Spider-Man costume, coastal promenade, sunset, city skyline",
-      "audio_section": "Outro",
-      "emotion": "Serene, peaceful, reflective",
-      "start_time": "02:29",
-      "end_time": "02:58"
+      "content": "Aerial drone shot rising above the city, revealing a panoramic view of Lisbon’s terracotta rooftops cascading toward the Tagus River. Cruise ships are docked at the harbor, and the city stretches into the distance under a clear blue sky. The camera glides over the water, capturing the harmony between urban life and natural beauty.",
+      "key_words": "Aerial view, terracotta rooftops, Tagus River, cruise ships, harbor, panoramic cityscape",
+      "audio_section": "Section 2: Development and Variation",
+      "emotion": "Expansive, contemplative, hopeful",
+      "start_time": "01:30.0",
+      "end_time": "02:00.0"
+    },
+    {
+      "content": "Close-up of a person sitting on a bench at the coastal promenade, gazing at the sea. The camera pulls back to reveal the city skyline behind them, with the sun setting over the water. The scene is quiet, peaceful, and full of quiet urgency—a moment of stillness amid the city’s constant motion.",
+      "key_words": "Coastal promenade, sunset, sea view, quiet moment, city skyline",
+      "audio_section": "Section 3: Climax and Resolution",
+      "emotion": "Calm, resolved, hopeful",
+      "start_time": "02:00.0",
+      "end_time": "03:00.0"
+    },
+    {
+      "content": "Final sequence: a slow-motion shot of a child releasing a paper boat into the river, floating gently toward the sea. The camera follows the boat as it drifts, then cuts to a wide shot of the city at dusk, lights beginning to twinkle. The music fades with a soft piano solo, leaving a sense of peace and closure.",
+      "key_words": "Paper boat, river, dusk, city lights, peaceful ending, cinematic closure",
+      "audio_section": "Section 3: Climax and Resolution",
+      "emotion": "Peaceful, resolved, hopeful",
+      "start_time": "03:00.0",
+      "end_time": "04:37.7"
+    }
+  ]
+}=== Draft_shot_plan ===
+{
+  "shots": [
+    {
+      "id": 1,
+      "time_duration": 10.1,
+      "content": "A wide-angle shot glides forward along a sunlit cobblestone street in Lisbon, framed by ornate stone archways and pastel-colored buildings. A vintage tram moves slowly through the scene, passing outdoor cafes bustling with patrons under rainbow umbrellas. A tuk-tuk weaves through the street, adding to the rhythm of daily life. The camera maintains a smooth, forward-tracking motion, capturing the vibrant energy and warm atmosphere of the city.",
+      "story_beat": "Establishing the setting and mood of Lisbon’s lively yet serene streetscape.",
+      "emotion": "Nostalgic",
+      "visuals": "Wide-angle forward tracking shot, sun-drenched cobblestone street, pastel buildings, vintage tram, outdoor cafes with rainbow umbrellas, tuk-tuk, ornate stone archways, natural lighting, warm color palette."
     }
   ]
 }
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 10.1, "content": "A wide-angle shot glides forward along a sunlit cobblestone street in Lisbon, framed by ornate stone archways and pastel-colored buildings. A vintage tram moves slowly through the scene, passing outdoor cafes bustling with patrons under rainbow umbrellas. A tuk-tuk weaves through the street, adding to the rhythm of daily life. The camera maintains a smooth, forward-tracking motion, capturing the vibrant energy and warm atmosphere of the city.", "story_beat": "Establishing the setting and mood of Lisbon’s lively yet serene streetscape.", "emotion": "Nostalgic", "visuals": "Wide-angle forward tracking shot, sun-drenched cobblestone street, pastel buildings, vintage tram, outdoor cafes with rainbow umbrellas, tuk-tuk, ornate stone archways, natural lighting, warm color palette."}
 
 === Draft_shot_plan ===
 {
   "shots": [
     {
       "id": 1,
-      "time_duration": 12.0,
-      "content": "A wide-angle, slow-moving shot glides along a sunlit cobblestone street in Lisbon, framed by ornate stone archways. A vintage tram moves gently through the scene, while pedestrians stroll beneath rainbow umbrellas and floral decorations. The camera captures the quiet rhythm of daily life, with soft ambient sounds of distant chatter and street music. The scene is bathed in warm, golden light, emphasizing the historic charm and vibrant colors of the district.",
-      "story_beat": "Establishing the setting and mood of Lisbon’s historic district, introducing the viewer to the atmosphere of quiet life and cultural richness.",
-      "emotion": "Mysterious, calm, introspective",
-      "visuals": "Wide-angle static shot with slow camera glide, sun-drenched cobblestone street, ornate stone archways, vintage tram, rainbow umbrellas, floral decorations, pedestrians, outdoor cafes, soft natural lighting."
+      "time_duration": 10.8,
+      "content": "Close-up of intricate blue-and-white azulejo tiles on a historic building facade, slowly panning across the detailed patterns. The camera glides gently, capturing the interplay of light and shadow on the textured tiles, evoking a sense of quiet reflection and nostalgia. The shot transitions smoothly into a wider view of a bustling pedestrian walkway, where people stroll, laugh, and sip coffee, with a street musician playing a guitar in the background.",
+      "story_beat": "Setup: Establishing the setting and emotional tone through visual detail and ambient movement.",
+      "emotion": "Nostalgic",
+      "visuals": "Close-up to medium shot, slow pan, natural sunlight, focus on azulejo tiles, soft depth of field, warm lighting, subtle motion of pedestrians and musician."
     },
     {
       "id": 2,
-      "time_duration": 10.0,
-      "content": "The camera shifts to a closer, pensive view of a narrow cobblestone alley flanked by colorful buildings. A vintage tram passes slowly, its movement echoing the melancholic string melody. Pedestrians pause to watch, their expressions contemplative. The camera lingers on the interplay of light and shadow on the pastel facades, emphasizing the emotional weight of the moment.",
-      "story_beat": "Deepening the emotional resonance of the scene, transitioning from observation to introspection as the music builds.",
-      "emotion": "Pensive, melancholic, building anticipation",
-      "visuals": "Slow, deliberate camera movement through a narrow alley, pastel-colored buildings, vintage tram, pedestrians, soft shadows, warm sunlight, emotional focus on faces and architecture."
+      "time_duration": 13.3,
+      "content": "The camera moves through narrow alleys, capturing the interplay of light and shadow on historic stone walls. A child runs past, laughing, as the street musician continues playing a gentle, fingerstyle melody. The shot follows the child’s movement briefly before returning to the musician, emphasizing the calm, introspective mood of the scene.",
+      "story_beat": "Development: Expanding the narrative with movement and character interaction, reinforcing the reflective atmosphere.",
+      "emotion": "Calm",
+      "visuals": "Medium tracking shot, handheld movement, natural lighting, focus on stone textures, soft background blur, ambient sound of music and laughter."
     },
     {
       "id": 3,
-      "time_duration": 10.0,
-      "content": "The scene accelerates as the camera follows a vibrant yellow tram moving along the cobblestone street, now with a driving electronic beat. The camera tracks the tram’s motion, cutting between dynamic angles—low-angle shots of the wheels on the tracks, wide views of the bustling street, and close-ups of pedestrians moving with purpose. The rhythm of the music syncs with the tram’s pace, creating a sense of forward momentum.",
-      "story_beat": "Transitioning from introspection to action, mirroring the music’s shift to a driving rhythm and purposeful energy.",
-      "emotion": "Purposeful, determined, epic",
-      "visuals": "Fast-paced tracking shots, rhythmic cuts, low-angle tram shots, wide street views, dynamic pedestrian movement, bright sunlight, sync with drum beat."
+      "time_duration": 8.2,
+      "content": "A wide shot of a sun-drenched cobblestone street in Lisbon, flanked by colorful buildings with traditional tiled facades. A tourist tuk-tuk passes by, followed by a white van and a motorcycle, while pedestrians walk along the sidewalks. The camera captures the vibrant energy of the street, with a clear, melodic whistling sound blending into the acoustic guitar melody, enhancing the whimsical and nostalgic mood.",
+      "story_beat": "Payoff: Introducing dynamic movement and life into the scene, aligning with the music’s bright and playful tone.",
+      "emotion": "Nostalgic",
+      "visuals": "Wide shot, steady camera movement, bright sunlight, sharp shadows, focus on architectural details and vehicle motion, layered sound design."
     },
     {
       "id": 4,
-      "time_duration": 4.0,
-      "content": "The climax unfolds with a powerful, wide-angle shot of the tram approaching the Arco da Rua Augusta, framed by the arch’s grandeur. The camera holds steady as the tram passes through, the music reaching its peak with full instrumentation. The scene is bathed in golden light, with a burst of color from rainbow umbrellas and floral decorations. The moment feels triumphant, as if the city itself is celebrating its vibrant life.",
-      "story_beat": "The emotional and visual climax of the sequence, culminating in a sense of triumph and unity with the city’s spirit.",
-      "emotion": "Triumphant, powerful, climactic",
-      "visuals": "Static wide shot of Arco da Rua Augusta, tram passing through, rainbow umbrellas, floral decorations, golden sunlight, sharp shadows, sync with drum hits and full musical crescendo."
+      "time_duration": 10.7,
+      "content": "The camera glides along a sun-drenched cobblestone street, passing a vibrant red and white building marked 'MUSEU' and a fruit stand with pineapples under a green umbrella. Pedestrians stroll casually, and a white truck moves through the scene, leading to an open plaza dominated by a classical statue on a pedestal. The breathy whistling melody complements the serene and whimsical atmosphere.",
+      "story_beat": "Bridge: Transitioning from urban energy to a more contemplative, scenic moment.",
+      "emotion": "Whimsical",
+      "visuals": "Smooth tracking shot, natural lighting, focus on color contrasts, architectural details, and ambient movement, soft focus on background elements."
+    },
+    {
+      "id": 5,
+      "time_duration": 5.4,
+      "content": "A close-up of a white building adorned with intricate blue and white azulejo tiles depicting religious and cityscape scenes. A small stone fountain sits in the foreground, surrounded by trimmed green bushes and a patterned cobblestone path. The camera slowly pans upward and then across, revealing a vibrant pink building across the street, where pedestrians stroll and a white delivery van is parked. The music’s gentle, reflective tone underscores the peaceful charm of the moment.",
+      "story_beat": "Payoff: Highlighting cultural and architectural beauty, reinforcing the nostalgic mood.",
+      "emotion": "Nostalgic",
+      "visuals": "Close-up to wide shot, slow pan, natural sunlight, focus on tile details and fountain, soft depth of field, ambient sound of music and distant chatter."
+    },
+    {
+      "id": 6,
+      "time_duration": 5.4,
+      "content": "The camera captures a vintage-style yellow and white tram, marked 'M. MONIZ 28' and 'idealista', slowly approaching and stopping at a bus stop. A small pink tourist tuk-tuk and other vehicles navigate the narrow road. Pedestrians, including tourists and locals, wait at the stop and walk along the sidewalk, contributing to the lively, everyday atmosphere. The ukulele melody and shaker rhythm create a light, cheerful mood.",
+      "story_beat": "Development: Introducing a new layer of urban life with a focus on transportation and community.",
+      "emotion": "Uplifting",
+      "visuals": "Medium shot, stationary camera, natural lighting, focus on tram and vehicles, vibrant colors, rhythmic movement, upbeat music sync."
+    },
+    {
+      "id": 7,
+      "time_duration": 5.4,
+      "content": "A solo nylon-string acoustic guitar plays a gentle, fingerpicked melody in a style reminiscent of classical or folk music. The performance is intimate and reflective, creating a peaceful and contemplative atmosphere. The camera focuses on the hands of the musician, capturing the delicate fingerpicking technique, with soft lighting and a blurred background emphasizing the music’s emotional depth.",
+      "story_beat": "Button: A moment of stillness and introspection, allowing the music to take center stage.",
+      "emotion": "Narrative",
+      "visuals": "Close-up, static shot, soft lighting, focus on hands and guitar, shallow depth of field, minimal background movement."
+    },
+    {
+      "id": 8,
+      "time_duration": 5.3,
+      "content": "A gentle, nostalgic folk ballad featuring an acoustic guitar arpeggiating chords and a simple, plaintive melody sung by a female vocalist. The mood is calm and reflective, evoking a sense of gentle melancholy and peaceful longing. The camera slowly pans across a historic stone wall, capturing the interplay of light and shadow, with a street musician playing a guitar in the background, blending seamlessly with the vocal melody.",
+      "story_beat": "Payoff: Concluding the sequence with emotional resonance and visual harmony.",
+      "emotion": "Nostalgic",
+      "visuals": "Slow pan, natural lighting, focus on stone textures, soft background blur, integration of music and vocal elements, warm tones."
     }
   ]
 }
 
 === FINAL SHOT PLAN ===
-{"time_duration": 12.0, "content": "A wide-angle, slow-moving shot glides along a sunlit cobblestone street in Lisbon, framed by ornate stone archways. A vintage tram moves gently through the scene, while pedestrians stroll beneath rainbow umbrellas and floral decorations. The camera captures the quiet rhythm of daily life, with soft ambient sounds of distant chatter and street music. The scene is bathed in warm, golden light, emphasizing the historic charm and vibrant colors of the district.", "story_beat": "Establishing the setting and mood of Lisbon’s historic district, introducing the viewer to the atmosphere of quiet life and cultural richness.", "emotion": "Mysterious, calm, introspective", "visuals": "Wide-angle static shot with slow camera glide, sun-drenched cobblestone street, ornate stone archways, vintage tram, rainbow umbrellas, floral decorations, pedestrians, outdoor cafes, soft natural lighting."}
+{"time_duration": 10.8, "content": "Close-up of intricate blue-and-white azulejo tiles on a historic building facade, slowly panning across the detailed patterns. The camera glides gently, capturing the interplay of light and shadow on the textured tiles, evoking a sense of quiet reflection and nostalgia. The shot transitions smoothly into a wider view of a bustling pedestrian walkway, where people stroll, laugh, and sip coffee, with a street musician playing a guitar in the background.", "story_beat": "Setup: Establishing the setting and emotional tone through visual detail and ambient movement.", "emotion": "Nostalgic", "visuals": "Close-up to medium shot, slow pan, natural sunlight, focus on azulejo tiles, soft depth of field, warm lighting, subtle motion of pedestrians and musician."}
+
+=== FINAL SHOT PLAN ===
+{
+    "time_duration": 13.3,
+    "content": "The camera moves through narrow alleys, capturing the interplay of light and shadow on historic stone walls. A child runs past, laughing, as the street musician continues playing a gentle, fingerstyle melody. The shot follows the child’s movement briefly before returning to the musician, emphasizing the calm, introspective mood of the scene.",
+    "story_beat": "Development: Expanding the narrative with movement and character interaction, reinforcing the reflective atmosphere.",
+    "emotion": "Calm",
+    "visuals": "Medium tracking shot, handheld movement, natural lighting, focus on stone textures, soft background blur, ambient sound of music and laughter."
+}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 8.2, "content": "A wide shot of a sun-drenched cobblestone street in Lisbon, flanked by colorful buildings with traditional tiled facades. A tourist tuk-tuk passes by, followed by a white van and a motorcycle, while pedestrians walk along the sidewalks. The camera captures the vibrant energy of the street, with a clear, melodic whistling sound blending into the acoustic guitar melody, enhancing the whimsical and nostalgic mood.", "story_beat": "Payoff: Introducing dynamic movement and life into the scene, aligning with the music’s bright and playful tone.", "emotion": "Nostalgic", "visuals": "Wide shot, steady camera movement, bright sunlight, sharp shadows, focus on architectural details and vehicle motion, layered sound design."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 10.7, "content": "The camera glides along a sun-drenched cobblestone street, passing a vibrant red and white building marked 'MUSEU' and a fruit stand with pineapples under a green umbrella. Pedestrians stroll casually, and a white truck moves through the scene, leading to an open plaza dominated by a classical statue on a pedestal. The breathy whistling melody complements the serene and whimsical atmosphere.", "story_beat": "Bridge: Transitioning from urban energy to a more contemplative, scenic moment.", "emotion": "Whimsical", "visuals": "Smooth tracking shot, natural lighting, focus on color contrasts, architectural details, and ambient movement, soft focus on background elements."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 5.4, "content": "A close-up of a white building adorned with intricate blue and white azulejo tiles depicting religious and cityscape scenes. A small stone fountain sits in the foreground, surrounded by trimmed green bushes and a patterned cobblestone path. The camera slowly pans upward and then across, revealing a vibrant pink building across the street, where pedestrians stroll and a white delivery van is parked. The music’s gentle, reflective tone underscores the peaceful charm of the moment.", "story_beat": "Payoff: Highlighting cultural and architectural beauty, reinforcing the nostalgic mood.", "emotion": "Nostalgic", "visuals": "Close-up to wide shot, slow pan, natural sunlight, focus on tile details and fountain, soft depth of field, ambient sound of music and distant chatter.", "clip_id": "00:41:00 to 00:41:29"}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 5.4, "content": "The camera captures a vintage-style yellow and white tram, marked 'M. MONIZ 28' and 'idealista', slowly approaching and stopping at a bus stop. A small pink tourist tuk-tuk and other vehicles navigate the narrow road. Pedestrians, including tourists and locals, wait at the stop and walk along the sidewalk, contributing to the lively, everyday atmosphere. The ukulele melody and shaker rhythm create a light, cheerful mood.", "story_beat": "Development: Introducing a new layer of urban life with a focus on transportation and community.", "emotion": "Uplifting", "visuals": "Medium shot, stationary camera, natural lighting, focus on tram and vehicles, vibrant colors, rhythmic movement, upbeat music sync.", "clip_id": "00:44:05 to 00:44:29"}
+
+=== FINAL SHOT PLAN ===
+{
+    "time_duration": 29.0,
+    "content": "A group of tourists walks down a narrow, sunlit alleyway paved with cobblestones. On the left is a weathered stone wall of a large building, and on the right is a smooth, reddish-brown wall with several framed artworks displayed. A woman sits on the left, looking at her phone, with a small table of items in front of her. The camera moves forward, following the group as they walk away from the camera. The camera continues moving forward, passing under a large stone archway. The alley opens into a wider, sunlit plaza with a cobblestone surface. To the left, a man sits on steps playing a guitar in front of a large, ornate wooden door. In the background, a building with a sign reading 'CASA PORTUGUESA PASTEL DE BACALHAU' is visible, with people walking up a ramp toward it. The cityscape with red-tiled roofs stretches out behind the building under a clear blue sky.",
+    "story_beat": "Button: A moment of stillness and introspection, allowing the music to take center stage.",
+    "emotion": "Narrative",
+    "visuals": "Close-up, static shot, soft lighting, focus on hands and guitar, shallow depth of field, minimal background movement."
+}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 5.3, "content": "A gentle, nostalgic folk ballad featuring an acoustic guitar arpeggiating chords and a simple, plaintive melody sung by a female vocalist. The mood is calm and reflective, evoking a sense of gentle melancholy and peaceful longing. The camera slowly pans across a historic stone wall, capturing the interplay of light and shadow, with a street musician playing a guitar in the background, blending seamlessly with the vocal melody.", "story_beat": "Payoff: Concluding the sequence with emotional resonance and visual harmony.", "emotion": "Nostalgic", "visuals": "Slow pan, natural lighting, focus on stone textures, soft background blur, integration of music and vocal elements, warm tones."}
+
+=== Draft_shot_plan ===
+{
+  "shots": [
+    {
+      "id": 1,
+      "time_duration": 8.1,
+      "content": "The camera begins with a low-angle shot of a winding stone staircase ascending through a sun-drenched alley, capturing the warm glow of terracotta rooftops in the background. A person in a Spider-Man costume walks up the steps, their red and blue suit contrasting with the earthy tones of the surroundings. The camera slowly tilts upward, following their movement as they reach the top, revealing a panoramic view of the city below. The gentle strumming of a ukulele and soft whistling underscore the whimsical yet nostalgic tone.",
+      "story_beat": "Setup: Introducing the whimsical character and the vertical journey.",
+      "emotion": "Nostalgic",
+      "visuals": "Low-angle tracking shot, upward tilt, warm sunlight, terracotta rooftops, Spider-Man costume, narrow staircase."
+    },
+    {
+      "id": 2,
+      "time_duration": 7.1,
+      "content": "The camera glides upward along the Santa Justa Lift, its iron structure rising against the clear blue sky. A red tram passes below, moving along the tracks in the bustling street. The shot captures the contrast between the historic ironwork and the modern city life, with pedestrians and vehicles moving beneath. The melancholic acoustic guitar melody enhances the reflective mood, emphasizing the city's verticality and charm.",
+      "story_beat": "Development: Highlighting the Santa Justa Lift and the city's dynamic energy.",
+      "emotion": "Melancholic",
+      "visuals": "Vertical tracking shot, upward movement, iron structure, tram, blue sky, urban activity."
+    },
+    {
+      "id": 3,
+      "time_duration": 3.6,
+      "content": "A close-up of the Santa Justa Lift's ornate metalwork, with the camera slowly panning across its intricate details. The shot transitions to a wide view of the cityscape, with the lift's structure framing the panoramic view. The gentle fingerstyle guitar melody evokes a reflective and contemplative mood, reinforcing the sense of quiet observation.",
+      "story_beat": "Development: Focusing on architectural details and the city's expansive view.",
+      "emotion": "Nostalgic",
+      "visuals": "Close-up to wide shot, ornate metalwork, panoramic city view, slow pan."
+    },
+    {
+      "id": 4,
+      "time_duration": 13.6,
+      "content": "The camera ascends the winding staircase again, this time from a higher vantage point, capturing the sweeping views of the city. The Spider-Man figure reappears, walking confidently up the steps, their silhouette framed against the sky. The camera follows them as they reach the top, where the view expands to include the entire cityscape. The serene folk-inspired music underscores the peaceful and contemplative atmosphere.",
+      "story_beat": "Development: Revisiting the staircase and reinforcing the journey's emotional arc.",
+      "emotion": "Calm",
+      "visuals": "High-angle tracking shot, upward movement, panoramic views, Spider-Man silhouette, sunlit city."
+    },
+    {
+      "id": 5,
+      "time_duration": 10.8,
+      "content": "A close-up of a hand playing a gentle acoustic guitar, fingers delicately plucking the strings. The camera slowly zooms out to reveal a musician sitting on a bench in a quiet plaza, surrounded by the city's ambient sounds. The melancholic melody of the guitar, reminiscent of a video game theme, adds a layer of introspection and emotional depth to the scene.",
+      "story_beat": "Payoff: Introducing a human element and emotional resonance.",
+      "emotion": "Melancholic",
+      "visuals": "Close-up to wide shot, acoustic guitar, musician, quiet plaza, ambient city sounds."
+    },
+    {
+      "id": 6,
+      "time_duration": 8.7,
+      "content": "The camera follows a high-pitched whistling melody, mirroring the gentle fingerstyle guitar. The shot transitions to a wide view of the city, with the whistling echoing through the streets. The music's soothing quality enhances the contemplative mood, as the camera captures the quiet beauty of the urban landscape.",
+      "story_beat": "Bridge: Connecting the music and visuals through a shared melodic motif.",
+      "emotion": "Narrative",
+      "visuals": "Wide shot, whistling melody, cityscape, slow movement, reflective atmosphere."
+    },
+    {
+      "id": 7,
+      "time_duration": 7.6,
+      "content": "A slow, arpeggiated guitar melody plays as the camera pans across the terracotta rooftops, capturing the intricate patterns and textures. The shot lingers on the details, emphasizing the city's rich history and architectural beauty. The nostalgic tone of the music complements the visual exploration.",
+      "story_beat": "Development: Focusing on the city's architectural details.",
+      "emotion": "Nostalgic",
+      "visuals": "Slow pan, terracotta rooftops, arpeggiated guitar, detailed textures."
+    },
+    {
+      "id": 8,
+      "time_duration": 5.3,
+      "content": "The camera focuses on the Santa Justa Lift's structure, with a close-up of its iron framework. The melancholic theme from 'The Last of Us' plays softly, enhancing the sense of quiet longing and introspection. The shot captures the lift's movement, symbolizing a journey through time and space.",
+      "story_beat": "Payoff: Symbolizing the journey through the city's history.",
+      "emotion": "Narrative",
+      "visuals": "Close-up, iron framework, slow movement, melancholic theme."
+    },
+    {
+      "id": 9,
+      "time_duration": 5.5,
+      "content": "A gentle piano melody plays as the camera captures a wide view of the city, with the sun casting long shadows across the streets. The music's nostalgic quality complements the visual beauty, creating a sense of peaceful reflection. The shot transitions to a close-up of a child's hand reaching out towards the cityscape.",
+      "story_beat": "Payoff: Introducing a sense of innocence and wonder.",
+      "emotion": "Nostalgic",
+      "visuals": "Wide to close-up, piano melody, long shadows, child's hand, cityscape."
+    },
+    {
+      "id": 10,
+      "time_duration": 10.9,
+      "content": "The camera glides through a narrow alley, capturing the vibrant colors of the buildings and the movement of pedestrians. The soft, introspective music underscores the scene's reflective mood, as the camera moves slowly, emphasizing the quiet beauty of the urban environment.",
+      "story_beat": "Development: Exploring the city's vibrant yet intimate spaces.",
+      "emotion": "Melancholic",
+      "visuals": "Slow glide, narrow alley, colorful buildings, pedestrians, atmospheric music."
+    },
+    {
+      "id": 11,
+      "time_duration": 8.1,
+      "content": "A gentle acoustic guitar plays a cover of 'Hakuna Matata' as the camera captures a group of children playing in a sunlit square. The whistling melody adds a sense of carefree optimism, contrasting with the city's more reflective tone. The scene evokes a sense of childhood innocence and joy.",
+      "story_beat": "Payoff: Introducing a moment of joy and nostalgia.",
+      "emotion": "Nostalgic",
+      "visuals": "Acoustic guitar, children playing, sunlit square, whistling melody."
+    },
+    {
+      "id": 12,
+      "time_duration": 10.1,
+      "content": "The camera pans across a quiet street, capturing the soft, lyrical piano melody. The scene transitions to a close-up of a person sitting on a bench, lost in thought. The music's sentimental quality enhances the reflective mood, as the camera lingers on the individual's contemplative expression.",
+      "story_beat": "Development: Focusing on personal reflection.",
+      "emotion": "Nostalgic",
+      "visuals": "Pan, quiet street, close-up, contemplative expression, lyrical piano."
+    },
+    {
+      "id": 13,
+      "time_duration": 7.4,
+      "content": "A solo nylon-string guitar plays a gentle, contemplative melody as the camera captures the intricate details of the Santa Justa Lift's structure. The music's Spanish or Latin American influence complements the city's cultural heritage, creating a sense of quiet introspection.",
+      "story_beat": "Bridge: Connecting music and cultural identity.",
+      "emotion": "Nostalgic",
+      "visuals": "Close-up, intricate details, nylon-string guitar, cultural heritage."
+    },
+    {
+      "id": 14,
+      "time_duration": 6.7,
+      "content": "The camera follows a person walking up the winding staircase, their silhouette framed against the sky. The gentle, flowing melody of the classical guitar enhances the sense of movement and journey. The shot captures the verticality of the city, symbolizing a personal ascent.",
+      "story_beat": "Development: Symbolizing personal growth and ascent.",
+      "emotion": "Narrative",
+      "visuals": "Tracking shot, silhouette, vertical movement, cityscape."
+    },
+    {
+      "id": 15,
+      "time_duration": 10.8,
+      "content": "A gentle piano and acoustic guitar duet plays as the camera captures a wide view of the city, with the sun setting behind the terracotta rooftops. The music's peaceful, reflective mood complements the visual beauty, creating a sense of closure and tranquility.",
+      "story_beat": "Payoff: Concluding the journey with a sense of peace.",
+      "emotion": "Nostalgic",
+      "visuals": "Wide view, sunset, terracotta rooftops, piano and guitar duet."
+    },
+    {
+      "id": 16,
+      "time_duration": 8.2,
+      "content": "The camera captures a playful scene of children running through a sunlit alley, their laughter echoing through the streets. The upbeat, whimsical music enhances the sense of joy and carefree energy, contrasting with the city's more reflective tone.",
+      "story_beat": "Payoff: Introducing a moment of lightheartedness.",
+      "emotion": "Whimsical",
+      "visuals": "Playful scene, children running, sunlit alley, upbeat music."
+    },
+    {
+      "id": 17,
+      "time_duration": 13.5,
+      "content": "A solo acoustic guitar plays a gentle cover of 'Twilight' as the camera captures a person standing on the Santa Justa Lift, gazing out at the city. The music's intimate, nostalgic quality enhances the sense of quiet longing, as the camera slowly zooms in on their contemplative expression.",
+      "story_beat": "Payoff: Concluding with a moment of introspection and longing.",
+      "emotion": "Nostalgic",
+      "visuals": "Close-up, contemplative expression, Santa Justa Lift, intimate music."
+    },
+    {
+      "id": 18,
+      "time_duration": 10.1,
+      "content": "A gentle, intimate piano piece plays as the camera captures a quiet street, with the soft, reverberant sound enhancing the sense of stillness. The music's nostalgic quality complements the visual beauty, creating a sense of peaceful reflection.",
+      "story_beat": "Development: Focusing on quiet stillness and reflection.",
+      "emotion": "Nostalgic",
+      "visuals": "Quiet street, soft piano, reverberant sound, peaceful reflection."
+    },
+    {
+      "id": 19,
+      "time_duration": 7.3,
+      "content": "The camera captures a slow, legato piano melody as the scene transitions to a close-up of a person sitting on a bench, lost in thought. The music's introspective quality enhances the sense of melancholy, as the camera lingers on their contemplative expression.",
+      "story_beat": "Payoff: Concluding with a moment of introspection.",
+      "emotion": "Melancholic",
+      "visuals": "Close-up, contemplative expression, legato piano, introspective mood."
+    },
+    {
+      "id": 20,
+      "time_duration": 11.4,
+      "content": "A solo piano piece plays as the camera captures a wide view of the city, with the sun setting behind the terracotta rooftops. The music's nostalgic quality complements the visual beauty, creating a sense of closure and tranquility.",
+      "story_beat": "Payoff: Concluding the journey with a sense of peace.",
+      "emotion": "Nostalgic",
+      "visuals": "Wide view, sunset, terracotta rooftops, solo piano."
+    },
+    {
+      "id": 21,
+      "time_duration": 9.7,
+      "content": "A contemporary classical piano piece plays as the camera captures a quiet street, with the expressive legato melody enhancing the sense of introspection. The music's reflective quality complements the visual beauty, creating a sense of peaceful contemplation.",
+      "story_beat": "Development: Focusing on personal reflection.",
+      "emotion": "Melancholic",
+      "visuals": "Quiet street, expressive piano, introspective mood, peaceful contemplation."
+    },
+    {
+      "id": 22,
+      "time_duration": 12.0,
+      "content": "The camera captures a descending, melancholic chord progression on a solo piano, followed by a sustained, unresolved chord that fades into silence. The music's cinematic quality enhances the sense of closure, as the camera slowly zooms out to reveal the cityscape in the distance.",
+      "story_beat": "Button: Concluding the narrative with a sense of unresolved longing.",
+      "emotion": "Melancholic",
+      "visuals": "Descending chords, unresolved chord, cityscape, slow zoom out."
+    },
+    {
+      "id": 23,
+      "time_duration": 6.6,
+      "content": "A high-pitched synthesized note reminiscent of chiptune music begins, followed by a low-pitched, resonant tone that creates a sense of suspense. The sound is digitally clean and dry, evoking a mood of mystery and anticipation. The camera remains still, capturing the tension of the moment.",
+      "story_beat": "Bridge: Introducing a sense of mystery and anticipation.",
+      "emotion": "Mysterious",
+      "visuals": "High-pitched note, low-pitched tone, digital sound, still camera, suspenseful mood."
+    }
+  ]
+}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 8.1, "content": "The camera begins with a low-angle shot of a winding stone staircase ascending through a sun-drenched alley, capturing the warm glow of terracotta rooftops in the background. A person in a Spider-Man costume stands motionless on a red pedestal on the right sidewalk, contrasting with the natural motion of the crowd. The camera moves steadily forward, passing the performer and revealing a lively street lined with colorful buildings and shops, including one with a sign for 'intimissimi Italian lingerie'. As the camera advances, the performer is left behind, and the focus shifts to the bustling crowd and the vibrant, sun-drenched urban environment. The camera then pans across a sun-drenched viewpoint, revealing a cobblestone path lined with large pine trees and white stone benches. Visitors stroll and sit along the walkway, some leaning on the green metal railing to gaze out over a sprawling cityscape of terracotta rooftops and distant water under a clear blue sky. The bright, natural light casts sharp shadows, emphasizing the warm, Mediterranean atmosphere of the location. The steady, forward-moving shot creates a sense of peaceful exploration, inviting the viewer to take in the scenic vista. The gentle strumming of a ukulele and soft whistling underscore the whimsical yet nostalgic tone.", "story_beat": "Setup: Introducing the whimsical character and the vertical journey.", "emotion": "Nostalgic", "visuals": "Low-angle tracking shot, upward tilt, warm sunlight, terracotta rooftops, Spider-Man costume, narrow staircase."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 7.1, "content": "The camera glides upward along the Santa Justa Lift, its iron structure rising against the clear blue sky. A red tram passes below, moving along the tracks in the bustling street. The shot captures the contrast between the historic ironwork and the modern city life, with pedestrians and vehicles moving beneath. The melancholic acoustic guitar melody enhances the reflective mood, emphasizing the city's verticality and charm.", "story_beat": "Development: Highlighting the Santa Justa Lift and the city's dynamic energy.", "emotion": "Melancholic", "visuals": "Vertical tracking shot, upward movement, iron structure, tram, blue sky, urban activity."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 3.6, "content": "A close-up of the Santa Justa Lift's ornate metalwork, with the camera slowly panning across its intricate details. The shot transitions to a wide view of the cityscape, with the lift's structure framing the panoramic view. The gentle fingerstyle guitar melody evokes a reflective and contemplative mood, reinforcing the sense of quiet observation.", "story_beat": "Development: Focusing on architectural details and the city's expansive view.", "emotion": "Nostalgic", "visuals": "Close-up to wide shot, ornate metalwork, panoramic city view, slow pan.", "clip_id": "01:40:30 to 01:40:52", "exact_timestamps": "01:40:30 to 01:40:52"}
+
+=== FINAL SHOT PLAN ===
+{
+    "time_duration": 13.6,
+    "content": "The camera ascends the winding staircase again, this time from a higher vantage point, capturing the sweeping views of the city. The Spider-Man figure reappears, walking confidently up the steps, their silhouette framed against the sky. The camera follows them as they reach the top, where the view expands to include the entire cityscape. The serene folk-inspired music underscores the peaceful and contemplative atmosphere.",
+    "story_beat": "Development: Revisiting the staircase and reinforcing the journey's emotional arc.",
+    "emotion": "Calm",
+    "visuals": "High-angle tracking shot, upward movement, panoramic views, Spider-Man silhouette, sunlit city."
+}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 10.8, "content": "A close-up of a hand playing a gentle acoustic guitar, fingers delicately plucking the strings. The camera slowly zooms out to reveal a musician sitting on steps in a quiet plaza, surrounded by the city's ambient sounds. The melancholic melody of the guitar, reminiscent of a video game theme, adds a layer of introspection and emotional depth to the scene.", "story_beat": "Payoff: Introducing a human element and emotional resonance.", "emotion": "Melancholic", "visuals": "Close-up to wide shot, acoustic guitar, musician, quiet plaza, ambient city sounds."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 8.7, "content": "The camera follows a high-pitched whistling melody, mirroring the gentle fingerstyle guitar. The shot transitions to a wide view of the city, with the whistling echoing through the streets. The music's soothing quality enhances the contemplative mood, as the camera captures the quiet beauty of the urban landscape.", "story_beat": "Bridge: Connecting the music and visuals through a shared melodic motif.", "emotion": "Narrative", "visuals": "Wide shot, whistling melody, cityscape, slow movement, reflective atmosphere."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 7.6, "content": "A slow, arpeggiated guitar melody plays as the camera pans across the terracotta rooftops, capturing the intricate patterns and textures. The shot lingers on the details, emphasizing the city's rich history and architectural beauty. The nostalgic tone of the music complements the visual exploration.", "story_beat": "Development: Focusing on the city's architectural details.", "emotion": "Nostalgic", "visuals": "Slow pan, terracotta rooftops, arpeggiated guitar, detailed textures."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 5.3, "content": "The camera focuses on the Santa Justa Lift's structure, with a close-up of its iron framework. The melancholic theme from 'The Last of Us' plays softly, enhancing the sense of quiet longing and introspection. The shot captures the lift's movement, symbolizing a journey through time and space.", "story_beat": "Payoff: Symbolizing the journey through the city's history.", "emotion": "Narrative", "visuals": "Close-up, iron framework, slow movement, melancholic theme."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 5.5, "content": "A gentle piano melody plays as the camera captures a wide view of the city, with the sun casting long shadows across the streets. The music's nostalgic quality complements the visual beauty, creating a sense of peaceful reflection. The shot transitions to a close-up of a child's hand reaching out towards the cityscape, symbolizing innocence and wonder.", "story_beat": "Payoff: Introducing a sense of innocence and wonder.", "emotion": "Nostalgic", "visuals": "Wide to close-up, piano melody, long shadows, child's hand, cityscape."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 10.0, "content": "The camera glides through a narrow alley, capturing the vibrant colors of the buildings and the movement of pedestrians. The soft, introspective music underscores the scene's reflective mood, as the camera moves slowly, emphasizing the quiet beauty of the urban environment.", "story_beat": "Development: Exploring the city's vibrant yet intimate spaces.", "emotion": "Melancholic", "visuals": "Slow glide, narrow alley, colorful buildings, pedestrians, atmospheric music."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 8.1, "content": "A gentle acoustic guitar plays a cover of 'Hakuna Matata' as the camera captures a street musician playing in a sunlit square. The whistling melody adds a sense of carefree optimism, contrasting with the city's more reflective tone. The scene evokes a sense of childhood innocence and joy.", "story_beat": "Payoff: Introducing a moment of joy and nostalgia.", "emotion": "Nostalgic", "visuals": "Acoustic guitar, sunlit square, whistling melody."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 10.1, "content": "The camera pans across a quiet street, capturing the soft, lyrical piano melody. The scene transitions to a close-up of a person sitting on a bench, lost in thought. The music's sentimental quality enhances the reflective mood, as the camera lingers on the individual's contemplative expression.", "story_beat": "Development: Focusing on personal reflection.", "emotion": "Nostalgic", "visuals": "Pan, quiet street, close-up, contemplative expression, lyrical piano."}
+
+=== FINAL SHOT PLAN ===
+{
+    "time_duration": 7.4,
+    "content": "A solo nylon-string guitar plays a gentle, contemplative melody as the camera captures the intricate details of the Santa Justa Lift's structure. The music's Spanish or Latin American influence complements the city's cultural heritage, creating a sense of quiet introspection. The sequence begins with a close-up of the Santa Justa Lift, highlighting its ornate metalwork and Gothic-style design against a clear blue sky. The camera then pans down to reveal the bustling street below, with pedestrians and shops. The scene transitions to a street musician playing a guitar in front of a large, ornate wooden door, with the cityscape and red-tiled roofs stretching out behind. The music's Spanish or Latin American influence complements the city's cultural heritage, creating a sense of quiet introspection. The sequence ends with a wide shot of the cityscape, capturing the vibrant character and architectural charm of Lisbon.",
+    "story_beat": "Bridge: Connecting music and cultural identity.",
+    "emotion": "Nostalgic",
+    "visuals": "Close-up, intricate details, nylon-string guitar, cultural heritage."
+}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 6.7, "content": "The camera follows a person walking up the winding staircase, their silhouette framed against the sky. The gentle, flowing melody of the classical guitar enhances the sense of movement and journey. The shot captures the verticality of the city, symbolizing a personal ascent.", "story_beat": "Development: Symbolizing personal growth and ascent.", "emotion": "Narrative", "visuals": "Tracking shot, silhouette, vertical movement, cityscape.", "clip_id": "00:03:00 to 00:03:59"}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 9, "content": "A gentle piano and acoustic guitar duet plays as the camera captures a wide view of the city, with the sun setting behind the terracotta rooftops. The music's peaceful, reflective mood complements the visual beauty, creating a sense of closure and tranquility.", "story_beat": "Payoff: Concluding the journey with a sense of peace.", "emotion": "Nostalgic", "visuals": "Wide view, sunset, terracotta rooftops, piano and guitar duet."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 8.2, "content": "The camera captures a playful scene of children running through a sunlit alley, their laughter echoing through the streets. The upbeat, whimsical music enhances the sense of joy and carefree energy, contrasting with the city's more reflective tone.", "story_beat": "Payoff: Introducing a moment of lightheartedness.", "emotion": "Whimsical", "visuals": "Playful scene, children running, sunlit alley, upbeat music."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 13.5, "content": "A solo acoustic guitar plays a gentle cover of 'Twilight' as the camera captures a person standing on the Santa Justa Lift, gazing out at the city. The music's intimate, nostalgic quality enhances the sense of quiet longing, as the camera slowly zooms in on their contemplative expression.", "story_beat": "Payoff: Concluding with a moment of introspection and longing.", "emotion": "Nostalgic", "visuals": "Close-up, contemplative expression, Santa Justa Lift, intimate music."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 27.0, "content": "A gentle, intimate piano piece plays as the camera captures a quiet street, with the soft, reverberant sound enhancing the sense of stillness. The music's nostalgic quality complements the visual beauty, creating a sense of peaceful reflection. The camera moves steadily forward down a narrow cobblestone street lined with parked cars and traditional European buildings. The architecture features pastel-colored facades, ornate balconies, and tiled roofs, suggesting a historic city center. A few pedestrians walk along the sidewalk, and the bright sunlight casts sharp shadows, illuminating the scene against a clear blue sky. In the distance, a glimpse of the sea or a large body of water is visible, adding depth to the urban landscape. The overall atmosphere is calm and sun-drenched, evoking a sense of peaceful exploration in a picturesque location.", "story_beat": "Development: Focusing on quiet stillness and reflection.", "emotion": "Nostalgic", "visuals": "Quiet street, soft piano, reverberant sound, peaceful reflection."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 7.3, "content": "The camera captures a slow, legato piano melody as the scene transitions to a close-up of a person sitting on a bench, lost in thought. The music's introspective quality enhances the sense of melancholy, as the camera lingers on their contemplative expression.", "story_beat": "Payoff: Concluding with a moment of introspection.", "emotion": "Melancholic", "visuals": "Close-up, contemplative expression, legato piano, introspective mood."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 9, "content": "A solo piano piece plays as the camera captures a wide view of the city, with the sun setting behind the terracotta rooftops. The music's nostalgic quality complements the visual beauty, creating a sense of closure and tranquility.", "story_beat": "Payoff: Concluding the journey with a sense of peace.", "emotion": "Nostalgic", "visuals": "Wide view, sunset, terracotta rooftops, solo piano."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 8, "content": "A contemporary classical piano piece plays as the camera captures a quiet street, with the expressive legato melody enhancing the sense of introspection. The music's reflective quality complements the visual beauty, creating a sense of peaceful contemplation. The scene transitions from a sunlit city square to a quiet church interior, where a woman enters a building with a sign requesting silence, emphasizing the solemn atmosphere. The overall mood is reverent and contemplative, underscored by the quiet, deliberate pacing of the movement.", "story_beat": "Development: Focusing on personal reflection.", "emotion": "Melancholic", "visuals": "Quiet street, expressive piano, introspective mood, peaceful contemplation."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 12.0, "content": "The camera captures a descending, melancholic chord progression on a solo piano, followed by a sustained, unresolved chord that fades into silence. The music's cinematic quality enhances the sense of closure, as the camera slowly zooms out to reveal the cityscape in the distance.", "story_beat": "Button: Concluding the narrative with a sense of unresolved longing.", "emotion": "Melancholic", "visuals": "Descending chords, unresolved chord, cityscape, slow zoom out."}
+
+=== FINAL SHOT PLAN ===
+{"time_duration": 6.6, "content": "A high-pitched synthesized note reminiscent of chiptune music begins, followed by a low-pitched, resonant tone that creates a sense of suspense. The sound is digitally clean and dry, evoking a mood of mystery and anticipation. The camera remains still, capturing the tension of the moment.", "story_beat": "Bridge: Introducing a sense of mystery and anticipation.", "emotion": "Mysterious", "visuals": "High-pitched note, low-pitched tone, digital sound, still camera, suspenseful mood."}
 

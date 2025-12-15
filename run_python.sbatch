@@ -5,8 +5,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=128G
-#SBATCH --gres=gpu:1
+#SBATCH --mem=200G
+#SBATCH --gres=gpu:2
 #SBATCH --time=4:00:00
 
 # 1. 加载环境 (根据你的集群环境修改)

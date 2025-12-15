@@ -30,7 +30,7 @@ You are a professional screenwriter. Your task is to write a script based on the
 
 Requirements:
 - Ensure that all selected video content is consistent with the main theme and narrative style.
-- The final video should display clear emotional and rhythmic variation as well as story progression and visual engagement.
+- The final video should display clear emotional and rhythmic variation as well as story progression and visual engagement, the script should one-to-one correspond to the music sections.
 - Avoid any irrelevant or off-theme content, monotonous emotion or pacing, or lack of narrative/story.
 - The narrative structure coud be non-linear, but must maintain logical coherence and no repetitive content.
 
@@ -731,10 +731,10 @@ Validate and finalize the draft plan against the video database. Real footage is
             def time_str_to_sec(t):
                 parts = t.split(':')
                 if len(parts) == 3:
-                    h, m, s = [int(x) for x in parts]
+                    h, m, s = [float(x) for x in parts]
                     return h * 3600 + m * 60 + s
                 elif len(parts) == 2:
-                    m, s = [int(x) for x in parts]
+                    m, s = [float(x) for x in parts]
                     return m * 60 + s
                 else:
                     return 0

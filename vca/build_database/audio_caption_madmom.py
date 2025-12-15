@@ -45,19 +45,49 @@ from .. import config
 # --------------------------------------------------------------------------- #
 
 AUDIO_OVERALL_PROMPT = """
-Describe the main sounds, speech, background noises, and mood of this audio clip. Summarize the overall style, genre, and feeling. If there are lyrics, briefly mention their meaning. If the audio has distinct sections (like intro, verse, chorus, outro), give a short description of each.
+You are a professional music analyst. Analyze this audio and identify its structural sections with PRECISE timestamps.
 
-Output format (example):
+## Task
+1. Identify the song structure by detecting changes in: melody, instrumentation, lyrics, energy level, rhythm patterns
+2. Label each section with standard music terminology
+
+## Standard Song Structure Types (use these names):
+- Intro: Opening instrumental/ambient section
+- Verse (Verse 1, Verse 2, etc.): Main storytelling sections with lyrics
+- Chorus (Chorus 1, Chorus 2, etc.): Main hook/repeated section
+- Bridge: Contrasting section, usually appears once
+- Build-up: Rising tension section
+- Drop: High-energy climax section (EDM/electronic)
+- Outro: Closing section
+
+## CRITICAL TIME CONSTRAINTS (MUST FOLLOW):
+- MAXIMUM section length: 45 seconds
+- MINIMUM section length: 15 seconds
+- If you detect a section longer than 45 seconds, you MUST split it (e.g., "Verse 1 Part A" 00:30-01:05, "Verse 1 Part B" 01:05-01:40)
+
+## Detection Tips:
+- Listen for lyrical changes (new verse = new lyrics)
+- Listen for melodic changes (chorus usually has different melody than verse)
+- Listen for instrumental changes (intro/outro often instrumental)
+- Listen for energy/dynamics changes (build-ups, drops, breakdowns)
+- Listen for repeated sections (chorus repeats multiple times)
+
+Output ONLY valid JSON:
 {
-  "summary": "A brief overview of the audio's style, genre, and mood.",
+  "summary": "Genre, overall mood, and key musical characteristics",
   "sections": [
     {
-        "name": "Section 1",
-        "description": "Describe the section 1.",
-        "Start_Time": "MM:SS",
-        "End_Time": "MM:SS"
+      "name": "Intro",
+      "description": "Brief description of what happens in this section",
+      "Start_Time": "00:00",
+      "End_Time": "00:25"
     },
-    ...
+    {
+      "name": "Verse 1",
+      "description": "Description of lyrics and instrumentation",
+      "Start_Time": "00:25",
+      "End_Time": "01:05"
+    }
   ]
 }
 """
@@ -72,7 +102,7 @@ Focus on:
 
 Output ONLY valid JSON (no markdown, no explanation):
 {
-  "summary": "Brief description of genre, instrumentation, and overall mood (1-2 sentences)",
+  "summary": "Description of genre, instrumentation, and overall mood",
   "emotion": "Primary emotional tone (e.g., energetic, melancholic, uplifting, tense, romantic, triumphant, mysterious, nostalgic)",
   "energy": "Energy level 1-10 with trend (e.g., '7, building intensity', '3, calm and steady', '9, explosive climax', '5, gradually fading')",
   "rhythm": "Tempo and rhythmic feel (e.g., '128 BPM, driving electronic beat', '85 BPM, relaxed groove', '60 BPM, slow ambient pulse', 'free tempo, atmospheric')"
@@ -349,6 +379,7 @@ def generate_overall_analysis(
     top_p: float = 0.95,
     top_k: int = 20,
     max_tokens: int = 4096,
+    audio_duration: float = None,
 ) -> str:
     """
     Generate overall analysis for the entire audio file.
@@ -361,16 +392,24 @@ def generate_overall_analysis(
         top_p: Top-p sampling parameter
         top_k: Top-k sampling parameter
         max_tokens: Maximum tokens to generate
+        audio_duration: Audio duration in seconds (optional, for constraining timestamps)
 
     Returns:
         Generated overall analysis text
     """
+    # Build prompt with optional duration constraint
+    prompt = AUDIO_OVERALL_PROMPT
+    if audio_duration:
+        duration_str = f"{int(audio_duration // 60):02d}:{int(audio_duration % 60):02d}"
+        duration_constraint = f"\n\n## IMPORTANT: Audio Duration Constraint\nThis audio is exactly {duration_str} ({audio_duration:.1f} seconds) long.\nALL timestamps MUST be within 00:00 to {duration_str}. Do NOT generate any timestamp beyond {duration_str}!\nThe last section MUST end at {duration_str}.\n"
+        prompt = prompt + duration_constraint
+
     messages = [
         {
             "role": "user",
             "content": [
                 {"type": "audio", "audio": audio_path},
-                {"type": "text", "text": AUDIO_OVERALL_PROMPT}
+                {"type": "text", "text": prompt}
             ],
         }
     ]
@@ -446,6 +485,100 @@ def mmss_to_seconds(mmss: str) -> float:
             return float(mmss)
     except (ValueError, AttributeError):
         return 0.0
+
+
+def validate_sections_within_duration(sections: List[Dict], audio_duration: float, tolerance: float = 1.0) -> tuple:
+    """
+    Validate that all sections are within the audio duration.
+
+    Args:
+        sections: List of section dicts with Start_Time and End_Time
+        audio_duration: Audio duration in seconds
+        tolerance: Allowed tolerance for boundary checking (seconds)
+
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    if not sections or not audio_duration:
+        return True, ""
+
+    max_allowed = audio_duration + tolerance
+
+    for idx, sec in enumerate(sections):
+        try:
+            start_time = mmss_to_seconds(sec.get("Start_Time", "00:00"))
+            end_time = mmss_to_seconds(sec.get("End_Time", "00:00"))
+
+            if start_time > max_allowed:
+                return False, f"Section {idx+1} '{sec.get('name', 'Unknown')}' start_time ({start_time:.1f}s) exceeds audio duration ({audio_duration:.1f}s)"
+
+            if end_time > max_allowed:
+                return False, f"Section {idx+1} '{sec.get('name', 'Unknown')}' end_time ({end_time:.1f}s) exceeds audio duration ({audio_duration:.1f}s)"
+
+        except Exception as e:
+            return False, f"Section {idx+1} time parsing error: {e}"
+
+    return True, ""
+
+
+def validate_section_durations(sections: List[Dict], min_duration: float = 5.0, max_duration: float = 90.0) -> tuple:
+    """
+    Validate that all sections have duration within the specified range.
+
+    Args:
+        sections: List of section dicts with Start_Time and End_Time
+        min_duration: Minimum allowed section duration in seconds (default: 5s)
+        max_duration: Maximum allowed section duration in seconds (default: 90s)
+
+    Returns:
+        Tuple of (is_valid, error_message, invalid_sections_info)
+    """
+    if not sections:
+        return True, "", []
+
+    invalid_sections = []
+
+    for idx, sec in enumerate(sections):
+        try:
+            start_time = mmss_to_seconds(sec.get("Start_Time", "00:00"))
+            end_time = mmss_to_seconds(sec.get("End_Time", "00:00"))
+            duration = end_time - start_time
+
+            if duration < min_duration:
+                invalid_sections.append({
+                    'index': idx + 1,
+                    'name': sec.get('name', 'Unknown'),
+                    'duration': duration,
+                    'issue': 'too_short'
+                })
+            elif duration > max_duration:
+                invalid_sections.append({
+                    'index': idx + 1,
+                    'name': sec.get('name', 'Unknown'),
+                    'duration': duration,
+                    'issue': 'too_long'
+                })
+
+        except Exception as e:
+            invalid_sections.append({
+                'index': idx + 1,
+                'name': sec.get('name', 'Unknown'),
+                'duration': 0,
+                'issue': f'parse_error: {e}'
+            })
+
+    if invalid_sections:
+        error_msgs = []
+        for inv in invalid_sections:
+            if inv['issue'] == 'too_short':
+                error_msgs.append(f"Section {inv['index']} '{inv['name']}' is too short ({inv['duration']:.1f}s < {min_duration}s)")
+            elif inv['issue'] == 'too_long':
+                error_msgs.append(f"Section {inv['index']} '{inv['name']}' is too long ({inv['duration']:.1f}s > {max_duration}s)")
+            else:
+                error_msgs.append(f"Section {inv['index']} '{inv['name']}': {inv['issue']}")
+        return False, "; ".join(error_msgs), invalid_sections
+
+    return True, "", []
 
 
 # --------------------------------------------------------------------------- #
@@ -762,29 +895,106 @@ def caption_audio_with_madmom_segments(
         use_flash_attn2=use_flash_attn2
     )
 
-    print("\nGenerating overall analysis for the entire audio...")
-    overall_analysis_text = generate_overall_analysis(
-        audio_path=audio_path,
-        model=model,
-        processor=processor,
-        temperature=temperature,
-        top_p=top_p,
-        top_k=top_k,
-        max_tokens=max_tokens,
-    )
+    # Retry logic for generating valid sections
+    MAX_RETRIES = 5  # Increased retries for duration validation
+    SECTION_MIN_DURATION = 5.0   # Minimum section duration in seconds
+    SECTION_MAX_DURATION = 90.0  # Maximum section duration in seconds
+    overall_summary = ""
+    stage1_sections = []
 
-    # Try to parse JSON from overall analysis
-    overall_json = extract_json_from_text(overall_analysis_text)
-    if overall_json and isinstance(overall_json, dict):
-        overall_summary = overall_json.get("summary", "")
-        stage1_sections = overall_json.get("sections", [])
-        print(f"✓ Overall analysis generated successfully")
-        print(f"  Found {len(stage1_sections)} Level 1 sections from overall analysis")
-    else:
-        overall_summary = overall_analysis_text
-        stage1_sections = []
-        print(f"⚠ Overall analysis generated but JSON parsing failed")
-        print(f"  Will create default sections based on audio duration")
+    for retry_attempt in range(MAX_RETRIES):
+        if retry_attempt > 0:
+            print(f"\n⚠ Retry attempt {retry_attempt + 1}/{MAX_RETRIES}...")
+
+        print("\nGenerating overall analysis for the entire audio...")
+        overall_analysis_text = generate_overall_analysis(
+            audio_path=audio_path,
+            model=model,
+            processor=processor,
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k,
+            max_tokens=max_tokens,
+            audio_duration=audio_duration,
+        )
+
+        # Try to parse JSON from overall analysis
+        overall_json = extract_json_from_text(overall_analysis_text)
+        if overall_json and isinstance(overall_json, dict):
+            overall_summary = overall_json.get("summary", "")
+            stage1_sections = overall_json.get("sections", [])
+            print(f"✓ Overall analysis generated successfully")
+            print(f"  Found {len(stage1_sections)} Level 1 sections from overall analysis")
+
+            # Validation 1: Check sections are within audio duration
+            if audio_duration and stage1_sections:
+                is_valid, error_msg = validate_sections_within_duration(stage1_sections, audio_duration)
+                if not is_valid:
+                    print(f"⚠ Section boundary validation failed: {error_msg}")
+                    if retry_attempt < MAX_RETRIES - 1:
+                        print(f"  Will retry generation...")
+                        stage1_sections = []  # Clear invalid sections
+                        continue
+                    else:
+                        print(f"  Max retries reached, will auto-fix boundaries")
+                else:
+                    print(f"✓ All sections are within audio duration ({audio_duration:.1f}s)")
+
+            # Validation 2: Check section durations are within 5-90 seconds
+            if stage1_sections:
+                is_duration_valid, duration_error_msg, invalid_sections = validate_section_durations(
+                    stage1_sections,
+                    min_duration=SECTION_MIN_DURATION,
+                    max_duration=SECTION_MAX_DURATION
+                )
+                if not is_duration_valid:
+                    print(f"⚠ Section duration validation failed:")
+                    for inv in invalid_sections:
+                        if inv['issue'] == 'too_short':
+                            print(f"    - Section {inv['index']} '{inv['name']}': {inv['duration']:.1f}s < {SECTION_MIN_DURATION}s (too short)")
+                        elif inv['issue'] == 'too_long':
+                            print(f"    - Section {inv['index']} '{inv['name']}': {inv['duration']:.1f}s > {SECTION_MAX_DURATION}s (too long)")
+                    if retry_attempt < MAX_RETRIES - 1:
+                        print(f"  Will retry generation...")
+                        stage1_sections = []  # Clear invalid sections
+                        continue
+                    else:
+                        print(f"  Max retries reached, will use current sections")
+                else:
+                    print(f"✓ All sections have valid duration ({SECTION_MIN_DURATION}s - {SECTION_MAX_DURATION}s)")
+
+            # All validations passed
+            break
+        else:
+            overall_summary = overall_analysis_text
+            stage1_sections = []
+            print(f"⚠ Overall analysis generated but JSON parsing failed")
+            if retry_attempt < MAX_RETRIES - 1:
+                print(f"  Will retry generation...")
+            else:
+                print(f"  Max retries reached, will create default sections")
+
+    # Auto-fix sections that exceed audio duration (after max retries)
+    if audio_duration and stage1_sections:
+        fixed_sections = []
+        for sec in stage1_sections:
+            start_time = mmss_to_seconds(sec.get("Start_Time", "00:00"))
+            end_time = mmss_to_seconds(sec.get("End_Time", "00:00"))
+
+            # Skip sections that start beyond audio duration
+            if start_time >= audio_duration:
+                print(f"  ⚠ Removing section '{sec.get('name', 'Unknown')}' (starts at {start_time:.1f}s, beyond audio duration)")
+                continue
+
+            # Clamp end time to audio duration
+            if end_time > audio_duration:
+                print(f"  ⚠ Clamping section '{sec.get('name', 'Unknown')}' end_time from {end_time:.1f}s to {audio_duration:.1f}s")
+                sec["End_Time"] = seconds_to_mmss(audio_duration)
+
+            fixed_sections.append(sec)
+
+        stage1_sections = fixed_sections
+        print(f"✓ After auto-fix: {len(stage1_sections)} valid sections")
 
     # If no sections from stage1, create default sections based on audio duration
     if not stage1_sections:

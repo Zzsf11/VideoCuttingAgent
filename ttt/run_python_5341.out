@@ -1,86 +1,0 @@
-========================================================
-Loading environment modules...
-Environment loaded.
-
-========================================================
-Job ID: 5341
-Node: gpuh04
-Start time: 2025年 12月 14日 星期日 17:34:52 CST
-Command: python ./local_run.py --Audio_Path /public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Yongjibeichangqingge/Yongjibeichangqingge.mp3
-========================================================
-Unrecognized keys in `rope_scaling` for 'rope_type'='default': {'interleaved', 'mrope_interleaved', 'mrope_section'}
-You are attempting to use Flash Attention 2 without specifying a torch dtype. This might lead to unexpected behaviour
-Processing audio to get captions...
-⚠️  未找到中文字体，将使用英文标签
-
-================================================================================
-MADMOM-BASED SEGMENTATION ANALYSIS
-================================================================================
-
-Processing Pipeline:
-  1. Madmom keypoint detection + Rule-based filtering
-  2. AI-based Level 1 section segmentation
-  3. AI-based caption for each sub-segment
-  4. Merge into two-level output format
-
-✓ Audio duration: 03:30 (210.03 seconds)
-
-================================================================================
-STAGE 1: Madmom keypoint detection + Rule-based filtering
-================================================================================
-
-[Step 1.1] Detecting audio keypoints with Madmom...
-正在分析音频: /public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Yongjibeichangqingge/Yongjibeichangqingge.mp3 ...
- -> 检测节奏 (Beats/Downbeats)...
-    参数: beats_per_bar=[4], BPM范围=[55.0, 215.0], transition_lambda=100
- -> 检测冲击点 (Onsets, threshold=0.6, combine=3.0)...
- -> 计算能量动态...
- -> 检测频谱通量变化 (人声/乐器变化, threshold=0.3)...
-    检测到 410 个频谱变化点
- -> 检测能量突变点 (threshold=0.15)...
-    检测到 295 个能量突变点
- -> 检测频谱质心变化 (音色变化, threshold=0.2)...
-    检测到 299 个音色变化点
- -> 识别调性与情感基调...
-
-✓ Detected 707 keypoints
-  - 65 downbeats
-  - 58 onsets
-  - 410 spectral changes
-  - 295 energy changes
-  - 299 timbre changes
-
-[Step 1.2] Applying rule-based filtering...
-  Parameters: merge_close=0.1s, min_interval=0.0s, 
-              top_k=0, energy_percentile=0.0, max_segments=20
-    按类型归一化强度:
-      - Downbeat (重拍): 65 个点, 原始强度 [0.742, 0.991] -> 归一化 [0, 1]
-      - Timbre Change (音色变化): 125 个点, 原始强度 [0.436, 0.718] -> 归一化 [0, 1]
-      - Strong Attack (冲击): 45 个点, 原始强度 [0.555, 0.906] -> 归一化 [0, 1]
-      - Energy Change (能量变化): 108 个点, 原始强度 [0.575, 0.670] -> 归一化 [0, 1]
-      - Spectral Change (频谱变化): 364 个点, 原始强度 [0.567, 0.993] -> 归一化 [0, 1]
-    合并相近点后: 618 个关键点 (merge_close=0.1s)
-✓ After rule-based filtering: 618 keypoints
-
-[Step 1.3] Applying type-based filtering...
-
-    🏷️  按类型过滤关键点 (mode=only):
-       优先类型: ['Downbeat', 'Energy', 'Onset']
-       - Timbre Change (音色变化): 118 -> 0
-       - Strong Attack (冲击): 34 -> 0
-       - Spectral Change (频谱变化): 302 -> 0
-       过滤前: 618 个, 过滤后: 164 个
-✓ After type-based filtering: 164 keypoints
-
-================================================================================
-STAGE 2: AI-based Level 1 section segmentation
-================================================================================
-
-Using AI model to identify high-level sections (Intro, Verse, Chorus, etc.)...
-Loading model from: /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Captioner
-Loading checkpoint shards:   0%|          | 0/16 [00:00<?, ?it/s]Loading checkpoint shards:   6%|▋         | 1/16 [00:05<01:29,  5.98s/it]Loading checkpoint shards:  12%|█▎        | 2/16 [00:12<01:28,  6.34s/it]Loading checkpoint shards:  19%|█▉        | 3/16 [00:18<01:19,  6.15s/it]Loading checkpoint shards:  25%|██▌       | 4/16 [00:24<01:14,  6.18s/it]Loading checkpoint shards:  31%|███▏      | 5/16 [00:31<01:08,  6.22s/it]Loading checkpoint shards:  38%|███▊      | 6/16 [00:37<01:01,  6.15s/it]Loading checkpoint shards:  44%|████▍     | 7/16 [00:43<00:55,  6.15s/it]Loading checkpoint shards:  50%|█████     | 8/16 [00:49<00:49,  6.16s/it]Loading checkpoint shards:  56%|█████▋    | 9/16 [00:55<00:43,  6.18s/it]Loading checkpoint shards:  62%|██████▎   | 10/16 [01:01<00:36,  6.04s/it]Loading checkpoint shards:  69%|██████▉   | 11/16 [01:06<00:29,  5.91s/it]Loading checkpoint shards:  75%|███████▌  | 12/16 [01:12<00:23,  5.89s/it]Loading checkpoint shards:  81%|████████▏ | 13/16 [01:19<00:18,  6.01s/it]Loading checkpoint shards:  88%|████████▊ | 14/16 [01:25<00:12,  6.12s/it]Loading checkpoint shards:  94%|█████████▍| 15/16 [01:31<00:06,  6.12s/it]Loading checkpoint shards: 100%|██████████| 16/16 [01:36<00:00,  5.84s/it]Loading checkpoint shards: 100%|██████████| 16/16 [01:36<00:00,  6.05s/it]
-The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
-The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-Setting `pad_token_id` to `eos_token_id`:151645 for open-end generation.
-slurmstepd: error: *** JOB 5341 ON gpuh04 CANCELLED AT 2025-12-14T17:40:29 ***

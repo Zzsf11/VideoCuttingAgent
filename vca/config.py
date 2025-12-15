@@ -35,7 +35,7 @@ VLLM_ENDPOINT = "http://localhost:8888/v1/chat/completions"  # vLLM base URL (wi
 #     --trust-remote-code \
 #     --tensor-parallel-size 2
 # ------------------ Audio model configuration ------------------ #
-AUDIO_ANALYSIS_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Captioner"
+AUDIO_ANALYSIS_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-Omni-30B-A3B-Instruct"
 AUDIO_ANALYSIS_MODEL_MAX_TOKEN = 32768  # Max tokens to generate (not total context length)
 VLLM_AUDIO_ENDPOINT = "http://localhost:8890/v1/chat/completions"  # vLLM endpoint for Qwen3-Omni audio model
 # 启动audio服务的命令示例:

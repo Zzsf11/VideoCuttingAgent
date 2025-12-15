@@ -37,29 +37,29 @@ def main():
 
 
 
-    # # Decode video to frames and get subtitles
-    # # Note: decode_video_to_frames will automatically skip steps that are already done
-    # # (frames extraction, ASR, shot detection) based on existing files
-    # print(f"Processing video in {frames_dir}...")
-    # decode_video_to_frames(
-    #     Video_Path,
-    #     frames_dir,
-    #     config.VIDEO_FPS,
-    #     config.VIDEO_RESOLUTION,
-    #     max_frames=getattr(config, 'VIDEO_MAX_FRAMES', None),
-    #     asr_to_srt=True,
-    #     srt_path=srt_path,
-    #     asr_model=config.ASR_MODEL,
-    #     asr_device="cuda:0",
-    #     use_batch_processing=config.USE_BATCH_PROCESSING,
-    #     shot_detection=True,
-    #     shot_detection_fps=config.SHOT_DETECTION_FPS,
-    #     shot_detection_threshold=config.SHOT_DETECTION_THRESHOLD,
-    #     shot_predictions_path=os.path.join(frames_dir, "shot_predictions.txt"),
-    #     shot_scenes_path=os.path.join(frames_dir, "shot_scenes.txt"),
-    #     shot_detection_model=config.SHOT_DETECTION_MODEL,
-    # )
-    # print("Video processing completed.")
+    # Decode video to frames and get subtitles
+    # Note: decode_video_to_frames will automatically skip steps that are already done
+    # (frames extraction, ASR, shot detection) based on existing files
+    print(f"Processing video in {frames_dir}...")
+    decode_video_to_frames(
+        Video_Path,
+        frames_dir,
+        config.VIDEO_FPS,
+        config.VIDEO_RESOLUTION,
+        max_frames=getattr(config, 'VIDEO_MAX_FRAMES', None),
+        asr_to_srt=True,
+        srt_path=srt_path,
+        asr_model=config.ASR_MODEL,
+        asr_device="cuda:0",
+        use_batch_processing=config.USE_BATCH_PROCESSING,
+        shot_detection=True,
+        shot_detection_fps=config.SHOT_DETECTION_FPS,
+        shot_detection_threshold=config.SHOT_DETECTION_THRESHOLD,
+        shot_predictions_path=os.path.join(frames_dir, "shot_predictions.txt"),
+        shot_scenes_path=os.path.join(frames_dir, "shot_scenes.txt"),
+        shot_detection_model=config.SHOT_DETECTION_MODEL,
+    )
+    print("Video processing completed.")
 
 
     
