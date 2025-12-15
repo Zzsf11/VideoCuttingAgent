@@ -20,9 +20,24 @@ WHOLE_VIDEO_SUMMARY_BATCH_SIZE = 50  # number of clip captions per summary batch
 USE_BATCH_PROCESSING = True  # If True, use ffmpeg direct extraction to avoid loading entire video into memory
 
 
+# ------------------ ASR (Speech Recognition) configuration ------------------ #
+ASR_MODEL = "large-v3-turbo"  # tiny, base, small, medium, large, large-v2, large-v3, large-v3-turbo
+ASR_DEVICE = "cuda:0"  # Device for ASR model
+ASR_LANGUAGE = "en"  # Language code (e.g., "zh", "en", "ja"). None for auto-detect
+
+# Anti-hallucination parameters for Whisper ASR
+ASR_NO_SPEECH_THRESHOLD = 0.7  # Higher = more conservative, filters non-speech segments (default 0.6)
+ASR_LOGPROB_THRESHOLD = -0.8  # Higher = filters low-confidence outputs (default -1.0)
+ASR_COMPRESSION_RATIO_THRESHOLD = 2.0  # Lower = detect repetitive/hallucinated outputs (default 2.4)
+ASR_CONDITION_ON_PREVIOUS_TEXT = False  # False = prevent context carryover hallucinations
+
+# Speaker diarization parameters
+ASR_MERGE_SAME_SPEAKER = True  # Merge consecutive segments from the same speaker
+ASR_MERGE_GAP = 1.0  # Maximum time gap for merging same-speaker segments (seconds)
+ASR_DIARIZATION_MODEL_PATH = "../HF/hub/models--pyannote--speaker-diarization-community-1/snapshots/3533c8cf8e369892e6b79ff1bf80f7b0286a54ee/"
+
 # ------------------ Video model configuration ------------------ #
 # Video Analysis Model
-ASR_MODEL = "large-v3-turbo" # tiny, base, small, medium, large, large-v2, large-v3 from https://github.com/linto-ai/whisper-timestamped
 VIDEO_ANALYSIS_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct"
 VIDEO_ANALYSIS_MODEL_MAX_TOKEN = 16384  # Max tokens to generate (not total context length)
 VLLM_ENDPOINT = "http://localhost:8888/v1/chat/completions"  # vLLM base URL (will append /v1/chat/completions)

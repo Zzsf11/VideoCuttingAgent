@@ -4,12 +4,17 @@ from typing import Optional, Tuple, List, Dict, Any
 
 import numpy as np
 import torch
+import soundfile as sf
+import whisper
 from PIL import Image
+from pyannote.audio import Pipeline
+from pyannote.core import Segment
 
 from qwen_omni_utils.v2_5.vision_process import fetch_video
 from vca.transnetv2_pytorch.transnetv2_pytorch.inference import TransNetV2Torch
 from vca.AutoShot.autoshot_wrapper import AutoShotTorch
 from vca.build_database.shot_det_VL import process_video
+from vca import config
 
 
 def _resize_frame(frame: Image.Image, target_height: int, target_width: int) -> Image.Image:
@@ -128,32 +133,47 @@ def _format_srt_timestamp(milliseconds: int) -> str:
     return f"{h}:{mi}:{s},{tail}"
 
 
-def _write_srt_from_sentence_info(sentence_info: List[Dict[str, Any]], srt_path: str) -> None:
+def _write_srt_from_sentence_info(
+    sentence_info: List[Dict[str, Any]],
+    srt_path: str,
+    include_speaker: bool = True
+) -> None:
     """
     Write SRT file from sentence_info structure.
-    Each sentence_info item should have 'text' and 'timestamp' fields.
+    Each sentence_info item should have 'text', 'timestamp', and optionally 'speaker' fields.
     timestamp is a list of [word, start_ms, end_ms] for each word.
+
+    Args:
+        sentence_info: List of sentence dicts with 'text', 'timestamp', and optionally 'speaker'
+        srt_path: Output path for the SRT file
+        include_speaker: Whether to include speaker labels in the subtitles
     """
     _ensure_dir(os.path.dirname(srt_path) or ".")
     with open(srt_path, "w", encoding="utf-8") as f:
         for idx, sent in enumerate(sentence_info):
             text = sent.get('text', '')
             timestamp = sent.get('timestamp', [])
-            
+            speaker = sent.get('speaker', None)
+
             if not timestamp:
                 continue
-            
+
             # Get start and end time from word-level timestamps
             start_ms = int(timestamp[0][1]) if len(timestamp[0]) >= 2 else 0
             end_ms = int(timestamp[-1][2]) if len(timestamp[-1]) >= 3 else start_ms
-            
+
             # Clean up text (remove trailing punctuation)
             text = text.rstrip("、。，")
-            
+
             # Write SRT entry
             f.write(f"{idx + 1}\n")
             f.write(f"{_format_srt_timestamp(start_ms)} --> {_format_srt_timestamp(end_ms)}\n")
-            f.write(f"{text}\n\n")
+
+            # Include speaker label if available and requested
+            if include_speaker and speaker:
+                f.write(f"[{speaker}] {text}\n\n")
+            else:
+                f.write(f"{text}\n\n")
 
 
 def _probe_media_duration_seconds(media_path: str) -> Optional[float]:
@@ -192,112 +212,195 @@ def _extract_audio_wav_16k(video_path: str, audio_path: str, start_sec: Optional
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def _transcribe_audio_with_whisper_timestamped(
+def _load_audio_for_pyannote(audio_path: str) -> dict:
+    """
+    Pre-load audio file to bypass torchcodec compatibility issues.
+    Returns a dict with waveform and sample_rate that pyannote can use directly.
+    Uses soundfile as backend to avoid torchcodec dependency.
+    """
+    waveform_np, sample_rate = sf.read(audio_path, dtype='float32')
+    waveform = torch.from_numpy(waveform_np)
+    if waveform.ndim == 1:
+        waveform = waveform.unsqueeze(0)
+    else:
+        waveform = waveform.T
+    return {"waveform": waveform, "sample_rate": sample_rate}
+
+
+def _get_speaker_at_time(diarization_tracks: list, start: float, end: float) -> str:
+    """
+    Get the dominant speaker in a given time segment.
+
+    Args:
+        diarization_tracks: List of (segment, track, speaker) tuples
+        start: Start time in seconds
+        end: End time in seconds
+    """
+    segment = Segment(start, end)
+    speakers = {}
+
+    for turn, _, speaker in diarization_tracks:
+        overlap = segment & turn
+        if overlap:
+            duration = overlap.duration
+            speakers[speaker] = speakers.get(speaker, 0) + duration
+
+    if not speakers:
+        return "UNKNOWN"
+
+    return max(speakers, key=speakers.get)
+
+
+def _merge_same_speaker_segments(segments: List[Dict[str, Any]], max_gap: float = 1.0) -> List[Dict[str, Any]]:
+    """
+    Merge consecutive segments from the same speaker.
+
+    Args:
+        segments: Original segment list
+        max_gap: Maximum time gap allowed for merging (seconds)
+    """
+    if not segments:
+        return []
+
+    merged = [segments[0].copy()]
+
+    for seg in segments[1:]:
+        last = merged[-1]
+        if (seg.get("speaker") == last.get("speaker") and
+            seg["start"] - last["end"] <= max_gap):
+            last["end"] = seg["end"]
+            last["text"] = last["text"] + " " + seg["text"]
+        else:
+            merged.append(seg.copy())
+
+    return merged
+
+
+def _transcribe_audio_with_diarization(
     audio_path: str,
     model_name: str,
     device: str,
     language: Optional[str] = None,
-    asr_kwargs: Optional[Dict[str, Any]] = None
+    asr_kwargs: Optional[Dict[str, Any]] = None,
+    merge_segments: Optional[bool] = None,
+    merge_gap: Optional[float] = None,
+    diarization_model_path: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Run whisper-timestamped on a single audio file and return a dict with keys:
+    Run Whisper ASR + pyannote speaker diarization on a single audio file.
+
+    Returns a dict with keys:
       - text: full transcription
-      - sentence_info: list of sentence dicts with 'text' and 'timestamp' fields
-      - segments: raw segments from whisper-timestamped (with word-level timestamps)
-    
-    This uses whisper-timestamped for highly accurate word-level timestamps.
+      - sentence_info: list of sentence dicts with 'text', 'timestamp', and 'speaker' fields
+      - segments: raw segments with speaker information
+
+    This uses native Whisper for ASR and pyannote for speaker diarization.
+    Parameters default to values from config if not specified.
     """
-    # Lazy import to avoid hard dependency if ASR is not requested
-    try:
-        import whisper_timestamped as whisper
-    except ImportError:
-        raise ImportError(
-            "whisper-timestamped is not installed. "
-            "Install it with: pip install whisper-timestamped"
-        )
-    
-    # Load model
+    # Use config defaults if not specified
+    if merge_segments is None:
+        merge_segments = getattr(config, 'ASR_MERGE_SAME_SPEAKER', True)
+    if merge_gap is None:
+        merge_gap = getattr(config, 'ASR_MERGE_GAP', 1.0)
+    if diarization_model_path is None:
+        diarization_model_path = getattr(config, 'ASR_DIARIZATION_MODEL_PATH',
+            "../HF/hub/models--pyannote--speaker-diarization-community-1/snapshots/3533c8cf8e369892e6b79ff1bf80f7b0286a54ee/")
+
+    print(f"[ASR] Using device: {device}")
+
+    # Load Whisper model
+    print(f"[ASR] Loading Whisper model: {model_name}")
     model = whisper.load_model(model_name, device=device)
-    
-    # Load audio
-    audio = whisper.load_audio(audio_path)
-    
-    # Base transcription kwargs
-    transcribe_kwargs: Dict[str, Any] = {
-        "language": language,
-        "task": "transcribe",
-        # Alternative VAD options to try:
-        # "vad": False,  # Disable VAD entirely (may help with hallucinations)
-        "vad": "silero:6.0",  # More aggressive VAD (may cause over-segmentation)
-        "detect_disfluencies": False,
-        "compute_word_confidence": True,  # Get confidence scores for each word
-        # Additional parameters to reduce hallucinations:
-        "condition_on_previous_text": False,  # Prevent context carryover between segments
-        "no_speech_threshold": 0.6,  # Higher = more conservative (default 0.6)
-        "logprob_threshold": -1.0,  # Filter low-confidence outputs (default -1.0)
-        "compression_ratio_threshold": 2.4,  # Detect repetitive outputs (default 2.4)
+
+    # Base transcription kwargs with anti-hallucination settings from config
+    transcribe_options: Dict[str, Any] = {
+        "word_timestamps": True,
+        # Anti-hallucination parameters from config
+        "no_speech_threshold": getattr(config, 'ASR_NO_SPEECH_THRESHOLD', 0.6),
+        "logprob_threshold": getattr(config, 'ASR_LOGPROB_THRESHOLD', -1.0),
+        "compression_ratio_threshold": getattr(config, 'ASR_COMPRESSION_RATIO_THRESHOLD', 2.4),
+        "condition_on_previous_text": getattr(config, 'ASR_CONDITION_ON_PREVIOUS_TEXT', True),
     }
-    
+    if language:
+        transcribe_options["language"] = language
+
     # Merge user-provided kwargs (can override defaults)
     if asr_kwargs:
-        transcribe_kwargs.update(asr_kwargs)
-    
-    # Run transcription with whisper-timestamped
-    result = whisper.transcribe(model, audio, **transcribe_kwargs)
-    
-    # Extract full text
-    full_text = result.get("text", "")
-    
-    # Convert whisper-timestamped segments to sentence_info format
-    # whisper-timestamped result structure:
-    # {
-    #   "text": "...",
-    #   "segments": [
-    #     {
-    #       "start": 0.5,
-    #       "end": 3.2,
-    #       "text": "Hello world",
-    #       "words": [
-    #         {"text": "Hello", "start": 0.5, "end": 1.2, "confidence": 0.95},
-    #         {"text": "world", "start": 1.3, "end": 3.2, "confidence": 0.98}
-    #       ]
-    #     }
-    #   ]
-    # }
-    
-    sentence_info = []
-    segments = result.get("segments", [])
-    
-    for seg in segments:
-        text = seg.get("text", "").strip()
+        transcribe_options.update(asr_kwargs)
+
+    print(f"[ASR] Transcribe options: no_speech_threshold={transcribe_options.get('no_speech_threshold')}, "
+          f"logprob_threshold={transcribe_options.get('logprob_threshold')}, "
+          f"compression_ratio_threshold={transcribe_options.get('compression_ratio_threshold')}")
+
+    # Perform ASR
+    print("[ASR] Transcribing audio...")
+    result = model.transcribe(audio_path, **transcribe_options)
+
+    # Load pyannote diarization pipeline
+    print("[ASR] Loading pyannote diarization pipeline...")
+    diarization_pipeline = Pipeline.from_pretrained(diarization_model_path)
+    diarization_pipeline = diarization_pipeline.to(torch.device(device))
+
+    # Pre-load audio to bypass torchcodec compatibility issues
+    print("[ASR] Loading audio for diarization...")
+    audio_data = _load_audio_for_pyannote(audio_path)
+
+    # Perform speaker diarization
+    print("[ASR] Performing speaker diarization...")
+    diarization = diarization_pipeline(audio_data)
+
+    # Convert diarization output to a list of tracks
+    if hasattr(diarization, 'itertracks'):
+        diarization_tracks = list(diarization.itertracks(yield_label=True))
+    elif hasattr(diarization, 'speaker_diarization'):
+        diarization_tracks = list(diarization.speaker_diarization.itertracks(yield_label=True))
+    else:
+        raise TypeError(f"Unknown diarization output type: {type(diarization)}")
+
+    # Merge results: ASR segments + speaker information
+    print("[ASR] Merging ASR and diarization results...")
+    segments_with_speakers = []
+
+    for segment in result["segments"]:
+        start = segment["start"]
+        end = segment["end"]
+        text = segment["text"].strip()
+
         if not text:
             continue
-        
-        words = seg.get("words", [])
-        
-        # Convert to timestamp format: [[word, start_ms, end_ms], ...]
-        timestamp = []
-        for word_info in words:
-            word_text = word_info.get("text", "")
-            word_start_ms = int(word_info.get("start", 0) * 1000)
-            word_end_ms = int(word_info.get("end", 0) * 1000)
-            timestamp.append([word_text, word_start_ms, word_end_ms])
-        
-        # Fallback: if no word-level timestamps, use segment-level
-        if not timestamp:
-            seg_start_ms = int(seg.get("start", 0) * 1000)
-            seg_end_ms = int(seg.get("end", 0) * 1000)
-            timestamp = [[text, seg_start_ms, seg_end_ms]]
-        
-        sentence_info.append({
-            "text": text,
-            "timestamp": timestamp
+
+        speaker = _get_speaker_at_time(diarization_tracks, start, end)
+
+        segments_with_speakers.append({
+            "start": start,
+            "end": end,
+            "speaker": speaker,
+            "text": text
         })
-    
+
+    # Optionally merge consecutive segments from the same speaker
+    if merge_segments:
+        segments_with_speakers = _merge_same_speaker_segments(segments_with_speakers, max_gap=merge_gap)
+
+    # Extract full text
+    full_text = result.get("text", "")
+
+    # Convert to sentence_info format for compatibility
+    sentence_info = []
+    for seg in segments_with_speakers:
+        start_ms = int(seg["start"] * 1000)
+        end_ms = int(seg["end"] * 1000)
+
+        sentence_info.append({
+            "text": seg["text"],
+            "speaker": seg.get("speaker", "UNKNOWN"),
+            "timestamp": [[seg["text"], start_ms, end_ms]]
+        })
+
     return {
         "text": full_text,
         "sentence_info": sentence_info,
-        "segments": segments  # Keep raw segments for reference
+        "segments": segments_with_speakers
     }
 
 
@@ -477,8 +580,8 @@ def decode_video_to_frames(
             audio_wav_path = os.path.join(frames_dir, "audio_16k_mono.wav")
             _extract_audio_wav_16k(video_path, audio_wav_path, start_sec, asr_end_sec)
 
-            # Run whisper-timestamped ASR
-            asr_output = _transcribe_audio_with_whisper_timestamped(
+            # Run Whisper ASR + pyannote speaker diarization
+            asr_output = _transcribe_audio_with_diarization(
                 audio_wav_path, asr_model, asr_device, asr_language, asr_kwargs
             )
             

@@ -826,6 +826,9 @@ Validate and finalize the draft plan against the video database. Real footage is
                         
                         # Add response to msgs
                         response.setdefault("role", "assistant")
+                        # 清理 content 中多余的换行符，防止累积
+                        if response.get("content"):
+                            response["content"] = response["content"].rstrip('\n') + '\n'
                         msgs.append(response)
                         print("#### Iteration: ", i, f"(Tool retry: {tool_retry + 1}/{max_tool_retries})" if tool_retry > 0 else "")
                         pprint(response, width=150)

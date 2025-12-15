@@ -52,7 +52,7 @@ def main():
         asr_model=config.ASR_MODEL,
         asr_device="cuda:0",
         use_batch_processing=config.USE_BATCH_PROCESSING,
-        shot_detection=True,
+        shot_detection=False,
         shot_detection_fps=config.SHOT_DETECTION_FPS,
         shot_detection_threshold=config.SHOT_DETECTION_THRESHOLD,
         shot_predictions_path=os.path.join(frames_dir, "shot_predictions.txt"),
@@ -80,18 +80,18 @@ def main():
 
 
 
-    # Analyze music
-    audio_caption_file = os.path.join(audio_captions_dir, "captions.json")
-    if not os.path.exists(audio_caption_file):
-        print("Processing audio to get captions...")
-        caption_audio_with_madmom_segments(
-            audio_path=Audio_Path,
-            max_tokens=config.AUDIO_ANALYSIS_MODEL_MAX_TOKEN,
-            output_path=audio_caption_file,
-        )
-        print("Captions generated.")
-    else:
-        print(f"Captions already exist at {audio_caption_file}.")
+    # # Analyze music
+    # audio_caption_file = os.path.join(audio_captions_dir, "captions.json")
+    # if not os.path.exists(audio_caption_file):
+    #     print("Processing audio to get captions...")
+    #     caption_audio_with_madmom_segments(
+    #         audio_path=Audio_Path,
+    #         max_tokens=config.AUDIO_ANALYSIS_MODEL_MAX_TOKEN,
+    #         output_path=audio_caption_file,
+    #     )
+    #     print("Captions generated.")
+    # else:
+    #     print(f"Captions already exist at {audio_caption_file}.")
 
     # Initialize DVDCoreAgent
     # print("Initializing DVDCoreAgent...")
