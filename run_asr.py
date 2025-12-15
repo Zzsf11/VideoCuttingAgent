@@ -399,6 +399,3 @@ def main():
 if __name__ == "__main__":
     exit(main())
  
-# pipeline = Pipeline.from_pretrained(
-#     "pyannote/speaker-diarization-community-1",
-#     token="YOUR_HF_TOKEN_HERE")
