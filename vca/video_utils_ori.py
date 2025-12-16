@@ -9,7 +9,6 @@ import whisper
 from PIL import Image
 from pyannote.audio import Pipeline
 from pyannote.core import Segment
-from scenedetect import detect, AdaptiveDetector
 
 from qwen_omni_utils.v2_5.vision_process import fetch_video
 from vca.transnetv2_pytorch.transnetv2_pytorch.inference import TransNetV2Torch
@@ -175,47 +174,6 @@ def _write_srt_from_sentence_info(
                 f.write(f"[{speaker}] {text}\n\n")
             else:
                 f.write(f"{text}\n\n")
-
-
-def _timecode_to_seconds(timecode: str) -> float:
-    """Convert timecode HH:MM:SS.mmm to seconds."""
-    hours, minutes, seconds_milliseconds = timecode.split(":")
-    seconds, milliseconds = seconds_milliseconds.split(".")
-    total_seconds = int(hours) * 3600 + int(minutes) * 60 + int(seconds) + int(milliseconds) / 1000
-    return total_seconds
-
-
-def _scenedetect_shot_detection(
-    video_path: str,
-    threshold: float = 3.0,
-    min_scene_len: int = 15,
-) -> List[Tuple[float, float]]:
-    """
-    Shot detection using scenedetect's AdaptiveDetector.
-
-    Args:
-        video_path: Path to the video file
-        threshold: Adaptive threshold, lower values are more sensitive (default 3.0)
-        min_scene_len: Minimum shot length in frames (default 15)
-
-    Returns:
-        shot_list: [(start_sec, end_sec), ...] List of shot time intervals
-    """
-    scene_list = detect(
-        video_path,
-        AdaptiveDetector(
-            adaptive_threshold=threshold,
-            min_scene_len=min_scene_len
-        )
-    )
-
-    shot_list = []
-    for scene in scene_list:
-        start_time = _timecode_to_seconds(scene[0].get_timecode())
-        end_time = _timecode_to_seconds(scene[1].get_timecode())
-        shot_list.append((start_time, end_time))
-
-    return shot_list
 
 
 def _probe_media_duration_seconds(media_path: str) -> Optional[float]:
@@ -467,7 +425,6 @@ def decode_video_to_frames(
     shot_detection_model: str = "transnetv2",
     shot_detection_fps: float = 2.0,
     shot_detection_threshold: float = 0.5,
-    shot_detection_min_scene_len: int = 15,
     shot_predictions_path: Optional[str] = None,
     shot_scenes_path: Optional[str] = None,
 ) -> dict:
@@ -492,16 +449,10 @@ def decode_video_to_frames(
         batch_size: Number of frames to process at once. If None, defaults to 500 frames per batch.
         use_batch_processing: If True, use batch processing to avoid loading entire video into memory at once.
         shot_detection: If True, perform shot/scene detection.
-        shot_detection_model: Model to use for shot detection (default: "transnetv2").
-            Options: "transnetv2", "autoshot", "qwen3vl", "scenedetect".
-            - "transnetv2": Deep learning based shot boundary detection.
-            - "autoshot": Another deep learning based approach.
-            - "qwen3vl": Vision-language model based detection.
-            - "scenedetect": Uses PySceneDetect's AdaptiveDetector (content-aware detection).
-        shot_detection_fps: FPS for shot detection (default: 2.0). Not used for scenedetect.
+        shot_detection_model: Model to use for shot detection: "transnetv2" or "autoshot" (default: "transnetv2").
+        shot_detection_fps: FPS for shot detection (default: 2.0).
         shot_detection_threshold: Threshold for shot boundary detection (default: 0.5).
-            Recommended values: 0.5 for TransNetV2, 0.296 for AutoShot, 3.0 for scenedetect.
-        shot_detection_min_scene_len: Minimum shot length in frames (default: 15). Only used for scenedetect.
+            Recommended values: 0.5 for TransNetV2, 0.296 for AutoShot.
         shot_predictions_path: Output path for shot predictions. Defaults to frames_dir/shot_predictions.txt.
         shot_scenes_path: Output path for scene boundaries. Defaults to frames_dir/shot_scenes.txt.
 
@@ -678,8 +629,8 @@ def decode_video_to_frames(
     if shot_detection:
         # Normalize model name
         shot_detection_model = shot_detection_model.lower()
-        if shot_detection_model not in ["transnetv2", "autoshot", "qwen3vl", "scenedetect"]:
-            raise ValueError(f"Invalid shot_detection_model: {shot_detection_model}. Must be 'transnetv2', 'autoshot', 'qwen3vl' or 'scenedetect'")
+        if shot_detection_model not in ["transnetv2", "autoshot", "qwen3vl"]:
+            raise ValueError(f"Invalid shot_detection_model: {shot_detection_model}. Must be 'transnetv2', 'autoshot' or 'qwen3vl'")
         
         # Determine output paths
         final_predictions_path = shot_predictions_path or os.path.join(frames_dir, "shot_predictions.txt")
@@ -747,46 +698,9 @@ def decode_video_to_frames(
                 result["scenes"] = scenes.tolist()
                 result["shot_detection_fps"] = shot_detection_fps
                 result["shot_detection_model"] = shot_detection_model
-
-            elif shot_detection_model == "scenedetect":
-                # Use PySceneDetect's AdaptiveDetector
-                print(f"[Shot Detection] Using scenedetect AdaptiveDetector "
-                      f"(threshold={shot_detection_threshold}, min_scene_len={shot_detection_min_scene_len})")
-
-                # Run scenedetect shot detection
-                shot_list = _scenedetect_shot_detection(
-                    video_path=video_path,
-                    threshold=shot_detection_threshold,
-                    min_scene_len=shot_detection_min_scene_len,
-                )
-
-                print(f"[Shot Detection] Detected {len(shot_list)} shots")
-
-                # Convert shot_list [(start_sec, end_sec), ...] to scene boundaries format
-                # Scene format is [[start_frame, end_frame], ...]
-                # We use the extracted frames' fps for conversion
-                scenes = []
-                for start_sec, end_sec in shot_list:
-                    start_frame = int(start_sec * sample_fps)
-                    end_frame = int(end_sec * sample_fps)
-                    scenes.append([start_frame, end_frame])
-
-                # Save scenes to file
-                if scenes:
-                    np.savetxt(final_scenes_path, np.array(scenes), fmt="%d")
-                else:
-                    np.savetxt(final_scenes_path, np.array([]).reshape(0, 2), fmt="%d")
-                print(f"[Shot Detection] Scene boundaries saved to {final_scenes_path}")
-
-                # Add to result
-                result["shot_scenes_path"] = final_scenes_path
-                result["scenes"] = scenes
-                result["shot_detection_fps"] = sample_fps  # Use actual extracted fps
-                result["shot_detection_model"] = shot_detection_model
-                result["shot_list"] = shot_list  # Also include original time-based shot list
-
+                
             else:
-                # Initialize model based on choice (transnetv2 or autoshot)
+                # Initialize model based on choice
                 if shot_detection_model == "autoshot":
                     shot_model = AutoShotTorch()
                 else:  # transnetv2

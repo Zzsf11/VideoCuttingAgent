@@ -8,10 +8,11 @@ VIDEO_MAX_MINUTES = 140 # maximum video duration to process in minutes
 VIDEO_MAX_FRAMES = VIDEO_MAX_MINUTES * 60 * VIDEO_FPS  # automatically calculated based on max minutes and fps
 # ------------------ Shot detection configuration ------------------ #
 SHOT_DETECTION_FPS = 2.0 # frames per second
-SHOT_DETECTION_THRESHOLD = 0.3 # threshold for shot detection
+SHOT_DETECTION_THRESHOLD = 3.0 # threshold for shot detection (for scenedetect: 3.0, for transnetv2/autoshot: 0.5)
 SHOT_DETECTION_PREDICTIONS_PATH = "shot_predictions.txt"
 SHOT_DETECTION_SCENES_PATH = "shot_scenes.txt"
-SHOT_DETECTION_MODEL = "Qwen3VL" # "autoshot", "transnetv2", "Qwen3VL"
+SHOT_DETECTION_MODEL = "scenedetect" # "autoshot", "transnetv2", "Qwen3VL", "scenedetect"
+SHOT_DETECTION_MIN_SCENE_LEN = 45  # Minimum shot length in frames (only used for scenedetect)
 CLIP_SECS = 30 # max clip seconds
 MERGE_SHORT_SCENES = True  # if True, merge consecutive short scenes into longer clips
 SCENE_MERGE_METHOD = "min_length"  # "max_length" or "min_length" - how to merge scenes
