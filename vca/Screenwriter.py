@@ -4,7 +4,7 @@ import copy
 import re
 import numpy as np
 from typing import Annotated as A, Any
-from vca.build_database.video_caption import (
+from vca.build_database.video_caption_ori import (
     convert_seconds_to_hhmmss, 
     CAPTION_PROMPT,
     SYSTEM_PROMPT,
@@ -889,12 +889,12 @@ Validate and finalize the draft plan against the video database. Real footage is
 
 
 def main():
-    video_caption_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/VLOG_Lisbon/captions/captions.json"
-    video_summary_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/VLOG_Lisbon/captions/video_summary.json"
-    audio_caption_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Mianhuicai/captions/captions.json"
-    video_db_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/VLOG_Lisbon/vdb.json"
-    frame_folder_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/VLOG_Lisbon/frames"
-    video_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/VLOG_Lisbon.mp4"
+    video_caption_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY/captions"
+    video_scene_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY/captions/scene_summaries_video"
+    audio_caption_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Call/captions/captions.json"
+    video_db_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY/vdb.json"
+    frame_folder_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY/frames"
+    video_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/Batman_Begins_2005_1080p_BluRay_x264_YIFY.mp4"
     Audio_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Audio/Mianhuicai/Mianhuicai.mp3"
 
     output_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/shot_plan.json"

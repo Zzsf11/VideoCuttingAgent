@@ -19,3 +19,6 @@ reports/
 Qwen2.5-Omni/
 Qwen3-Omni/
 Qwen3-VL/
+*.png
+*.jpg
+*.wav

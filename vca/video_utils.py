@@ -1,14 +1,12 @@
 import os
 import subprocess
 from typing import Optional, Tuple, List, Dict, Any
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import torch
-import soundfile as sf
-import whisper
 from PIL import Image
-from pyannote.audio import Pipeline
-from pyannote.core import Segment
+from decord import VideoReader, cpu
 from scenedetect import detect, AdaptiveDetector
 
 from qwen_omni_utils.v2_5.vision_process import fetch_video
@@ -31,78 +29,115 @@ def _extract_frames_batch_ffmpeg(
     start_sec: Optional[float] = None,
     end_sec: Optional[float] = None,
     max_frames: Optional[int] = None,
+    num_workers: int = 8,
 ) -> Tuple[List[str], int, int, float]:
     """
-    Extract frames using ffmpeg directly (memory efficient, no batching needed).
+    Extract frames using decord (consistent with single_video.py).
+    Uses batch reading and multi-threaded saving for speed.
     Returns: (frame_paths, height, width, actual_fps)
     """
     _ensure_dir(frames_dir)
-    
-    # Build ffmpeg command
-    cmd: List[str] = ["ffmpeg", "-y"]
-    
-    # Input options
-    if start_sec is not None:
-        cmd += ["-ss", str(float(start_sec))]
-    cmd += ["-i", video_path]
-    if end_sec is not None:
-        cmd += ["-to", str(float(end_sec))]
-    
-    # FPS filter - must come before max_frames
+
+    # Load video with decord
+    vr = VideoReader(video_path, ctx=cpu(0), num_threads=8)
+    video_fps = vr.get_avg_fps()
+    total_frames = len(vr)
+    video_duration = total_frames / video_fps
+
+    # Determine time range
+    start_t = start_sec if start_sec is not None else 0.0
+    end_t = end_sec if end_sec is not None else video_duration
+
+    # Target FPS
     fps = target_fps if target_fps is not None else 2.0
-    vf_filters = [f"fps={fps}"]
-    
-    # Resolution filter
-    # If target_resolution is a single number, treat it as height and keep aspect ratio
+    interval = 1.0 / fps
+
+    # Calculate frame indices to extract (same logic as single_video.py)
+    frame_indices = []
+    t = start_t
+    while t < end_t:
+        frame_idx = int(t * video_fps)
+        if frame_idx < total_frames:
+            frame_indices.append(frame_idx)
+        t += interval
+        # Check max_frames limit
+        if max_frames is not None and len(frame_indices) >= max_frames:
+            break
+
+    print(f"[Batch Processing] Extracting frames with decord: target_fps={fps}, max_frames={max_frames}")
+    print(f"[Batch Processing] Video fps={video_fps:.2f}, duration={video_duration:.2f}s, range=[{start_t:.2f}, {end_t:.2f}]")
+
+    if not frame_indices:
+        raise RuntimeError("No frames to extract from the video")
+
+    # Determine target resolution
+    target_h, target_w = None, None
     if target_resolution is not None:
         if isinstance(target_resolution, (int, float)):
-            # Single value = height, width auto-scaled to maintain aspect ratio
-            h = int(target_resolution)
-            vf_filters.append(f"scale=-2:{h}")  # -2 ensures width is even
+            target_h = int(target_resolution)
         elif isinstance(target_resolution, (list, tuple)) and len(target_resolution) == 1:
-            # Single element in list/tuple = height
-            h = int(target_resolution[0])
-            vf_filters.append(f"scale=-2:{h}")
+            target_h = int(target_resolution[0])
         elif isinstance(target_resolution, (list, tuple)) and len(target_resolution) == 2:
-            # Two elements = (height, width)
-            h, w = int(target_resolution[0]), int(target_resolution[1])
-            vf_filters.append(f"scale={w}:{h}")
-    
-    # Combine filters
-    if vf_filters:
-        cmd += ["-vf", ",".join(vf_filters)]
-    
-    # Limit frames if specified - MUST be after filters
-    if max_frames is not None:
-        cmd += ["-frames:v", str(int(max_frames))]
-    
-    # Output options - start frame numbering from 0
-    frame_pattern = os.path.join(frames_dir, "frame_%06d.png")
-    cmd += ["-start_number", "0", frame_pattern]
-    
-    # Execute ffmpeg
-    print(f"[Batch Processing] Extracting frames with max_frames={max_frames}, fps={fps}")
-    print(f"[Batch Processing] FFmpeg command: {' '.join(cmd)}")
-    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    
-    # Get list of generated frames
-    frame_files = sorted([f for f in os.listdir(frames_dir) if f.startswith("frame_") and f.endswith(".png")])
-    frame_paths = [os.path.join(frames_dir, f) for f in frame_files]
-    
-    if not frame_paths:
-        raise RuntimeError("No frames were extracted from the video")
-    
+            target_h, target_w = int(target_resolution[0]), int(target_resolution[1])
+
+    # Function to process and save a single frame
+    def save_frame(args):
+        frame_data, out_path = args
+        img = Image.fromarray(frame_data)
+
+        # Resize if needed
+        if target_h is not None:
+            orig_w, orig_h = img.size
+            if target_w is None:
+                # Keep aspect ratio
+                target_w_calc = int(orig_w * target_h / orig_h)
+                # Ensure width is even
+                target_w_calc = target_w_calc if target_w_calc % 2 == 0 else target_w_calc + 1
+                img = img.resize((target_w_calc, target_h), Image.LANCZOS)
+            else:
+                img = img.resize((target_w, target_h), Image.LANCZOS)
+
+        img.save(out_path)
+
+    # Prepare output paths
+    frame_paths: List[str] = []
+    for i in range(len(frame_indices)):
+        filename = f"frame_{i:06d}.png"
+        out_path = os.path.join(frames_dir, filename)
+        frame_paths.append(out_path)
+
+    # Batch read and save frames in chunks to avoid memory issues
+    batch_size = 500
+    total_batches = (len(frame_indices) + batch_size - 1) // batch_size
+    print(f"[Batch Processing] Processing {len(frame_indices)} frames in {total_batches} batches (batch_size={batch_size})...")
+
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        for batch_idx in range(total_batches):
+            start_idx = batch_idx * batch_size
+            end_idx = min((batch_idx + 1) * batch_size, len(frame_indices))
+            batch_indices = frame_indices[start_idx:end_idx]
+            batch_paths = frame_paths[start_idx:end_idx]
+
+            # Batch read this chunk
+            frames_batch = vr.get_batch(batch_indices).asnumpy()
+
+            # Multi-threaded saving for this batch
+            save_args = [(frames_batch[i], batch_paths[i]) for i in range(len(batch_indices))]
+            list(executor.map(save_frame, save_args))
+
+            print(f"[Batch Processing] Completed batch {batch_idx + 1}/{total_batches} ({end_idx}/{len(frame_indices)} frames)")
+
     actual_num_frames = len(frame_paths)
     print(f"[Batch Processing] Extracted {actual_num_frames} frames (max_frames limit: {max_frames if max_frames else 'None'})")
-    
+
     # Warn if we hit the max_frames limit
     if max_frames is not None and actual_num_frames >= max_frames:
         print(f"[Batch Processing] WARNING: Hit max_frames limit ({max_frames}). Video may have more frames available.")
-    
+
     # Get dimensions from first frame
     first_frame = Image.open(frame_paths[0])
     width, height = first_frame.size
-    
+
     return frame_paths, height, width, fps
 
 
@@ -118,71 +153,35 @@ def _save_tensor_frame_to_file(frame_tensor: torch.Tensor, output_path: str) -> 
     image.save(output_path)
 
 
-def _format_srt_timestamp(milliseconds: int) -> str:
-    """Convert milliseconds (int) to SRT timestamp HH:MM:SS,mmm."""
-    ms = int(milliseconds)
-    tail = ms % 1000
-    s = ms // 1000
-    mi = s // 60
-    s = s % 60
-    h = mi // 60
-    mi = mi % 60
-    h = f"{h:02d}"
-    mi = f"{mi:02d}"
-    s = f"{s:02d}"
-    tail = f"{tail:03d}"
-    return f"{h}:{mi}:{s},{tail}"
-
-
-def _write_srt_from_sentence_info(
-    sentence_info: List[Dict[str, Any]],
-    srt_path: str,
-    include_speaker: bool = True
-) -> None:
-    """
-    Write SRT file from sentence_info structure.
-    Each sentence_info item should have 'text', 'timestamp', and optionally 'speaker' fields.
-    timestamp is a list of [word, start_ms, end_ms] for each word.
-
-    Args:
-        sentence_info: List of sentence dicts with 'text', 'timestamp', and optionally 'speaker'
-        srt_path: Output path for the SRT file
-        include_speaker: Whether to include speaker labels in the subtitles
-    """
-    _ensure_dir(os.path.dirname(srt_path) or ".")
-    with open(srt_path, "w", encoding="utf-8") as f:
-        for idx, sent in enumerate(sentence_info):
-            text = sent.get('text', '')
-            timestamp = sent.get('timestamp', [])
-            speaker = sent.get('speaker', None)
-
-            if not timestamp:
-                continue
-
-            # Get start and end time from word-level timestamps
-            start_ms = int(timestamp[0][1]) if len(timestamp[0]) >= 2 else 0
-            end_ms = int(timestamp[-1][2]) if len(timestamp[-1]) >= 3 else start_ms
-
-            # Clean up text (remove trailing punctuation)
-            text = text.rstrip("、。，")
-
-            # Write SRT entry
-            f.write(f"{idx + 1}\n")
-            f.write(f"{_format_srt_timestamp(start_ms)} --> {_format_srt_timestamp(end_ms)}\n")
-
-            # Include speaker label if available and requested
-            if include_speaker and speaker:
-                f.write(f"[{speaker}] {text}\n\n")
-            else:
-                f.write(f"{text}\n\n")
-
-
 def _timecode_to_seconds(timecode: str) -> float:
     """Convert timecode HH:MM:SS.mmm to seconds."""
     hours, minutes, seconds_milliseconds = timecode.split(":")
     seconds, milliseconds = seconds_milliseconds.split(".")
     total_seconds = int(hours) * 3600 + int(minutes) * 60 + int(seconds) + int(milliseconds) / 1000
     return total_seconds
+
+
+def _adjust_scene_boundaries(scenes: List) -> List:
+    """
+    Adjust scene boundaries so that each scene starts at the frame after the previous scene ends.
+    This avoids frame overlap between consecutive scenes.
+
+    Input:  [[0, 43], [43, 102], [102, 107], ...]
+    Output: [[0, 43], [44, 102], [103, 107], ...]
+    """
+    if not scenes or len(scenes) <= 1:
+        return scenes
+
+    adjusted = []
+    for i, scene in enumerate(scenes):
+        if i == 0:
+            adjusted.append([scene[0], scene[1]])
+        else:
+            # Start frame should be previous scene's end + 1
+            start_frame = adjusted[i - 1][1] + 1
+            adjusted.append([start_frame, scene[1]])
+
+    return adjusted
 
 
 def _scenedetect_shot_detection(
@@ -242,210 +241,6 @@ def _probe_media_duration_seconds(media_path: str) -> Optional[float]:
         return None
 
 
-def _extract_audio_wav_16k(video_path: str, audio_path: str, start_sec: Optional[float], end_sec: Optional[float]) -> None:
-    """Extract mono 16k PCM WAV from video using ffmpeg."""
-    cmd: List[str] = ["ffmpeg", "-y"]
-    if start_sec is not None:
-        cmd += ["-ss", str(float(start_sec))]
-    cmd += ["-i", video_path]
-    if end_sec is not None:
-        cmd += ["-to", str(float(end_sec))]
-    cmd += ["-vn", "-ac", "1", "-ar", "16000", "-f", "wav", audio_path]
-    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-
-def _load_audio_for_pyannote(audio_path: str) -> dict:
-    """
-    Pre-load audio file to bypass torchcodec compatibility issues.
-    Returns a dict with waveform and sample_rate that pyannote can use directly.
-    Uses soundfile as backend to avoid torchcodec dependency.
-    """
-    waveform_np, sample_rate = sf.read(audio_path, dtype='float32')
-    waveform = torch.from_numpy(waveform_np)
-    if waveform.ndim == 1:
-        waveform = waveform.unsqueeze(0)
-    else:
-        waveform = waveform.T
-    return {"waveform": waveform, "sample_rate": sample_rate}
-
-
-def _get_speaker_at_time(diarization_tracks: list, start: float, end: float) -> str:
-    """
-    Get the dominant speaker in a given time segment.
-
-    Args:
-        diarization_tracks: List of (segment, track, speaker) tuples
-        start: Start time in seconds
-        end: End time in seconds
-    """
-    segment = Segment(start, end)
-    speakers = {}
-
-    for turn, _, speaker in diarization_tracks:
-        overlap = segment & turn
-        if overlap:
-            duration = overlap.duration
-            speakers[speaker] = speakers.get(speaker, 0) + duration
-
-    if not speakers:
-        return "UNKNOWN"
-
-    return max(speakers, key=speakers.get)
-
-
-def _merge_same_speaker_segments(segments: List[Dict[str, Any]], max_gap: float = 1.0) -> List[Dict[str, Any]]:
-    """
-    Merge consecutive segments from the same speaker.
-
-    Args:
-        segments: Original segment list
-        max_gap: Maximum time gap allowed for merging (seconds)
-    """
-    if not segments:
-        return []
-
-    merged = [segments[0].copy()]
-
-    for seg in segments[1:]:
-        last = merged[-1]
-        if (seg.get("speaker") == last.get("speaker") and
-            seg["start"] - last["end"] <= max_gap):
-            last["end"] = seg["end"]
-            last["text"] = last["text"] + " " + seg["text"]
-        else:
-            merged.append(seg.copy())
-
-    return merged
-
-
-def _transcribe_audio_with_diarization(
-    audio_path: str,
-    model_name: str,
-    device: str,
-    language: Optional[str] = None,
-    asr_kwargs: Optional[Dict[str, Any]] = None,
-    merge_segments: Optional[bool] = None,
-    merge_gap: Optional[float] = None,
-    diarization_model_path: Optional[str] = None
-) -> Dict[str, Any]:
-    """
-    Run Whisper ASR + pyannote speaker diarization on a single audio file.
-
-    Returns a dict with keys:
-      - text: full transcription
-      - sentence_info: list of sentence dicts with 'text', 'timestamp', and 'speaker' fields
-      - segments: raw segments with speaker information
-
-    This uses native Whisper for ASR and pyannote for speaker diarization.
-    Parameters default to values from config if not specified.
-    """
-    # Use config defaults if not specified
-    if merge_segments is None:
-        merge_segments = getattr(config, 'ASR_MERGE_SAME_SPEAKER', True)
-    if merge_gap is None:
-        merge_gap = getattr(config, 'ASR_MERGE_GAP', 1.0)
-    if diarization_model_path is None:
-        diarization_model_path = getattr(config, 'ASR_DIARIZATION_MODEL_PATH',
-            "../HF/hub/models--pyannote--speaker-diarization-community-1/snapshots/3533c8cf8e369892e6b79ff1bf80f7b0286a54ee/")
-
-    print(f"[ASR] Using device: {device}")
-
-    # Load Whisper model
-    print(f"[ASR] Loading Whisper model: {model_name}")
-    model = whisper.load_model(model_name, device=device)
-
-    # Base transcription kwargs with anti-hallucination settings from config
-    transcribe_options: Dict[str, Any] = {
-        "word_timestamps": True,
-        # Anti-hallucination parameters from config
-        "no_speech_threshold": getattr(config, 'ASR_NO_SPEECH_THRESHOLD', 0.6),
-        "logprob_threshold": getattr(config, 'ASR_LOGPROB_THRESHOLD', -1.0),
-        "compression_ratio_threshold": getattr(config, 'ASR_COMPRESSION_RATIO_THRESHOLD', 2.4),
-        "condition_on_previous_text": getattr(config, 'ASR_CONDITION_ON_PREVIOUS_TEXT', True),
-    }
-    if language:
-        transcribe_options["language"] = language
-
-    # Merge user-provided kwargs (can override defaults)
-    if asr_kwargs:
-        transcribe_options.update(asr_kwargs)
-
-    print(f"[ASR] Transcribe options: no_speech_threshold={transcribe_options.get('no_speech_threshold')}, "
-          f"logprob_threshold={transcribe_options.get('logprob_threshold')}, "
-          f"compression_ratio_threshold={transcribe_options.get('compression_ratio_threshold')}")
-
-    # Perform ASR
-    print("[ASR] Transcribing audio...")
-    result = model.transcribe(audio_path, **transcribe_options)
-
-    # Load pyannote diarization pipeline
-    print("[ASR] Loading pyannote diarization pipeline...")
-    diarization_pipeline = Pipeline.from_pretrained(diarization_model_path)
-    diarization_pipeline = diarization_pipeline.to(torch.device(device))
-
-    # Pre-load audio to bypass torchcodec compatibility issues
-    print("[ASR] Loading audio for diarization...")
-    audio_data = _load_audio_for_pyannote(audio_path)
-
-    # Perform speaker diarization
-    print("[ASR] Performing speaker diarization...")
-    diarization = diarization_pipeline(audio_data)
-
-    # Convert diarization output to a list of tracks
-    if hasattr(diarization, 'itertracks'):
-        diarization_tracks = list(diarization.itertracks(yield_label=True))
-    elif hasattr(diarization, 'speaker_diarization'):
-        diarization_tracks = list(diarization.speaker_diarization.itertracks(yield_label=True))
-    else:
-        raise TypeError(f"Unknown diarization output type: {type(diarization)}")
-
-    # Merge results: ASR segments + speaker information
-    print("[ASR] Merging ASR and diarization results...")
-    segments_with_speakers = []
-
-    for segment in result["segments"]:
-        start = segment["start"]
-        end = segment["end"]
-        text = segment["text"].strip()
-
-        if not text:
-            continue
-
-        speaker = _get_speaker_at_time(diarization_tracks, start, end)
-
-        segments_with_speakers.append({
-            "start": start,
-            "end": end,
-            "speaker": speaker,
-            "text": text
-        })
-
-    # Optionally merge consecutive segments from the same speaker
-    if merge_segments:
-        segments_with_speakers = _merge_same_speaker_segments(segments_with_speakers, max_gap=merge_gap)
-
-    # Extract full text
-    full_text = result.get("text", "")
-
-    # Convert to sentence_info format for compatibility
-    sentence_info = []
-    for seg in segments_with_speakers:
-        start_ms = int(seg["start"] * 1000)
-        end_ms = int(seg["end"] * 1000)
-
-        sentence_info.append({
-            "text": seg["text"],
-            "speaker": seg.get("speaker", "UNKNOWN"),
-            "timestamp": [[seg["text"], start_ms, end_ms]]
-        })
-
-    return {
-        "text": full_text,
-        "sentence_info": sentence_info,
-        "segments": segments_with_speakers
-    }
-
-
 def decode_video_to_frames(
     video_path: str,
     frames_dir: str,
@@ -454,13 +249,6 @@ def decode_video_to_frames(
     start_sec: Optional[float] = None,
     end_sec: Optional[float] = None,
     max_frames: Optional[int] = None,
-    asr_to_srt: bool = False,
-    srt_path: Optional[str] = None,
-    asr_model: str = "base",
-    asr_device: str = "cuda:0",
-    asr_language: Optional[str] = None,
-    asr_kwargs: Optional[Dict[str, Any]] = None,
-    keep_extracted_audio: bool = False,
     batch_size: Optional[int] = None,
     use_batch_processing: bool = True,
     shot_detection: bool = False,
@@ -472,23 +260,16 @@ def decode_video_to_frames(
     shot_scenes_path: Optional[str] = None,
 ) -> dict:
     """
-    Read a video and save sampled frames to disk using vision_process.fetch_video.
+    Read a video and save sampled frames to disk, with optional shot detection.
 
     Args:
         video_path: Path to the video file.
         frames_dir: Directory to save frames.
-        target_fps: Desired sampling fps. If None, uses default from vision_process (2.0).
+        target_fps: Desired sampling fps. If None, uses default (2.0).
         target_resolution: (height, width). If None, uses smart_resize based on defaults.
         start_sec: Optional start time in seconds.
         end_sec: Optional end time in seconds.
-        max_frames: Maximum number of frames to extract. If None, uses default (no extra limit beyond library default).
-        asr_to_srt: If True, also extract audio and transcribe to an SRT file using whisper-timestamped.
-        srt_path: Optional output path for the SRT. Defaults to video basename with .srt next to video.
-        asr_model: Whisper model name: "tiny", "base", "small", "medium", "large", "large-v2", "large-v3".
-        asr_device: Device for ASR model, e.g., "cuda:0" or "cpu".
-        asr_language: Language code for ASR (e.g., "zh", "en"). If None, auto-detect.
-        asr_kwargs: Extra kwargs forwarded to whisper-timestamped's transcribe() method.
-        keep_extracted_audio: If True, keep the temporary extracted WAV file on disk.
+        max_frames: Maximum number of frames to extract.
         batch_size: Number of frames to process at once. If None, defaults to 500 frames per batch.
         use_batch_processing: If True, use batch processing to avoid loading entire video into memory at once.
         shot_detection: If True, perform shot/scene detection.
@@ -506,8 +287,7 @@ def decode_video_to_frames(
         shot_scenes_path: Output path for scene boundaries. Defaults to frames_dir/shot_scenes.txt.
 
     Returns:
-        dict with keys: {"num_frames", "sample_fps", "height", "width", "frame_paths", 
-                        "srt_path" (optional), "segments" (optional),
+        dict with keys: {"num_frames", "sample_fps", "height", "width", "frame_paths",
                         "shot_predictions_path" (optional), "shot_scenes_path" (optional), "scenes" (optional)}
     """
     _ensure_dir(frames_dir)
@@ -595,84 +375,6 @@ def decode_video_to_frames(
         "width": int(width),
         "frame_paths": frame_paths,
     }
-    print(f"ASR to SRT: {srt_path}")
-    if asr_to_srt:
-        # Determine output SRT path
-        final_srt_path = srt_path or (os.path.splitext(video_path)[0] + ".srt")
-        
-        # Check if SRT file already exists
-        if os.path.exists(final_srt_path):
-            print(f"[Skip] Found existing SRT file at {final_srt_path}, skipping ASR")
-            result["srt_path"] = final_srt_path
-            # Try to read existing SRT file for sentence_info (optional)
-            # For now, we just skip and don't populate sentence_info/segments
-        else:
-            # Calculate effective end_sec for ASR based on max_frames and actual extracted frames
-            # This ensures ASR processes the same duration as the extracted frames
-            asr_end_sec = end_sec
-            if max_frames is not None:
-                # Calculate the duration based on extracted frames and fps
-                effective_duration = num_frames / float(sample_fps)
-                calculated_end_sec = (start_sec or 0.0) + effective_duration
-                
-                # Use the minimum of user-specified end_sec and calculated end_sec
-                if asr_end_sec is None:
-                    asr_end_sec = calculated_end_sec
-                else:
-                    asr_end_sec = min(asr_end_sec, calculated_end_sec)
-                
-                print(f"[ASR] Limiting audio extraction to match frame extraction: "
-                      f"{num_frames} frames @ {sample_fps} fps = {effective_duration:.2f}s "
-                      f"(end_sec: {asr_end_sec:.2f}s)")
-            
-            # Extract audio to temporary WAV inside frames_dir for locality
-            audio_wav_path = os.path.join(frames_dir, "audio_16k_mono.wav")
-            _extract_audio_wav_16k(video_path, audio_wav_path, start_sec, asr_end_sec)
-
-            # Run Whisper ASR + pyannote speaker diarization
-            asr_output = _transcribe_audio_with_diarization(
-                audio_wav_path, asr_model, asr_device, asr_language, asr_kwargs
-            )
-            
-            sentence_info = asr_output.get("sentence_info", [])
-            
-            # Adjust timestamps if we extracted a clip (add start_sec offset)
-            if start_sec is not None and start_sec > 0:
-                offset_ms = int(float(start_sec) * 1000)
-                adjusted_sentence_info = []
-                for sent in sentence_info:
-                    adjusted_sent = sent.copy()
-                    # Adjust word-level timestamps in the timestamp array
-                    if 'timestamp' in sent:
-                        adjusted_timestamps = []
-                        for ts in sent['timestamp']:
-                            # Format: [word, start_ms, end_ms]
-                            if isinstance(ts, (list, tuple)) and len(ts) >= 3:
-                                adjusted_timestamps.append([
-                                    ts[0],  # word
-                                    ts[1] + offset_ms,  # start_ms + offset
-                                    ts[2] + offset_ms   # end_ms + offset
-                                ])
-                            else:
-                                adjusted_timestamps.append(ts)
-                        adjusted_sent['timestamp'] = adjusted_timestamps
-                    adjusted_sentence_info.append(adjusted_sent)
-                sentence_info = adjusted_sentence_info
-            
-            # Write SRT file using sentence_info
-            _write_srt_from_sentence_info(sentence_info, final_srt_path)
-            result["srt_path"] = final_srt_path
-            result["sentence_info"] = sentence_info  # Return sentence_info for further processing if needed
-            
-            # Also save raw segments with word-level timestamps
-            if "segments" in asr_output:
-                result["segments"] = asr_output["segments"]
-
-            if not keep_extracted_audio:
-                try:
-                    os.remove(audio_wav_path)
-                except OSError:
-                    pass
 
     # Shot detection using TransNetV2 or AutoShot
     if shot_detection:
@@ -730,21 +432,28 @@ def decode_video_to_frames(
                     scenes = np.loadtxt(generated_scenes_path, dtype=int)
                     if scenes.ndim == 1 and len(scenes) > 0:
                         scenes = scenes.reshape(-1, 2)
-                    
-                    # If final_scenes_path is different from generated_scenes_path, move it
+
+                    # Adjust scene boundaries to avoid frame overlap
+                    scenes = _adjust_scene_boundaries(scenes.tolist())
+
+                    # Save adjusted scenes
+                    np.savetxt(final_scenes_path, np.array(scenes), fmt="%d")
+
+                    # If final_scenes_path is different from generated_scenes_path, remove the old one
                     if os.path.abspath(generated_scenes_path) != os.path.abspath(final_scenes_path):
                         import shutil
-                        shutil.move(generated_scenes_path, final_scenes_path)
-                    
+                        if os.path.exists(generated_scenes_path):
+                            os.remove(generated_scenes_path)
+
                     print(f"[Shot Detection] Scene boundaries saved to {final_scenes_path}")
                     print(f"[Shot Detection] Detected {len(scenes)} scenes")
                 else:
                     print("Warning: Qwen3VL shot detection did not produce shot_scenes.txt")
-                    scenes = np.array([])
-                
+                    scenes = []
+
                 # Add to result
                 result["shot_scenes_path"] = final_scenes_path
-                result["scenes"] = scenes.tolist()
+                result["scenes"] = scenes  # Already converted to list
                 result["shot_detection_fps"] = shot_detection_fps
                 result["shot_detection_model"] = shot_detection_model
 
@@ -770,6 +479,9 @@ def decode_video_to_frames(
                     start_frame = int(start_sec * sample_fps)
                     end_frame = int(end_sec * sample_fps)
                     scenes.append([start_frame, end_frame])
+
+                # Adjust scene boundaries to avoid frame overlap
+                scenes = _adjust_scene_boundaries(scenes)
 
                 # Save scenes to file
                 if scenes:
@@ -827,14 +539,18 @@ def decode_video_to_frames(
                 # Convert predictions to scene boundaries
                 print("shot_detection_threshold: ", shot_detection_threshold)
                 scenes = shot_model.predictions_to_scenes(s_pred, threshold=shot_detection_threshold)
-                np.savetxt(final_scenes_path, scenes, fmt="%d")
+
+                # Adjust scene boundaries to avoid frame overlap
+                scenes = _adjust_scene_boundaries(scenes.tolist())
+
+                np.savetxt(final_scenes_path, np.array(scenes), fmt="%d")
                 print(f"[Shot Detection] Scene boundaries saved to {final_scenes_path}")
                 print(f"[Shot Detection] Detected {len(scenes)} scenes")
-                
+
                 # Add to result
                 result["shot_predictions_path"] = final_predictions_path
                 result["shot_scenes_path"] = final_scenes_path
-                result["scenes"] = scenes.tolist()  # Convert numpy array to list for JSON serialization
+                result["scenes"] = scenes  # Already converted to list
                 result["shot_detection_fps"] = shot_detection_fps
                 result["shot_detection_model"] = shot_detection_model
 

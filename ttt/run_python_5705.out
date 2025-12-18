@@ -1,0 +1,17 @@
+========================================================
+Loading environment modules...
+Environment loaded.
+
+========================================================
+Job ID: 5705
+Node: gpuh13
+Start time: 2025年 12月 17日 星期三 15:10:45 CST
+Command: python vca/build_database/scene_merge.py
+========================================================
+Traceback (most recent call last):
+  File "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/vca/build_database/scene_merge.py", line 8, in <module>
+    from sentence_transformers import SentenceTransformer
+ModuleNotFoundError: No module named 'sentence_transformers'
+========================================================
+End time: 2025年 12月 17日 星期三 15:10:46 CST
+========================================================

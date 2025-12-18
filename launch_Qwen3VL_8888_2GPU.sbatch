@@ -60,8 +60,8 @@ vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-I
     --tensor-parallel-size 2 \
     --dtype bfloat16 \
     --disable-mm-preprocessor-cache \
-    --enable-auto-tool-choice \
-    --tool-call-parser hermes \
+    # --enable-auto-tool-choice \
+    # --tool-call-parser hermes \
 
 echo "vLLM server has been stopped."
 

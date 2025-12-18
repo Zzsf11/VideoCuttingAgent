@@ -8,11 +8,12 @@ VIDEO_MAX_MINUTES = 140 # maximum video duration to process in minutes
 VIDEO_MAX_FRAMES = VIDEO_MAX_MINUTES * 60 * VIDEO_FPS  # automatically calculated based on max minutes and fps
 # ------------------ Shot detection configuration ------------------ #
 SHOT_DETECTION_FPS = 2.0 # frames per second
-SHOT_DETECTION_THRESHOLD = 3.0 # threshold for shot detection (for scenedetect: 3.0, for transnetv2/autoshot: 0.5)
+SHOT_DETECTION_THRESHOLD = 1.5 # threshold for shot detection (for scenedetect: 3.0, for transnetv2/autoshot: 0.5)
 SHOT_DETECTION_PREDICTIONS_PATH = "shot_predictions.txt"
 SHOT_DETECTION_SCENES_PATH = "shot_scenes.txt"
 SHOT_DETECTION_MODEL = "scenedetect" # "autoshot", "transnetv2", "Qwen3VL", "scenedetect"
 SHOT_DETECTION_MIN_SCENE_LEN = 45  # Minimum shot length in frames (only used for scenedetect)
+
 CLIP_SECS = 30 # max clip seconds
 MERGE_SHORT_SCENES = True  # if True, merge consecutive short scenes into longer clips
 SCENE_MERGE_METHOD = "min_length"  # "max_length" or "min_length" - how to merge scenes
@@ -44,7 +45,7 @@ VIDEO_ANALYSIS_MODEL_MAX_TOKEN = 16384  # Max tokens to generate (not total cont
 VLLM_ENDPOINT = "http://localhost:8888/v1/chat/completions"  # vLLM base URL (will append /v1/chat/completions)
 # vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct \
 #     --host 0.0.0.0 \
-#     --port 8000 \
+#     --port 8888 \
 #     --max-model-len 65536 \
 #     --max-num-seqs 256 \
 #     --gpu-memory-utilization 0.9 \

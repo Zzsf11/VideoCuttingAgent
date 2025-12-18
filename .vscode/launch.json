@@ -21,9 +21,12 @@
             "program": "${workspaceFolder}/local_run.py",
             "args": [
                 // "Dataset/Video/Batman.Begins.2005.1080p.BluRay.x264.YIFY.mp4",
+                "--Video_Path",
                 "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/Batman.Begins.2005.1080p.BluRay.x264.YIFY.mp4",
                 // "Dataset/Video/Interstellar.2014.480p.BluRay.x265.[9jaRocks.Com]_10min.mkv",
+                "--Audio_Path",
                 "Dataset/Audio/Call_of_Slience/Call of Silence.mp3",
+                "--Text_Prompt",
                 "Make a video that reflects Interstellar's journey and exploration"
             ],
             "console": "integratedTerminal",

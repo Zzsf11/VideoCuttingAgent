@@ -4,7 +4,7 @@ import copy
 import re
 import numpy as np
 from typing import Annotated as A
-from vca.build_database.video_caption import (
+from vca.build_database.video_caption_ori import (
     convert_seconds_to_hhmmss, 
     CAPTION_PROMPT,
     SYSTEM_PROMPT,

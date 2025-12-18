@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-from vca.build_database.video_caption import convert_seconds_to_hhmmss
+from vca.build_database.video_caption_ori import convert_seconds_to_hhmmss
 from nano_vectordb import NanoVectorDB
 from vca import config
 import multiprocessing
