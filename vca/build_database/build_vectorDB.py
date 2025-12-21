@@ -30,7 +30,7 @@ def init_single_video_db(video_caption_json_path, output_video_db_path, emb_dim)
     else:
         cap2emb_list = preprocess_captions(video_caption_json_path)
         data = []
-        for idx, (timestamp, cap, emb) in enumerate(cap2emb_list):
+        for timestamp, shot_info, emb in cap2emb_list:
             t1 = convert_seconds_to_hhmmss(timestamp[0])
             t2 = convert_seconds_to_hhmmss(timestamp[1])
             prefix = f"[From {t1} to {t2} seconds]\n"
@@ -39,14 +39,17 @@ def init_single_video_db(video_caption_json_path, output_video_db_path, emb_dim)
                     "__vector__": np.array(emb),
                     "time_start_secs": timestamp[0],
                     "time_end_secs": timestamp[1],
-                    "caption": prefix + cap['caption'],
+                    "event_summary": prefix + shot_info['event_summary'],
+                    "shot_purpose": shot_info['shot_purpose'],
+                    "mood": shot_info['mood'],
                 }
             )
         _ = vdb.upsert(data)
         with open(video_caption_json_path, "r") as f:
             captions = json.load(f)
-        subject_registry = captions.pop('subject_registry', captions.pop('character_registry', None))          
-        video_length = max([float(k.split("_")[1]) for k in captions.keys()])
+        subject_registry = captions.pop('subject_registry', captions.pop('character_registry', None))
+        # 解析时间戳格式：可能是 "0_21" 或 "8393_8396_shot2044_sub18"
+        video_length = max([float(k.split("_")[1]) for k in captions.keys() if "_" in k])
         video_length = convert_seconds_to_hhmmss(video_length)
         addtional_data = {
             'subject_registry': subject_registry,
@@ -64,17 +67,48 @@ def preprocess_captions(caption_json_path):
     scripts = []
     captions.pop('subject_registry', None)
     captions.pop('character_registry', None)
-    for idx, (timestamp, cap_info) in enumerate(captions.items()):
-        if cap_info.get('caption') is None or len(cap_info['caption']) == 0:
-            print(f"Empty caption information for {timestamp} in {caption_json_path}")
+    for timestamp_key, cap_info in captions.items():
+        # 解析时间戳：格式可能是 "0_21" 或 "8393_8396_shot2044_sub18"
+        # 只取前两个部分作为时间戳
+        parts = timestamp_key.split("_")
+        try:
+            timestamp = [float(parts[0]), float(parts[1])]
+        except (ValueError, IndexError):
+            print(f"Invalid timestamp format: {timestamp_key}")
             continue
-        elif isinstance(cap_info['caption'], list):
-            cap_info['caption'] = cap_info['caption'][0]
-        elif not isinstance(cap_info['caption'], str):
-            print(f"Invalid caption type for {cap_info['caption']}")
-            cap_info['caption'] = str(cap_info['caption'])
-        timestamp = list(map(float, timestamp.split("_")))
-        scripts.append((timestamp, cap_info['caption'], cap_info))
+
+        # 提取新格式的信息
+        event_summary = cap_info.get('action_atoms', {}).get('event_summary', '')
+        shot_purpose = cap_info.get('narrative_analysis', {}).get('shot_purpose', '')
+        mood = cap_info.get('narrative_analysis', {}).get('mood', '')
+
+        # 兼容旧格式
+        if not event_summary:
+            event_summary = cap_info.get('caption', '')
+            if isinstance(event_summary, list):
+                event_summary = event_summary[0] if event_summary else ''
+            elif not isinstance(event_summary, str):
+                event_summary = str(event_summary) if event_summary else ''
+
+        if not event_summary:
+            print(f"Empty event_summary for {timestamp_key} in {caption_json_path}")
+            continue
+
+        # 构建结构化的 shot 信息
+        shot_info = {
+            'event_summary': event_summary,
+            'shot_purpose': shot_purpose,
+            'mood': mood,
+        }
+
+        # 用于 embedding 的文本：组合所有信息
+        caption_text = f"Event: {event_summary}"
+        if shot_purpose:
+            caption_text += f" Purpose: {shot_purpose}"
+        if mood:
+            caption_text += f" Mood: {mood}"
+
+        scripts.append((timestamp, caption_text, shot_info))
 
     # batchify
     batch_size = 128

@@ -3,14 +3,14 @@
 #===============================================================
 # SBATCH Part: Slurm 资源申请指令
 #===============================================================
-#SBATCH --job-name=Qwen3VL_8888      # 任务名，方便识别
+#SBATCH --job-name=Qwen3_8891      # 任务名，方便识别
 #SBATCH --gres=gpu:2                # 申请2张GPU卡
 #SBATCH --nodes=1                   # 申请1个节点
 #SBATCH --ntasks-per-node=1         # 每个节点运行1个任务
 #SBATCH --cpus-per-task=16          # 为任务申请16个CPU核心
 #SBATCH --mem=128G                  # 申请128GB内存
 #SBATCH --time=8:00:00              # 任务最长运行时间（4小时）
-#SBATCH --output=output/Qwen3VL_vllm-server.out       # 将标准输出重定向到 slurm-JOBID.out 文件
+#SBATCH --output=output/Qwen3_8891_vllm-server.out       # 将标准输出重定向到 slurm-JOBID.out 文件
 
 #===============================================================
 # Script Part: 在计算节点上执行的命令
@@ -41,19 +41,19 @@ echo ""
 echo "--- Instructions for connecting from the LOGIN NODE ---"
 echo "1. Open a NEW terminal on the login node."
 echo "2. Create an SSH tunnel with this command:"
-echo "   ssh -L 8888:localhost:${PORT} ${USER}@${NODE_HOSTNAME}"
-echo "   (You can replace 8888 with another unused port on the login node if needed)"
+echo "   ssh -L 8891:localhost:${PORT} ${USER}@${NODE_HOSTNAME}"
+echo "   (You can replace 8891 with another unused port on the login node if needed)"
 echo "3. Once the tunnel is active, you can interact with the LLM at:"
-echo "   API Base URL: http://localhost:8888/v1"
+echo "   API Base URL: http://localhost:${PORT}/v1"
 echo "========================================================"
 echo ""
 
 # 4. 启动 vLLM OpenAI API 服务器
 #    --host 0.0.0.0 确保服务监听在所有网络接口上，而不是仅监听localhost
 #    --port ${PORT} 使用我们随机选择的端口
-vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct \
+vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-30B-A3B/ \
     --port ${PORT} \
-    --max-model-len 65536 \
+    --max-model-len 40960 \
     --max-num-seqs 64 \
     --gpu-memory-utilization 0.9 \
     --trust-remote-code \
@@ -65,10 +65,10 @@ vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-I
 
 echo "vLLM server has been stopped."
 
-# curl http://localhost:8888/v1/chat/completions \
+# curl http://localhost:8891/v1/chat/completions \
 #   -H "Content-Type: application/json" \
 #   -d '{
-#     "model": "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct",
+#     "model": "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-30B-A3B/",
 #     "messages": [
 #       {"role": "user", "content": "你好，你是谁？"}
 #     ]

@@ -24,7 +24,7 @@ from vca import config
 DATABASE_ROOT = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY"
 FRAMES_DIR = os.path.join(DATABASE_ROOT, "frames")
 SCENES_DIR = os.path.join(DATABASE_ROOT, "captions", "scenes")
-OUTPUT_DIR = os.path.join(DATABASE_ROOT, "captions", "scene_summaries_video")
+OUTPUT_DIR = os.path.join(DATABASE_ROOT, "captions", "scene_summaries_video_new")
 SUBTITLE_FILE = os.path.join(DATABASE_ROOT, "subtitles_with_characters.srt")
 
 # 模型配置（从 config 读取）
@@ -47,8 +47,18 @@ SCENE_VIDEO_CAPTION_PROMPT = """
 [Role]
 You are an expert Film Analyst. Analyze the provided scene frames and generate a CHARACTER-CENTRIC narrative description.
 
-[CRITICAL INSTRUCTION]
-You must write a COHERENT STORY, not describe individual frames. Your description should:
+[CRITICAL INSTRUCTION - SCENE CLASSIFICATION]
+FIRST, classify the scene type. Non-content scenes are NOT suitable for video editing:
+- **content**: Main story content with characters and narrative (USABLE for editing)
+- **studio_logo**: Production company logos (Warner Bros., DC Comics, Legendary, etc.) - NOT usable
+- **title_card**: Movie title cards or chapter titles - NOT usable
+- **credits**: Opening/ending credits, cast/crew text overlays - NOT usable
+- **transition**: Pure black screens, fade transitions, or abstract non-narrative visuals - NOT usable
+
+If scene_type is NOT "content", you can skip detailed character/narrative analysis.
+
+[CRITICAL INSTRUCTION - NARRATIVE]
+For "content" scenes, you must write a COHERENT STORY, not describe individual frames. Your description should:
 1. Use CHARACTER NAMES as sentence subjects (e.g., "Bruce watches in horror" NOT "A boy is shown watching")
 2. Tell the COMPLETE EVENT from beginning to end
 3. Connect cause and effect (what triggers what, and what are the consequences)
@@ -58,6 +68,9 @@ You must write a COHERENT STORY, not describe individual frames. Your descriptio
 - Gun drawn + Shot fired + Person falls + Child cries = MURDER scene - describe it as "X shoots Y, killing them"
 - Formal attire + Child + Parents = FAMILY
 - If dialogue mentions names, USE those names for the characters
+- Logo on screen + no characters + abstract background = studio_logo
+- Text overlay listing names/roles = credits
+- Movie title text on screen = title_card
 
 [Input]
 - **Known Characters**: {CHARACTERS}
@@ -66,22 +79,17 @@ You must write a COHERENT STORY, not describe individual frames. Your descriptio
 
 [Output Schema - JSON]
 {
+  "scene_classification": {
+    "scene_type": "content/studio_logo/title_card/credits/transition",
+    "important_score": true/false,
+    "unusable_reason": "null if usable, otherwise: 'Studio logo (Warner Bros.)', 'End credits', 'Title card', 'Transition/Black screen', etc."
+  },
   "scene_summary": {
-    "narrative": "3-5 sentence coherent story using character names. Example: 'Thomas Wayne, his wife Martha, and their son Bruce leave the opera through a dark alley. A mugger appears and demands their valuables at gunpoint. When Thomas tries to protect his family, the mugger shoots him dead. Martha screams and is also shot. Young Bruce kneels beside his dying parents, traumatized forever by witnessing their murder.'",
-    "key_event": "Single most important event (e.g., 'Murder of Thomas and Martha Wayne')",
+    "narrative": "3-5 sentence coherent story using character names. For non-content scenes: brief description like 'Warner Bros. Pictures logo appears against cloudy sky. And indicate is not usable for video editing.'",
+    "key_event": "Single most important event (e.g., 'Reunion with the lost dog'). For non-content: 'Studio logo display' or 'Credits roll'",
     "location": "Specific location",
     "time": "Day/Night"
-  },
-  "characters": [
-    {
-      "name": "Character name",
-      "role": "Protagonist/Antagonist/Victim/Witness",
-      "description": "Visual appearance",
-      "actions": "Key actions (active voice)",
-      "dialogue": "What they say (if any)",
-      "fate": "Outcome (killed/escapes/traumatized/etc.)"
-    }
-  ],
+  }
   "narrative_elements": {
     "conflict": "Type of conflict",
     "mood_arc": "Emotional progression",
@@ -303,7 +311,7 @@ class SceneVideoAnalyzer:
         content = [{"type": "text", "text": "\n".join(text_parts)}]
 
         content.append({"type": "text", "text": f"\n=== Scene Frames ({len(frames)} frames) ==="})
-        for i, frame in enumerate(frames):
+        for frame in frames:
             content.append({
                 "type": "image_url",
                 "image_url": {"url": f"data:image/jpeg;base64,{image_to_base64(frame)}"}
@@ -319,8 +327,8 @@ class SceneVideoAnalyzer:
         result = self._call_vlm(prompt, content, max_tokens=2048)
         return parse_json_safely(result) if result else None
 
-    def generate_caption(self, frames: List[Image.Image], dialogue: str, char_info: Dict) -> Optional[Dict]:
-        """生成场景描述"""
+    def generate_caption(self, frames: List[Image.Image], dialogue: str, char_info: Dict, max_retries: int = 3) -> Optional[Dict]:
+        """生成场景描述，如果输出缺少 scene_classification 则重试"""
         # 格式化人物信息
         if char_info and 'characters' in char_info:
             char_text = "\n".join([
@@ -333,8 +341,19 @@ class SceneVideoAnalyzer:
         prompt = SCENE_VIDEO_CAPTION_PROMPT.replace("{CHARACTERS}", char_text).replace("{DIALOGUE}", dialogue)
         content = self._build_content(frames, [f"Characters:\n{char_text}", f"\nDialogue:\n{dialogue}"])
 
-        result = self._call_vlm(prompt, content, max_tokens=4096)
-        return parse_json_safely(result) if result else None
+        for attempt in range(max_retries):
+            result = self._call_vlm(prompt, content, max_tokens=4096)
+            parsed = parse_json_safely(result) if result else None
+
+            # 检查是否包含 scene_classification
+            if parsed and 'scene_classification' in parsed:
+                return parsed
+
+            if attempt < max_retries - 1:
+                print(f"Warning: Output missing 'scene_classification', retrying ({attempt + 1}/{max_retries})...")
+
+        print(f"Error: Failed to get valid scene_classification after {max_retries} attempts")
+        return parsed  # 返回最后一次的结果，即使不完整
 
     def process_scene(self, scene_data: Dict) -> Dict:
         """处理单个场景"""

@@ -8,8 +8,8 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ================= 配置区域 =================
-SHOTS_DIR = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY/captions/ckpt"       # 输入：存放单镜头 json 的文件夹
-SCENES_DIR = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY/captions/scenes"     # 输出：存放合并后 scene json 的文件夹
+SHOTS_DIR = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/VLOG_Lisbon/captions/ckpt"       # 输入：存放单镜头 json 的文件夹
+SCENES_DIR = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/VLOG_Lisbon/captions/scenes"     # 输出：存放合并后 scene json 的文件夹
 SIMILARITY_THRESHOLD = 0.5 # 切分阈值 (越低越难切分，越高越容易切分)
 # ===========================================
 

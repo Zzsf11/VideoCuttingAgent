@@ -56,6 +56,14 @@
             "module": "vca.build_database.build_vectorDB",
             "console": "integratedTerminal",
             "justMyCode": false
+        },
+        {
+            "name": "scene_analysis_video.py",
+            "type": "python",
+            "request": "launch",
+            "program": "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/vca/build_database/scene_analysis_video.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
         ,
         {
@@ -67,10 +75,10 @@
             "justMyCode": false
         },
                 {
-            "name": "vca.Screenwriter",
+            "name": "vca.Screenwriter_scene",
             "type": "python",
             "request": "launch",
-            "module": "vca.Screenwriter",
+            "module": "vca.Screenwriter_scene",
             "console": "integratedTerminal",
             "justMyCode": false
         },

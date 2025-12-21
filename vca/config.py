@@ -105,9 +105,9 @@ VLLM_EMBEDDING_ENDPOINT = "http://localhost:8889/v1/"  # vLLM embedding base URL
 
 
 # ------------------ Agent model configuration ------------------ #
-# AGENT_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-30B-A3B"
+# AGENT_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-30B-A3B/"
 AGENT_MODEL = "/public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct"
-AGENT_MODEL_MAX_TOKEN = 4096  # Max tokens to generate (not total context length)
+AGENT_MODEL_MAX_TOKEN = 8192  # Max tokens to generate (not total context length)
 VLLM_AGENT_ENDPOINT = "http://localhost:8888"  # vLLM embedding服务端点
 # 启动agent服务的命令示例:
 # CUDA_VISIBLE_DEVICES=0 vllm serve /public_hw/home/cit_shifangzhao/zsf/HF/models/Qwen/Qwen3-VL-30B-A3B-Instruct     --host 0.0.0.0     --port 8000     --max-model-len 65535     --max-num-seqs 256     --gpu-memory-utilization 0.9     --trust-remote-code --enable-auto-tool-choice --tool-call-parser hermes
