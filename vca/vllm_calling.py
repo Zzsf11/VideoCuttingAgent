@@ -313,16 +313,18 @@ def _encode_with_opencv(image_paths: list, fps: float, output_path: str) -> str:
     return output_path
 
 
-def clip_video_segment(input_path: str, start_time: float, end_time: float = None, output_path: str = None) -> str:
+def clip_video_segment(input_path: str, start_time: float, end_time: float = None, output_path: str = None, accurate: bool = True) -> str:
     """
-    Clip a segment from a video file using ffmpeg stream copy (fast, no re-encoding).
-    
+    Clip a segment from a video file using ffmpeg.
+
     Args:
         input_path: Path to input video
         start_time: Start time in seconds
         end_time: End time in seconds (optional)
         output_path: Output path (optional, defaults to temp file)
-        
+        accurate: If True, re-encode for frame-accurate clipping (slower but precise).
+                  If False, use stream copy (faster but may include extra frames at keyframe boundaries).
+
     Returns:
         str: Path to the clipped video file
     """
@@ -330,23 +332,39 @@ def clip_video_segment(input_path: str, start_time: float, end_time: float = Non
         temp_file = tempfile.NamedTemporaryFile(suffix='.mp4', delete=False)
         output_path = temp_file.name
         temp_file.close()
-    
+
+    # Build ffmpeg command
     cmd = [
         'ffmpeg',
         '-y',
-        '-ss', str(start_time),
+        '-ss', str(start_time),  # Seek to start time
+        '-i', input_path,
     ]
-    
+
     if end_time is not None:
         duration = end_time - start_time
         if duration <= 0:
              raise ValueError(f"Invalid duration: end_time ({end_time}) must be greater than start_time ({start_time})")
-        cmd.extend(['-t', str(duration)])
-        
+        cmd.extend(['-t', str(duration)])  # Duration
+
+    if accurate:
+        # Re-encode for frame-accurate clipping
+        # Use H.264 with fast preset for reasonable speed
+        cmd.extend([
+            '-c:v', 'libx264',
+            '-preset', 'ultrafast',  # Fast encoding
+            '-crf', '18',  # High quality
+            '-c:a', 'aac',  # Re-encode audio
+            '-b:a', '128k',
+        ])
+    else:
+        # Stream copy (fast but may be imprecise due to keyframe alignment)
+        cmd.extend([
+            '-c', 'copy',
+            '-avoid_negative_ts', '1',
+        ])
+
     cmd.extend([
-        '-i', input_path,
-        '-c', 'copy',  # Stream copy
-        '-avoid_negative_ts', '1',
         '-loglevel', 'error',
         output_path
     ])
@@ -363,7 +381,7 @@ def call_vllm_model(
     messages,
     endpoint: str,
     model_name: str,
-    api_key: str = "EMPTY",
+    api_key: str = None,  # None = auto-detect from config.UNIFIED_API_KEY
     tools: list = [],  # List of tool definitions
     image_paths: list = [],
     video_path: str = None,  # Path to video file (alternative to image_paths)
@@ -440,9 +458,17 @@ def call_vllm_model(
         dict: Response containing 'content' and optionally 'tool_calls'
     """
     
+    # Auto-detect api_key from config if not provided
+    if api_key is None:
+        try:
+            from . import config
+            api_key = getattr(config, 'UNIFIED_API_KEY', 'EMPTY')
+        except ImportError:
+            api_key = 'EMPTY'
+
     # Auto-encode frame sequences to video for proper temporal handling
     temp_video_path = None
-    
+
     # Case 1: Image paths provided -> Encode to video
     if image_paths and not video_path and auto_encode_frames and video_fps is not None:
         # When we have pre-extracted frames, we need to encode them into a video
@@ -457,10 +483,37 @@ def call_vllm_model(
     # Case 2: Video path provided with start/end times -> Local clipping
     elif video_path and use_local_clipping and (video_start_time is not None or video_end_time is not None):
         start = video_start_time if video_start_time is not None else 0.0
-        # print(f"Clipping video locally from {start}s to {video_end_time}s...")
-        temp_video_path = clip_video_segment(video_path, start, video_end_time)
+        expected_duration = (video_end_time - start) if video_end_time is not None else None
+        print(f"[vllm_calling] Clipping video locally from {start}s to {video_end_time}s (expected duration: {expected_duration:.2f}s)...")
+        # Use accurate=True for frame-accurate clipping (re-encodes but guarantees correct duration)
+        temp_video_path = clip_video_segment(video_path, start, video_end_time, accurate=True)
         video_path = temp_video_path
-        
+
+        # Verify the clipped video properties before sending to VLM
+        cap = cv2.VideoCapture(temp_video_path)
+        if not cap.isOpened():
+            raise RuntimeError(f"[vllm_calling] CRITICAL: Failed to open clipped video {temp_video_path}")
+
+        actual_fps = cap.get(cv2.CAP_PROP_FPS)
+        frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        actual_duration = frame_count / actual_fps if actual_fps > 0 else 0
+        file_size_mb = os.path.getsize(temp_video_path) / (1024 * 1024)
+        cap.release()
+
+        print(f"[vllm_calling] Clipped video verification:")
+        print(f"  - File: {temp_video_path}")
+        print(f"  - Size: {file_size_mb:.2f} MB")
+        print(f"  - FPS: {actual_fps:.2f}")
+        print(f"  - Frame count: {frame_count}")
+        print(f"  - Actual duration: {actual_duration:.2f}s")
+        print(f"  - Expected duration: {expected_duration:.2f}s")
+
+        if frame_count == 0:
+            raise RuntimeError(f"[vllm_calling] CRITICAL: Clipped video has 0 frames! Input might be corrupt or clipping failed.")
+
+        if expected_duration is not None and abs(actual_duration - expected_duration) > 0.5:
+            print(f"[vllm_calling] WARNING: Clipped video duration mismatch! Expected {expected_duration:.2f}s, got {actual_duration:.2f}s")
+
         # Clear timestamps for vLLM since we're sending the clipped segment directly
         video_start_time = None
         video_end_time = None
@@ -570,7 +623,12 @@ def call_vllm_model(
                     "image_url": {"url": image_data}
                 })
 
-        response = requests.post(url, headers=headers, json=payload, timeout=600)
+        # Disable proxy for local requests (localhost, 127.0.0.1, 0.0.0.0)
+        # This allows external APIs to use proxy while local vLLM doesn't
+        proxies = None
+        if any(local in url for local in ['localhost', '127.0.0.1', '0.0.0.0']):
+            proxies = {"http": None, "https": None}
+        response = requests.post(url, headers=headers, json=payload, timeout=600, proxies=proxies)
 
         if response.status_code != 200:
             error_text = response.text
@@ -603,20 +661,28 @@ def get_vllm_embeddings(
     input_text: str | list,
     endpoint: str,
     model_name: str = None,
-    api_key: str = "EMPTY",
+    api_key: str = None,  # None = auto-detect from config.UNIFIED_API_KEY
 ) -> list:
     """
     Call vLLM embedding service and get embeddings for the input text.
-    
+
     Args:
         input_text: The text or list of texts for which to generate embeddings
         endpoint: vLLM server endpoint URL (e.g., "http://localhost:8001/v1")
         model_name: Name of the embedding model (optional, vLLM will use loaded model)
-        api_key: API key for authentication (default: "EMPTY" for local vLLM)
-        
+        api_key: API key for authentication (None = auto-detect from config)
+
     Returns:
         list: The embeddings data, each item contains 'embedding' and 'index'
     """
+    # Auto-detect api_key from config if not provided
+    if api_key is None:
+        try:
+            from . import config
+            api_key = getattr(config, 'UNIFIED_API_KEY', 'EMPTY')
+        except ImportError:
+            api_key = 'EMPTY'
+
     headers = {
         "Content-Type": "application/json",
         'Authorization': 'Bearer ' + api_key
@@ -642,7 +708,12 @@ def get_vllm_embeddings(
         payload["model"] = model_name
     
     # Make the request to the vLLM service
-    response = requests.post(url, headers=headers, json=payload, timeout=600)
+    # Disable proxy for local requests (localhost, 127.0.0.1, 0.0.0.0)
+    proxies = None
+    if any(local in url for local in ['localhost', '127.0.0.1', '0.0.0.0']):
+        proxies = {"http": None, "https": None}
+
+    response = requests.post(url, headers=headers, json=payload, timeout=600, proxies=proxies)
     
     # Check if the request was successful
     if response.status_code == 200:

@@ -1,135 +1,143 @@
 {
-  "overall_theme": "The duality of identity: Bruce Wayne’s journey from trauma to becoming Batman, exploring the emotional cost and moral weight of living a double life.",
-  "narrative_logic": "The video begins with a contemplative, introspective tone (Intro) that mirrors Bruce’s early trauma and isolation. As the music builds into the first chorus, the narrative shifts to the emergence of his purpose—his transformation into Batman. The verses and subsequent choruses reflect the internal conflict and external battles he faces, culminating in a climactic breakdown and final chorus that represent his ultimate sacrifice and acceptance of his role. The outro closes with a quiet resolution, symbolizing the enduring legacy of his choice.",
+  "overall_theme": "The duality of Bruce Wayne and Batman: a journey from trauma and isolation to purpose, where the personal cost of vigilantism is weighed against the need to become a symbol of hope and justice.",
+  "narrative_logic": "The audio arc mirrors Bruce Wayne’s emotional and physical journey. The sparse, contemplative intro reflects his trauma and isolation. The rising energy of the choruses matches his transformation and the emergence of Batman as a force. The breakdown’s instrumental intensity parallels his internal conflict and moral reckoning. The final chorus and outro reflect his ultimate acceptance of his dual identity and the enduring legacy he builds.",
   "video_structure": [
     {
-      "content": "A young Bruce Wayne runs through a garden, searching for something. He finds a dark stone and shows it to Rachel in a greenhouse. He then discovers a well and begins to climb down, while Rachel watches from above. The scene captures the moment of childhood trauma and the first step toward his destiny.",
+      "content": "A young Bruce Wayne lies in a dark, wet well, covered in mud and dirt, screaming for his parents as he struggles to get out. The scene cuts to a wide shot of the well, showing his small figure at the bottom. The flashback ends with a shot of a young Bruce lying on the ground, screaming in terror. The scene then cuts to an adult Bruce Wayne, lying in a prison cell, his face etched with pain and trauma. He is haunted by the memory of his parents' murder, which he witnessed as a child. The scene is a powerful depiction of the trauma that shaped Bruce Wayne into Batman.",
       "audio_section": "Intro",
-      "emotion": "Contemplative, melancholic",
+      "emotion": "Trauma, Isolation, Despair",
       "start_time": 0,
       "end_time": 22.6,
       "related_scenes": [
-        0,
-        8,
-        9
+        1,
+        10,
+        51,
+        80,
+        99
       ],
       "shot_plan": {
         "shots": [
           {
             "id": 1,
             "time_duration": 7.3,
-            "content": "A young Bruce Wayne runs through a garden, searching for something. He stops and picks up a small, dark stone, then turns and shows it to Rachel, who is hiding in a greenhouse. The camera focuses on their quiet exchange as Bruce gestures toward the stone, capturing the moment of discovery.",
-            "story_beat": "Bruce discovers a mysterious stone and shares it with Rachel in the greenhouse.",
-            "emotion": "Contemplative, melancholic",
-            "visuals": "Wide shot of the garden with Bruce running, followed by a medium shot of him picking up the stone and approaching the greenhouse. The camera moves to a medium close-up of Bruce showing the stone to Rachel inside the greenhouse, with soft natural light filtering through the glass.",
-            "related_scene": 0
+            "content": "A young Bruce Wayne lies in a dark, wet well, covered in mud and dirt, screaming for his parents as he struggles to get out. The camera slowly pulls back to a wide shot, showing his small figure at the bottom of the well, emphasizing his isolation and fear. The scene ends with a close-up of young Bruce lying on the ground, screaming in terror, his face contorted with trauma.",
+            "story_beat": "Young Bruce Wayne's traumatic fall into the well and his initial terror.",
+            "emotion": "Trauma, Despair",
+            "visuals": "Dark, wet well; mud-covered young Bruce; wide shot of small figure at bottom; close-up of screaming face; dim lighting; handheld camera movement to convey panic.",
+            "related_scene": 1
           },
           {
             "id": 2,
             "time_duration": 6.3,
-            "content": "Bruce runs off from the greenhouse, and Rachel follows him. He stops at the edge of a large, dark well and begins to climb down into it, while Rachel watches from above, her face illuminated by the dim light of the garden.",
-            "story_beat": "Bruce discovers a well and begins to climb down, with Rachel observing from above.",
-            "emotion": "Contemplative, melancholic",
-            "visuals": "Tracking shot of Bruce running through the garden, followed by Rachel. The camera cuts to a low-angle shot of the well, showing Bruce descending into the darkness. A high-angle shot captures Rachel standing at the edge, looking down with concern.",
-            "related_scene": 0
+            "content": "The scene cuts to an adult Bruce Wayne lying in a prison cell, his face etched with pain and trauma. He is motionless, eyes closed, as the memory of his parents' murder floods his mind. The camera slowly zooms in on his face, capturing the emotional weight of the trauma. The shot lingers, emphasizing his isolation and psychological torment.",
+            "story_beat": "Adult Bruce Wayne haunted by the memory of his parents' murder.",
+            "emotion": "Isolation, Trauma",
+            "visuals": "Prison cell; adult Bruce Wayne lying on the floor; close-up of face showing pain; dim, cold lighting; static camera to reflect internal suffering.",
+            "related_scene": 1
           },
           {
             "id": 3,
             "time_duration": 9.0,
-            "content": "The scene shifts to a theater where Bruce Wayne watches a performance of 'The Magic Flute' with his parents. A stage actor dressed as a bat falls from the rafters, startling the audience. Bruce is visibly frightened. After the performance, Thomas and Martha lead a traumatized Bruce out of the theater into a dark alley, where they comfort him.",
-            "story_beat": "A stage actor dressed as a bat falls from the rafters, traumatizing Bruce Wayne.",
-            "emotion": "Melancholic",
-            "visuals": "Interior shot of the theater with the opera in progress. A sudden cut to the stage as the bat-costumed actor plummets. Close-up of Bruce’s terrified face. The scene transitions to a wide shot of the alley, with Thomas and Martha holding Bruce as they walk through the dark, wet street.",
-            "related_scene": 8
+            "content": "The scene transitions to a flashback: young Bruce Wayne, dressed in a tuxedo, watches in horror as his parents are murdered in a dark alley. His father is shot and falls to the ground. Bruce collapses, crying and screaming. The scene cuts to a close-up of Batman, his adult self, lying in the rain, his face contorted in agony as he relives the memory. The final shot shows young Bruce hiding in the woods, traumatized and alone, looking back at the alley.",
+            "story_beat": "The murder of Bruce Wayne's parents and his subsequent trauma.",
+            "emotion": "Trauma, Despair",
+            "visuals": "Dark alley; young Bruce in tuxedo; parents being shot; close-up of Bruce collapsing; adult Batman in rain; young Bruce hiding in woods; handheld camera during chaos; slow zoom on emotional faces.",
+            "related_scene": 51
           }
         ]
       }
     },
     {
-      "content": "Bruce Wayne, now Batman, confronts a prisoner in a war-torn camp. The man taunts him, calling him a 'licherman' and declaring he is the devil. Bruce responds that the man is merely his practice, then overpowers him. The scene highlights the beginning of his transformation into a vigilante.",
+      "content": "Bruce Wayne, disguised as a prisoner, stands among the other inmates in a bleak, snowy prison camp. He is confronted by a large, menacing prisoner who mocks him. Bruce, fueled by rage and despair, suddenly lunges at the man, initiating a brutal fight. The scene culminates in Bruce overpowering his opponent, who is left on the ground as Bruce stands over him, breathing heavily. The dialogue reveals the internal conflict between Bruce Wayne and his Batman persona, with Bruce declaring, 'You are in hell, licherman. And I am the devil.' The other prisoner retorts, 'You're not the devil. You're practice.'",
       "audio_section": "Chorus 1",
-      "emotion": "Intense, anthemic",
+      "emotion": "Defiance, Rage, Transformation",
       "start_time": 22.6,
       "end_time": 40.4,
       "related_scenes": [
         2,
         3,
-        11
+        15,
+        23,
+        85
       ],
       "shot_plan": {
         "shots": [
           {
             "id": 1,
             "time_duration": 8.9,
-            "content": "Bruce Wayne, in the guise of Batman, stands in a war-torn prison camp, facing a taunting prisoner. The man calls him a 'licherman' and declares he is the devil. Bruce remains calm, responding that the man is merely his practice. The scene captures the tension and emotional weight of Bruce's internal struggle, with the desolate camp and harsh daylight emphasizing his isolation.",
-            "story_beat": "Bruce Wayne confronts a prisoner, asserting his control and beginning his transformation into a vigilante.",
-            "emotion": "Melancholic",
-            "visuals": "Wide shot of the prison camp under daylight, focusing on Batman and the prisoner. The camera holds steady, capturing the dialogue and the grim environment. The background shows ruined structures and barbed wire, reinforcing the setting's brutality.",
+            "content": "Bruce Wayne, disguised as a prisoner, stands among other inmates in a bleak, snowy prison camp. He is confronted by a large, menacing prisoner who mocks him. Bruce, fueled by rage and despair, suddenly lunges at the man, initiating a brutal fight. The scene culminates in Bruce overpowering his opponent, who is left on the ground as Bruce stands over him, breathing heavily. The dialogue reveals the internal conflict between Bruce Wayne and his Batman persona, with Bruce declaring, 'You are in hell, licherman. And I am the devil.' The other prisoner retorts, 'You're not the devil. You're practice.'",
+            "story_beat": "Bruce Wayne's confrontation and fight with a prisoner in the prison camp, marking his transformation into a vengeful figure.",
+            "emotion": "Defiance, Rage, Transformation",
+            "visuals": "Wide shot of the snowy prison camp with inmates in ragged clothing. Close-up of Bruce’s face showing rage and determination. Medium shot of the fight sequence, capturing the physical struggle and the moment Bruce overpowers the prisoner. Final shot of Bruce standing over the defeated man, breathing heavily, with snow falling around him.",
             "related_scene": 2
           },
           {
             "id": 2,
             "time_duration": 8.9,
-            "content": "Bruce Wayne is attacked by a group of prisoners in a muddy compound. He fights back with ferocity, overpowering them and sending them into the mud. The scene ends with soldiers arriving and apprehending the battered Bruce, who lies in the mud as the prisoners watch. The action is intense and visceral, highlighting Bruce's physical and emotional endurance.",
-            "story_beat": "Bruce Wayne fights and defeats multiple prisoners, demonstrating his growing strength and resilience.",
-            "emotion": "Energetic",
-            "visuals": "Dynamic handheld shots capturing the fight in the muddy compound. The camera follows Bruce’s movements, emphasizing the chaos and violence. The sloped, snow-dusted hill and brick buildings frame the scene. After the fight, the camera pulls back to show soldiers approaching and Bruce lying motionless in the mud.",
+            "content": "Bruce Wayne, covered in mud and blood, is violently attacked by a group of prisoners in a muddy courtyard. He fights back with desperate rage, screaming 'No!' and 'You're my rooster,' as he is beaten and thrown to the ground. The fight escalates until soldiers arrive, overpowering Bruce and dragging him away as the other prisoners lie defeated in the mud. The scene is a brutal, visceral depiction of his physical and psychological torment in the prison.",
+            "story_beat": "Bruce's brutal fight and capture in the prison courtyard, emphasizing his suffering and loss of control.",
+            "emotion": "Despair, Anger, Torment",
+            "visuals": "Low-angle shot of Bruce being attacked in the muddy courtyard. Close-up of his face covered in mud and blood, screaming. Dynamic shots of the fight sequence with chaotic movement. Final shot of soldiers dragging Bruce away while other prisoners lie defeated in the mud.",
             "related_scene": 3
           }
         ]
       }
     },
     {
-      "content": "Bruce Wayne, battered and disheveled, emerges from a dark tunnel into a stone-walled chamber where Ra's al Ghul stands. Ra's reveals he is Ducard and offers Bruce a path to true justice through the League of Shadows, challenging him to become a legend. The scene marks the beginning of his training and moral testing.",
+      "content": "Bruce Wayne, covered in mud and blood, is violently attacked by a group of prisoners in a muddy courtyard. He fights back with desperate rage, screaming 'No!' and 'You're my rooster,' as he is beaten and thrown to the ground. The fight escalates until soldiers arrive, overpowering Bruce and dragging him away as the other prisoners lie defeated in the mud. The scene is a brutal, visceral depiction of his physical and psychological torment in the prison.",
       "audio_section": "Verse 1",
-      "emotion": "Narrative, somber",
+      "emotion": "Suffering, Resilience, Desperation",
       "start_time": 40.4,
       "end_time": 66.8,
       "related_scenes": [
-        4,
+        3,
         12,
-        13
+        13,
+        14,
+        19
       ],
       "shot_plan": {
         "shots": [
           {
             "id": 1,
             "time_duration": 5.9,
-            "content": "Bruce Wayne, battered and disheveled, emerges from a dark tunnel into a stone-walled chamber. He stumbles forward, his breath ragged, as Ra's al Ghul stands motionless in the dim light, his silhouette framed by the shadows of the chamber walls. The camera holds on Bruce’s face, capturing his exhaustion and confusion as he confronts the figure before him.",
-            "story_beat": "Bruce Wayne emerges from the tunnel and confronts Ra's al Ghul.",
-            "emotion": "Melancholic",
-            "visuals": "Low-angle shot of Bruce emerging from the tunnel, transitioning to a medium shot of Ra's al Ghul standing in the stone chamber. The lighting is dim and atmospheric, emphasizing the darkness of the environment. Camera remains steady, focusing on Bruce’s physical state and facial expression.",
-            "related_scene": 4
+            "content": "Bruce Wayne, covered in mud and blood, is attacked by a group of prisoners in a muddy courtyard. He fights back with desperate rage, screaming 'No!' as he is beaten and thrown to the ground. The camera captures the brutal struggle in a tight, handheld shot, emphasizing his physical torment and psychological distress.",
+            "story_beat": "Bruce's initial attack and violent struggle in the prison courtyard",
+            "emotion": "Suffering",
+            "visuals": "Close-up on Bruce's face covered in mud and blood, shaky camera movement, low-angle shots of prisoners surrounding him, muddy ground, violent physical contact, dim daylight",
+            "related_scene": 3
           },
           {
             "id": 2,
             "time_duration": 11.0,
-            "content": "Ra's al Ghul reveals his true identity as Ducard, speaking with calm authority. He extends an offer to Bruce, his voice resonant and commanding. Bruce listens intently, his expression shifting from disbelief to contemplation. The camera alternates between close-ups of their faces, capturing the tension and gravity of the moment as Ra's al Ghul challenges Bruce to become a legend through the League of Shadows.",
-            "story_beat": "Ra's al Ghul reveals he is Ducard and offers Bruce a path to become a legend.",
-            "emotion": "Passionate",
-            "visuals": "Close-up shots of Ra's al Ghul’s face as he speaks, intercut with medium shots of Bruce listening. The camera moves slowly, emphasizing the weight of the dialogue. The stone chamber remains dark and oppressive, with minimal lighting highlighting their faces.",
-            "related_scene": 4
+            "content": "Bruce continues to fight back with raw desperation, screaming 'You're my rooster' as he is overwhelmed. The fight escalates, with soldiers arriving and overpowering him. The camera follows the chaos, showing Bruce being dragged away while other prisoners lie defeated in the mud.",
+            "story_beat": "Bruce's escalating fight and capture by soldiers",
+            "emotion": "Desperation",
+            "visuals": "Wide shot of the courtyard showing multiple prisoners and soldiers, dynamic camera movement during the fight, low-angle shots of Bruce being thrown, soldiers in uniform, muddy ground, defeated prisoners lying still",
+            "related_scene": 3
           },
           {
             "id": 3,
             "time_duration": 9.5,
-            "content": "Ra's al Ghul gives Bruce a test: to find a rare blue flower on the eastern slopes and carry it to the top of a mountain. Bruce stands still, absorbing the challenge. The camera lingers on his face, showing a flicker of determination beneath his weariness. The scene ends with a wide shot of the chamber, emphasizing the isolation and the gravity of the task ahead.",
-            "story_beat": "Ra's al Ghul gives Bruce a test to find a rare blue flower and carry it to the mountain top.",
+            "content": "Ra's al Ghul stands in a dimly lit, smoke-filled room, explaining the principles of Minjutsu to the Man in Grey. He uses the story of a farmer who became a murderer to illustrate his philosophy. The Man in Grey listens intently, showing signs of distress. The scene culminates with the Man in Grey discovering a prisoner in a bamboo cage, visibly shocked.",
+            "story_beat": "Ra's al Ghul reveals his philosophy and the prisoner in the cage",
             "emotion": "Soulful",
-            "visuals": "Wide shot of the stone chamber, with Ra's al Ghul standing in the background and Bruce in the foreground. The camera slowly zooms in on Bruce’s face as he processes the test. The lighting remains dim, with a subtle glow highlighting the stone walls and the path leading out of the chamber.",
-            "related_scene": 4
+            "visuals": "Static medium shot of Ra's al Ghul speaking, dim lighting, smoke in the air, shelves of bottles in background, close-up on Man in Grey's face showing fear, sudden reveal of bamboo cage with prisoner inside",
+            "related_scene": 12
           }
         ]
       }
     },
     {
-      "content": "Bruce Wayne, after a grueling journey, arrives at the League of Shadows' hidden temple. He is confronted by Ra's al Ghul, who challenges him to master his fear. Bruce is tested by Ra's al Ghul's lieutenants, who beat him to the ground. The scene culminates in a flashback to the murder of his parents, triggering his traumatic memory and forcing him to confront the core fear that drives him.",
+      "content": "Bruce Wayne, having survived a brutal ordeal in the mountains, is brought before Ra's al Ghul. Ra's al Ghul questions Bruce's motivations, revealing that he seeks to master his own fear. Bruce, in a moment of defiance, reveals his fear is not of Ra's al Ghul, but of the fear itself. This leads to a confrontation where Ra's al Ghul, in a fit of rage, attacks Bruce, beating him to the ground. The scene culminates in a flashback to a traumatic childhood memory of Bruce's parents being murdered, which is the source of his fear. The sequence ends with a powerful image of a young Bruce lying in a well, symbolizing his descent into darkness and his ultimate confrontation with his past.",
       "audio_section": "Chorus 2",
-      "emotion": "Powerful, cathartic",
+      "emotion": "Confrontation, Fear, Revelation",
       "start_time": 66.8,
       "end_time": 101.2,
       "related_scenes": [
         6,
+        11,
+        13,
         14,
         15
       ],
@@ -138,219 +146,227 @@
           {
             "id": 1,
             "time_duration": 9.5,
-            "content": "Bruce Wayne stumbles through a snow-covered mountain landscape, his breath visible in the cold air. He approaches the hidden temple of the League of Shadows, his face marked by exhaustion and determination. The camera follows him from behind, emphasizing his isolation in the vast, frozen wilderness.",
-            "story_beat": "Bruce Wayne arrives at the League of Shadows' hidden temple after a grueling journey.",
+            "content": "Bruce Wayne, battered and exhausted from a brutal ordeal in the mountains, is brought before Ra's al Ghul in a dimly lit mountain monastery. Ra's al Ghul stands over him, questioning his motivations with a cold, probing gaze. Bruce, defiant, reveals that his fear is not of Ra's al Ghul, but of the fear itself. The scene is tense and intimate, with close-ups on Bruce's face showing his internal struggle. The camera slowly pulls back to reveal the vast, shadowy interior of the monastery, emphasizing Bruce's isolation.",
+            "story_beat": "Bruce's confrontation with Ra's al Ghul and the revelation of his fear of fear itself.",
             "emotion": "Melancholic",
-            "visuals": "Wide shot of a snow-covered mountain landscape with Bruce Wayne walking toward a distant temple. The camera tracks him from behind, using a slow dolly movement to emphasize his struggle. The lighting is dim, with a cold blue tone reflecting off the snow.",
+            "visuals": "Close-up on Bruce's face, medium shot of Ra's al Ghul standing over Bruce, dim lighting, static camera with slow pull-back, dark stone walls of the monastery.",
             "related_scene": 6
           },
           {
             "id": 2,
             "time_duration": 13.9,
-            "content": "Inside the temple, Bruce Wayne faces Ra's al Ghul, who stands tall and imposing. Ra's al Ghul challenges him to master his fear. Bruce is then attacked by Ra's al Ghul's lieutenants, who overpower him and beat him to the ground. The camera captures the brutal fight from a low angle, emphasizing Bruce's vulnerability.",
-            "story_beat": "Bruce is confronted by Ra's al Ghul and tested by his lieutenants, who beat him to the ground.",
+            "content": "Ra's al Ghul, enraged by Bruce's defiance, lunges forward and attacks him, beating him to the ground. The fight is brutal and chaotic, with quick cuts between close-ups of punches, Bruce's face contorted in pain, and Ra's al Ghul's cold, determined expression. The scene culminates in a flashback to a traumatic childhood memory: young Bruce lying in a well, surrounded by darkness, symbolizing his descent into fear and his confrontation with the past. The transition is jarring, with a sudden shift from the present to the past.",
+            "story_beat": "Ra's al Ghul attacks Bruce, leading to a flashback of young Bruce in a well.",
             "emotion": "Tense",
-            "visuals": "Medium shot of Ra's al Ghul standing in a dimly lit temple chamber, facing Bruce. The camera cuts to a fast-paced sequence of Bruce being attacked by multiple figures in dark cloaks. The fight is shown in quick cuts with shaky camera movement to convey chaos and pain. The lighting is low, with flickering torches casting long shadows.",
+            "visuals": "Quick cuts during the fight, close-up of Bruce being struck, low-angle shot of Ra's al Ghul, flashback to a dark, confined well with a young Bruce lying still, handheld camera during the fight, static shot in the flashback.",
             "related_scene": 6
           },
           {
             "id": 3,
             "time_duration": 6.3,
-            "content": "A flashback interrupts the present: a young Bruce Wayne runs through a city alley, screaming as he witnesses his parents' murder. The scene is dark and chaotic, with a sudden flash of a gun and the sound of a gunshot. The camera shakes violently, capturing the trauma of the moment.",
-            "story_beat": "Bruce confronts the traumatic memory of his parents' murder.",
+            "content": "The scene transitions to a flashback of young Bruce Wayne standing at a window in Wayne Manor, looking out at the rain. His butler Alfred enters the room, gently holding his chin and reassuring him that his parents' murder was not his fault. The camera lingers on Bruce's tear-streaked face, capturing his guilt and sorrow. The scene then cuts to the present, where adult Bruce stands on a frozen glacier, his face hardened by training. Ra's al Ghul confronts him, challenging his lingering guilt and anger, urging him to become truly invisible—both physically and emotionally.",
+            "story_beat": "Flashback of Bruce's guilt and Alfred's comfort, followed by Ra's al Ghul's confrontation in the present.",
             "emotion": "Melancholic",
-            "visuals": "Close-up of a young Bruce's face in a dark alley, his eyes wide with fear. The camera cuts to a blurred image of two figures in a confrontation, followed by a sudden flash and a gunshot. The scene is shot in a handheld style with rapid cuts and a desaturated color palette.",
-            "related_scene": 6
+            "visuals": "Wide shot of young Bruce at the window, close-up of Alfred's hand on Bruce's chin, transition to present-day wide shot of Bruce on the glacier, static camera in the flashback, slow pan in the present.",
+            "related_scene": 11
           },
           {
             "id": 4,
             "time_duration": 4.7,
-            "content": "On a frozen lake, Ra's al Ghul stands over Man_in_Brown_Jacket, who lies on the ice. Ra's al Ghul declares, 'The will to act,' as Man_in_Brown_Jacket rises. He charges, but Ra's al Ghul overpowers him, knocking him down and holding a sword to his throat. The camera focuses on the confrontation, capturing the tension and dominance.",
-            "story_beat": "Ra's al Ghul defeats Man_in_Brown_Jacket in a fight on the ice.",
+            "content": "Ra's al Ghul confronts Bruce on a frozen lake, revealing that his parents' death was not his fault but his father's. Bruce, consumed by rage, lunges at Ra's al Ghul with a sword. The two engage in a brutal fight on the slippery ice, with Ra's al Ghul overpowering Bruce and pinning him to the ground. The camera captures the struggle from a low angle, emphasizing the physical dominance of Ra's al Ghul and the helplessness of Bruce.",
+            "story_beat": "Bruce's sword fight with Ra's al Ghul on the frozen lake, ending in defeat.",
             "emotion": "Energetic",
-            "visuals": "Wide shot of a frozen lake with Ra's al Ghul and Man_in_Brown_Jacket facing each other. The camera follows the fight with dynamic movement, capturing the clash of weapons and the final blow. The scene is shot in daylight with sharp contrasts between the white ice and dark figures.",
-            "related_scene": 14
+            "visuals": "Wide shot of the frozen lake with icebergs in the background, close-up of the sword clash, low-angle shot of Ra's al Ghul pinning Bruce, shaky camera during the fight.",
+            "related_scene": 13
           }
         ]
       }
     },
     {
-      "content": "Bruce Wayne returns to Wayne Manor, where he confronts the emptiness of his childhood home with Alfred. He refuses to stay in the master bedroom, calling the house a mausoleum, and insists on sleeping in his old room. After a tense conversation with Alfred about his father's legacy, Bruce visits his childhood bedroom, where he finds a photo of his parents and a stethoscope. He then packs a suitcase containing a revolver, a clear sign of his intent to seek vengeance.",
+      "content": "Bruce Wayne, exhausted and injured, lies on the ice after a brutal fight with Ra's al Ghul. Ra's al Ghul stands over him, delivering a philosophical monologue about the destructive power of rage, revealing his own past of loss and how he was forced to land. Bruce, in a state of profound grief and despair, weeps uncontrollably, his face buried in his arms as he is consumed by the pain of his father's death. Ra's al Ghul continues to speak, using his own story of loss to warn Bruce that his anger, while powerful, will ultimately destroy him if he does not find a way to control it.",
       "audio_section": "Chorus 3",
-      "emotion": "Dramatic, intense",
+      "emotion": "Grief, Vulnerability, Moral Conflict",
       "start_time": 101.2,
       "end_time": 111.3,
       "related_scenes": [
-        16,
-        17,
-        18
+        15,
+        24,
+        25,
+        26,
+        30
       ],
       "shot_plan": {
         "shots": [
           {
             "id": 1,
             "time_duration": 10.1,
-            "content": "Bruce Wayne stands in the dimly lit hallway of Wayne Manor, facing Alfred as he refuses to enter the master bedroom, calling the house a mausoleum. He turns and walks toward his childhood bedroom, the camera following him in a slow tracking shot. The scene cuts to Bruce entering his old room, where he pauses beside a dresser, his hand brushing over a framed photo of his parents and a stethoscope resting on the surface. He then moves to a suitcase, opens it, and places a revolver inside, the camera focusing on his hands and the weapon. The lighting is stark and cold, emphasizing the emotional weight of the moment.",
-            "story_beat": "Bruce Wayne confronts the emptiness of Wayne Manor and decides to seek vengeance by packing a revolver.",
-            "emotion": "Dramatic, intense",
-            "visuals": "Tracking shot following Bruce through the hallway, close-up of the photo and stethoscope, medium shot of Bruce packing the revolver into a suitcase, dim lighting, somber atmosphere.",
-            "related_scene": 16
+            "content": "Bruce Wayne lies motionless on the icy ground, exhausted and injured, his body partially buried in snow. Ra's al Ghul stands over him, silhouetted against the moonlit glaciers, delivering a solemn monologue. The camera slowly pans across Bruce's face, showing his tears as he weeps uncontrollably, his arms folded over his head. The scene captures the emotional weight of his grief and vulnerability, with the vast, frozen landscape emphasizing his isolation. The music swells with a powerful, soulful vocal performance, matching the intensity of Bruce's inner turmoil.",
+            "story_beat": "Bruce Wayne's emotional breakdown after his fight with Ra's al Ghul.",
+            "emotion": "Grief, Vulnerability, Moral Conflict",
+            "visuals": "Wide shot of icy landscape with Bruce on the ground, close-up of his tear-streaked face, medium shot of Ra's al Ghul standing over him, slow camera movement emphasizing emotional weight, night lighting with moonlight reflecting off ice.",
+            "related_scene": 15
           }
         ]
       }
     },
     {
-      "content": "The music shifts to a powerful instrumental section with a heavy organ riff and a raw, bluesy guitar solo. This is a clear bridge section that provides a dramatic shift in texture and builds tension. The visuals could show Bruce Wayne in a high-speed chase, using the Batmobile's rooftop jumping ability to evade police, demonstrating his advanced capabilities and the chaos he creates.",
+      "content": "Ra's al Ghul stands in a dimly lit, smoke-filled room and explains the principles of Minjutsu to the Man in Grey, emphasizing that deception and theatricality are powerful tools. He uses the story of a farmer who became a murderer to illustrate that crime cannot be tolerated and that justice must be served. The Man in Grey listens intently, his face showing signs of distress and fear. The scene culminates with the Man in Grey discovering a prisoner in a bamboo cage, a moment that visibly shocks him and reinforces the harsh reality of Ra's al Ghul's philosophy.",
       "audio_section": "Breakdown",
-      "emotion": "Tense, dramatic",
+      "emotion": "Philosophy, Shock, Moral Dilemma",
       "start_time": 111.3,
       "end_time": 155.4,
       "related_scenes": [
-        63,
-        64,
-        65
+        12,
+        24,
+        26,
+        31,
+        32
       ],
       "shot_plan": {
         "shots": [
           {
             "id": 1,
             "time_duration": 14.0,
-            "content": "Batman drives the Batmobile through the city at night, pursued by police. The vehicle accelerates rapidly as Batman executes a high-speed jump over a building, narrowly avoiding a collision with a taxi. The camera follows the Batmobile from a low-angle tracking shot, emphasizing its speed and advanced capabilities. The scene is illuminated by flashing streetlights and neon signs, with the Batmobile's headlights cutting through the darkness.",
-            "story_beat": "Batman's high-speed pursuit of a target through the city using the Batmobile's rooftop jumping ability.",
+            "content": "Ra's al Ghul stands in a dimly lit, smoke-filled room, gesturing emphatically as he explains the principles of Minjutsu to the Man in Grey. The camera slowly circles around them, capturing the flickering shadows on the walls and the shelves of bottles in the background. Ra's al Ghul's voice is intense and commanding as he recounts the story of the farmer who became a murderer, emphasizing that crime cannot be tolerated. The Man in Grey listens with growing distress, his face showing fear and unease. The scene builds tension with a low-angle shot of Ra's al Ghul, highlighting his authority, followed by a close-up of the Man in Grey's trembling hands.",
+            "story_beat": "Ra's al Ghul explains the philosophy of Minjutsu and the necessity of justice.",
             "emotion": "Defiant",
-            "visuals": "Low-angle tracking shot of the Batmobile in motion, rooftop jumps, collision avoidance with a taxi, city lights, nighttime setting, dynamic camera movement.",
-            "related_scene": 63
+            "visuals": "Dim lighting, smoke, low-angle and close-up shots, slow camera movement, shelves of bottles, traditional Asian-style room.",
+            "related_scene": 12
           },
           {
             "id": 2,
             "time_duration": 4.5,
-            "content": "The Batmobile enters a tunnel, its headlights illuminating the dark passage. A police car follows closely behind, with the officer expressing shock at the sight of the vehicle. Rachel Dawes, a passenger in the police car, asks for a description, then dismisses the question. The camera cuts between the interior of the police car and the Batmobile's dashboard, showing the pursuit from multiple angles.",
-            "story_beat": "Batman's high-speed pursuit of a police car in the Batmobile.",
+            "content": "The camera focuses on the Man in Grey's face as he processes Ra's al Ghul's words. His expression shifts from fear to deep contemplation. The room remains dark and still, with only the faint sound of Ra's al Ghul's voice echoing. The Man in Grey slowly turns his head, his eyes wide with realization. The scene cuts to a close-up of a bamboo cage in the corner of the room, partially obscured by shadows, as the Man in Grey begins to approach it.",
+            "story_beat": "The Man in Grey begins to understand the gravity of Ra's al Ghul's philosophy.",
             "emotion": "Melancholic",
-            "visuals": "Interior shots of the police car, close-up of the officer and Rachel Dawes, Batmobile interior with dashboard lights, tunnel lighting, steady camera movement.",
-            "related_scene": 64
+            "visuals": "Close-up on Man in Grey's face, dim lighting, bamboo cage in background, slow camera movement.",
+            "related_scene": 12
           },
           {
             "id": 3,
             "time_duration": 8.0,
-            "content": "The Batmobile navigates an underground parking garage, using advanced systems to track a suspect vehicle. After losing visual contact, Batman deploys explosive devices that cause a police car to flip and crash. The camera follows the Batmobile from a high-angle tracking shot as it exits the garage and enters a highway. The scene transitions to a wide shot of the highway with the Batmobile continuing the pursuit.",
-            "story_beat": "Batman uses the Batmobile to disable a police car and a civilian vehicle during a high-speed chase.",
+            "content": "The Man in Grey reaches the bamboo cage and slowly lifts the latch. The camera zooms in as he opens the door, revealing a prisoner inside, bound and weak. The Man in Grey gasps, his face frozen in shock. The prisoner looks up, his eyes filled with despair. The scene is bathed in a cold, blue light, emphasizing the horror of the moment. The camera pulls back to show the full room, with Ra's al Ghul watching silently from the shadows.",
+            "story_beat": "The Man in Grey discovers the prisoner in the bamboo cage, reinforcing Ra's al Ghul's philosophy.",
             "emotion": "Dreamy",
-            "visuals": "High-angle tracking shot of the Batmobile, explosion of the police car, interior of the parking garage, highway environment, dynamic camera movement.",
-            "related_scene": 65
+            "visuals": "Close-up on the prisoner, dim lighting, blue-tinted light, slow zoom, wide shot of the room.",
+            "related_scene": 12
           },
           {
             "id": 4,
             "time_duration": 8.8,
-            "content": "The Batmobile continues its high-speed chase on the highway, using its weaponry to disable a police car and a civilian vehicle, forcing them to stop. The camera captures the action from a side tracking shot, showing the vehicles swerving and crashing. Rachel Dawes, observing from a command center, instructs Batman to activate a new phase of the pursuit. The scene ends with the Batmobile speeding into the distance.",
-            "story_beat": "Batman uses the Batmobile to disable a police car and a civilian vehicle during a high-speed chase.",
+            "content": "The scene transitions to a flashback: young Bruce Wayne is in a car with his parents, discussing the city's corruption. The camera cuts to a dark, rainy alley where a man in a hoodie confronts a young man carrying a box. The man in the hoodie points a gun, and the young man is forced to stand up. The camera focuses on Bruce's terrified face as the man in the hoodie approaches him. The scene is tense and atmospheric, with rain falling and shadows moving across the alley.",
+            "story_beat": "The confrontation in the alley where the man in the narrows threatens the young man.",
             "emotion": "Energetic",
-            "visuals": "Side tracking shot of the chase, disabling of vehicles, command center interior, highway setting, dynamic camera movement.",
-            "related_scene": 65
+            "visuals": "Dark, rainy alley, close-up on Bruce's face, rain, shadows, hoodie, gun, shipping containers.",
+            "related_scene": 32
           },
           {
             "id": 5,
             "time_duration": 8.8,
-            "content": "The Batmobile reaches a dramatic climax as it speeds through the tunnel, with the police car losing sight of it. The camera captures a wide shot of the Batmobile emerging from the tunnel, its lights illuminating the night. The scene ends with a close-up of Batman's face, showing determination and triumph. The music reaches its explosive climax, matching the visual intensity.",
-            "story_beat": "Batman's high-speed pursuit of a police car in the Batmobile.",
+            "content": "The scene shifts to the League of Shadows' temple in the mountains. Bruce Wayne, now as Batman, confronts Ra's al Ghul. Ra's al Ghul orders his men to kill Bruce. Bruce fights back, killing Ra's al Ghul and setting the temple on fire. The camera captures the chaos: flames engulfing the temple, Ra's al Ghul falling, and Bruce standing amidst the destruction. The scene ends with a wide shot of the burning temple, symbolizing the end of the League of Shadows and Bruce's past.",
+            "story_beat": "Bruce Wayne kills Ra's al Ghul and destroys the League of Shadows.",
             "emotion": "Triumphant",
-            "visuals": "Wide shot of the Batmobile exiting the tunnel, close-up of Batman's face, dramatic lighting, high-energy camera movement.",
-            "related_scene": 64
+            "visuals": "Temple in flames, fire, combat, Ra's al Ghul falling, wide shot of destruction.",
+            "related_scene": 24
           }
         ]
       }
     },
     {
-      "content": "The full band and vocals return for a final, climactic repetition of the chorus. The visuals show Batman confronting Ra's al Ghul in a brutal duel. Bruce defeats Ra's al Ghul, but the confrontation triggers a massive fire that destroys the temple, leaving Bruce to escape as the structure collapses. This scene represents the climax of his transformation and the cost of his choices.",
+      "content": "Bruce Wayne returns to Wayne Manor, a place he views as a mausoleum, and confronts his grief over his parents' murder. He has a tense conversation with Alfred, who reminds him of his family's legacy and his own responsibility to the future. Bruce then enters his childhood room, where he is overcome with emotion, looking at a photo of his parents and a stethoscope from his childhood. He packs a suitcase containing a gun, symbolizing his decision to take justice into his own hands. The scene concludes with a tender, nostalgic moment with Rachel Dawes, where they share a quiet, intimate conversation about their past and the future, highlighting their deep bond.",
       "audio_section": "Chorus 4",
-      "emotion": "Climactic, powerful",
+      "emotion": "Resolve, Sacrifice, Hope",
       "start_time": 155.4,
       "end_time": 173.0,
       "related_scenes": [
-        24,
-        68,
-        69
+        16,
+        17,
+        18,
+        19,
+        27
       ],
       "shot_plan": {
         "shots": [
           {
             "id": 1,
             "time_duration": 11.7,
-            "content": "The camera captures a high-intensity duel between Bruce Wayne and Ra's al Ghul in a dark, candle-lit temple. Bruce, wearing his League of Shadows attire, fights with precision and determination as Ra's al Ghul, cloaked in shadow, counters with lethal grace. The clash of blades echoes through the chamber, illuminated by flickering candlelight. As the fight reaches its peak, Bruce gains the upper hand, delivering a decisive blow that causes Ra's al Ghul to stagger. The confrontation triggers a massive fire that erupts from the temple's ancient structure, engulfing the walls in flames. Bruce escapes as the temple begins to collapse around him, the fire illuminating his determined face as he runs through the crumbling hall.",
-            "story_beat": "Bruce Wayne defeats Ra's al Ghul in a brutal duel, leading to the destruction of the League of Shadows' temple.",
+            "content": "Bruce Wayne returns to Wayne Manor, a place he views as a mausoleum, and confronts his grief over his parents' murder. He has a tense conversation with Alfred, who reminds him of his family's legacy and his own responsibility to the future. The scene captures the emotional weight of Bruce's internal struggle as he moves through the dimly lit, oppressive halls of the manor.",
+            "story_beat": "Bruce confronts his grief and begins to accept his responsibility to the future.",
             "emotion": "Energetic",
-            "visuals": "Close-up and wide shots of the duel, dynamic camera movement following the combatants, fire spreading rapidly, collapsing architecture, candle-lit temple interior, Bruce running through flames.",
-            "related_scene": 24
+            "visuals": "Wide shots of Wayne Manor's grand, somber interior; close-ups of Bruce's face showing emotional tension; medium shots of Bruce and Alfred in conversation; slow camera movement emphasizing the weight of the space.",
+            "related_scene": 16
           },
           {
             "id": 2,
             "time_duration": 5.9,
-            "content": "The scene shifts to Wayne Manor at night, where Bruce Wayne confronts Ra's al Ghul in a lavish party hall. Ra's, dressed in formal attire, stands calmly as Bruce, now in his Batman suit, reveals that Crane was a pawn in his plan to destroy Gotham with a toxin. Ra's speaks with conviction, justifying his actions as a necessary purge of corruption. Bruce, defiant, declares he will stand between Ra's and the people of Gotham. In a final act of resistance, Bruce triggers a fire in the mansion, engulfing the room in flames. Ra's al Ghul is consumed by the fire, collapsing as the inferno spreads. Bruce remains in the blaze, sacrificing himself to stop the villain's plan.",
-            "story_beat": "Bruce Wayne confronts and kills Ra's al Ghul to stop his plan to destroy Gotham.",
+            "content": "Bruce enters his childhood room, overwhelmed with emotion. He looks at a photo of his parents and a stethoscope from his childhood. He packs a suitcase containing a gun, symbolizing his decision to take justice into his own hands. The scene ends with a tender, nostalgic moment with Rachel Dawes, where they share a quiet, intimate conversation about their past and the future.",
+            "story_beat": "Bruce makes the decision to pursue justice, symbolized by packing the gun, and reconnects with Rachel.",
             "emotion": "Triumphant",
-            "visuals": "Medium and wide shots of the confrontation in the party hall, fire spreading through the mansion, Ra's al Ghul falling in flames, Bruce standing amidst the fire, dramatic lighting from the blaze.",
-            "related_scene": 68
+            "visuals": "Close-up of the photo of Bruce's parents and the stethoscope; medium shot of Bruce packing the suitcase with the gun; intimate two-shot of Bruce and Rachel in soft lighting, conveying emotional depth and connection.",
+            "related_scene": 16
           }
         ]
       }
     },
     {
-      "content": "The song concludes with a repetition of the chorus lyrics over a gradually fading instrumental, bringing the track to a powerful close. The visuals show Bruce Wayne standing amidst the rubble of a destroyed building, contemplating the wreckage. He tells Alfred that he will rebuild the building exactly as it was, brick for brick. Later, Bruce and Alfred walk through the ruins, and Bruce is seen in his Batman suit, looking out over the city. Commissioner Gordon arrives and tells Bruce that he has started something, with hope on the streets and the mob running scared.",
+      "content": "Bruce Wayne, having returned from a seven-year absence, stands on a remote airstrip and watches as Alfred Pennyworth disembarks from a private jet. Inside the plane, they have a profound conversation where Bruce reveals his plan to return to Gotham not as Bruce Wayne, but as a symbol to fight the city's corruption. He explains that he can be destroyed as a man, but as a symbol, he can be incorruptible and everlasting. The scene concludes with a powerful aerial shot of Gotham City at sunrise, symbolizing the dawn of a new era for the city and Bruce's return.",
       "audio_section": "Outro",
-      "emotion": "Resolute, hopeful",
+      "emotion": "Rebirth, Purpose, Legacy",
       "start_time": 173.0,
       "end_time": 219.6,
       "related_scenes": [
-        100,
-        101,
-        99
+        27,
+        28,
+        29,
+        30,
+        33
       ],
       "shot_plan": {
         "shots": [
           {
             "id": 1,
             "time_duration": 8.8,
-            "content": "Bruce Wayne stands amidst the rubble of a destroyed building, looking down at the wreckage. He speaks to Alfred, declaring that he will rebuild the building exactly as it was, brick for brick. The camera holds on his determined expression as the sun casts long shadows across the debris.",
-            "story_beat": "Bruce Wayne decides to rebuild the destroyed building and embraces his role as Batman.",
+            "content": "Bruce Wayne stands on a remote airstrip, watching as Alfred Pennyworth disembarks from a private jet. The camera captures a wide shot of the desolate airstrip at dawn, with the plane's engines still humming. Bruce's posture is resolute, his face set with determination as he observes Alfred's arrival. The scene conveys a sense of return and purpose, with the vast open space emphasizing his isolation and resolve.",
+            "story_beat": "Bruce Wayne returns from a seven-year absence and begins his conversation with Alfred about his plan to return to Gotham as a symbol.",
             "emotion": "Energetic",
-            "visuals": "Static wide shot of Bruce Wayne in the ruins, with broken concrete and twisted metal around him. The camera remains steady, emphasizing his resolve against the backdrop of destruction.",
-            "related_scene": 100
+            "visuals": "Wide shot of a remote airstrip at sunrise, Bruce Wayne standing in the foreground, Alfred exiting a private jet, the plane's engines still active, open sky and distant horizon.",
+            "related_scene": 27
           },
           {
             "id": 2,
             "time_duration": 9.9,
-            "content": "Bruce Wayne and Alfred walk through the ruins of the building. Bruce, now in his Batman suit, turns and looks out over the city from a rooftop. The camera pans slowly across the skyline, capturing the vastness of Gotham as the sun begins to set.",
-            "story_beat": "Bruce Wayne decides to rebuild the destroyed building and embraces his role as Batman.",
+            "content": "Inside the private jet, Bruce Wayne speaks with Alfred Pennyworth, revealing his plan to become a symbol to fight corruption in Gotham. The camera focuses on Bruce's intense expression as he explains that he can be destroyed as a man but not as a symbol. The scene cuts to a powerful aerial shot of Gotham City at sunrise, with the skyline emerging from the darkness, symbolizing a new era.",
+            "story_beat": "Bruce reveals his plan to become a symbol to fight crime in Gotham, culminating in a symbolic aerial view of the city at dawn.",
             "emotion": "Triumphant",
-            "visuals": "Medium tracking shot following Bruce and Alfred through the rubble, transitioning to a wide shot of Batman on the rooftop overlooking the city. The lighting shifts from daylight to dusk.",
-            "related_scene": 100
+            "visuals": "Interior of a private jet with Bruce and Alfred in conversation, close-up on Bruce's face, followed by a sweeping aerial shot of Gotham City at sunrise, city lights fading into daylight.",
+            "related_scene": 27
           },
           {
             "id": 3,
             "time_duration": 5.6,
-            "content": "Bruce Wayne walks through the rubble of the destroyed building with Rachel Dawes. He stops, looks down, and picks up the melted remains of his father's stethoscope. He examines it closely, his face reflecting a moment of emotional memory.",
-            "story_beat": "Bruce Wayne finds his father's melted stethoscope in the rubble.",
+            "content": "Man_in_Black_Suit sits in a dimly lit room, surrounded by newspaper clippings and photographs. He writes notes with intense focus, then looks up in shock as a bat flies past a chandelier. His face contorts with fear as he stares in terror. Alfred walks down a long hallway carrying a silver tea tray, and Man_in_Black continues to stare in horror.",
+            "story_beat": "Man_in_Black's realization and terror as a bat flies past him, marking the beginning of his fear of the Batman.",
             "emotion": "Melancholic",
-            "visuals": "Close-up on Bruce's hands as he picks up the broken stethoscope. The camera lingers on his face, showing a quiet, reflective expression. The background is the ruined building and a green field beyond.",
-            "related_scene": 99
+            "visuals": "Dimly lit room with scattered clippings and photos, Man_in_Black writing, bat flying past chandelier, close-up of his terrified face, Alfred walking down a hallway with a tea tray.",
+            "related_scene": 28
           },
           {
             "id": 4,
             "time_duration": 9.6,
-            "content": "Bruce Wayne stands alone on a rooftop at night, looking out over Gotham. The city lights flicker below as he listens to Commissioner Gordon, who tells him he has started something—hope on the streets and the mob running scared. Bruce remains silent, his silhouette framed against the skyline.",
-            "story_beat": "Batman is presented with a Joker playing card as evidence of a new crime.",
+            "content": "Bruce Wayne returns to Wayne Manor, descending a long staircase into a hidden cave. Inside the dark cavern, he is overcome with fear and nostalgia, reliving the traumatic memory of his parents' murder. He then meets with Lucius Fox at Wayne Enterprises, learning about his father's secret research. Later, he visits Alfred in the basement of Wayne Manor, where Alfred reveals a hidden armory containing the prototype Batsuit and other advanced technology. Bruce examines the Kevlar harness and grapple gun, contemplating his future as Batman.",
+            "story_beat": "Bruce discovers the Batsuit and begins his transformation into Batman, reflecting on his past and future.",
             "emotion": "Melancholic",
-            "visuals": "Static wide shot of Batman on the rooftop, with Commissioner Gordon standing nearby. The camera slowly zooms in on Bruce’s face, capturing his stoic expression as the city hums below.",
-            "related_scene": 101
+            "visuals": "Long staircase descent into a dark cave, Bruce in the Batcave, flashbacks of his parents' murder, meeting Lucius Fox, Alfred revealing the armory, close-ups of the Batsuit components.",
+            "related_scene": 29
           },
           {
             "id": 5,
             "time_duration": 12.7,
-            "content": "Commissioner Gordon stands on a Gotham rooftop at night, confronting Batman. He speaks about the chaos in the city and the new case involving a double homicide with a theatrical flair. He holds up a Joker playing card as evidence. Batman listens intently, his expression unreadable, then turns away, silently acknowledging the threat.",
-            "story_beat": "Batman is presented with a Joker playing card as evidence of a new crime.",
+            "content": "Bruce Wayne and Alfred explore the vast, hidden underground caverns beneath Wayne Manor. Alfred explains the historical significance of the tunnels, revealing they were used by Bruce's ancestor in the Underground Railroad. Bruce, now in his Batman suit, walks through the caverns, his face illuminated by a waterfall, and he reaches out to touch the water, a moment of profound connection with his legacy. He and Alfred collaborate on the design of the Batsuit, with Alfred pointing to sketches, and Bruce is seen painting the suit in a workshop. The scene concludes with a shot of Gotham City at night, establishing the world where Batman will operate.",
+            "story_beat": "Bruce discovers the hidden caverns and begins his transformation into Batman, culminating in a view of Gotham at night.",
             "emotion": "Mysterious",
-            "visuals": "Medium shot of Gordon and Batman on the rooftop. The camera focuses on the Joker card as it is presented, then cuts to Batman’s profile as he turns. The scene is dark, with ambient city lights and a slow, atmospheric camera movement.",
-            "related_scene": 101
+            "visuals": "Underground caverns with waterfalls, Bruce in Batman suit touching water, Alfred showing sketches, Bruce painting the suit, final wide shot of Gotham City at night.",
+            "related_scene": 30
           }
         ]
       }

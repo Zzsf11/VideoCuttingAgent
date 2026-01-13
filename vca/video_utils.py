@@ -184,6 +184,60 @@ def _adjust_scene_boundaries(scenes: List) -> List:
     return adjusted
 
 
+def _split_long_scenes(
+    scenes: List[List[int]],
+    sample_fps: float,
+    max_scene_duration_sec: float = 300.0,  # 5 minutes = 300 seconds
+) -> List[List[int]]:
+    """
+    Split scenes that exceed the maximum duration into smaller segments.
+
+    Args:
+        scenes: List of scene boundaries [[start_frame, end_frame], ...]
+        sample_fps: The FPS used for frame extraction
+        max_scene_duration_sec: Maximum allowed scene duration in seconds (default: 300 = 5 minutes)
+
+    Returns:
+        List of scene boundaries with long scenes split into smaller segments.
+
+    Example:
+        If a scene spans frames 0-1800 at 2 FPS (15 minutes), and max is 5 minutes (600 frames),
+        it will be split into: [[0, 599], [600, 1199], [1200, 1800]]
+    """
+    if not scenes:
+        return scenes
+
+    max_frames_per_scene = int(max_scene_duration_sec * sample_fps)
+
+    split_scenes = []
+    scenes_split_count = 0
+
+    for scene in scenes:
+        start_frame, end_frame = scene[0], scene[1]
+        scene_length = end_frame - start_frame + 1
+
+        if scene_length <= max_frames_per_scene:
+            # Scene is within limit, keep as is
+            split_scenes.append([start_frame, end_frame])
+        else:
+            # Scene exceeds limit, split it
+            scenes_split_count += 1
+            current_start = start_frame
+
+            while current_start <= end_frame:
+                current_end = min(current_start + max_frames_per_scene - 1, end_frame)
+                split_scenes.append([current_start, current_end])
+                current_start = current_end + 1
+
+    if scenes_split_count > 0:
+        original_count = len(scenes)
+        new_count = len(split_scenes)
+        print(f"[Scene Split] Split {scenes_split_count} long scenes (>{max_scene_duration_sec}s) "
+              f"into smaller segments: {original_count} -> {new_count} scenes")
+
+    return split_scenes
+
+
 def _scenedetect_shot_detection(
     video_path: str,
     threshold: float = 3.0,

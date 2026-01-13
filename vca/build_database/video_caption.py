@@ -13,6 +13,11 @@ from .. import config
 import functools
 from typing import Tuple
 import copy
+import glob
+
+# Import scene merge and analysis functions
+from .scene_merge import OptimizedSceneSegmenter, load_shots, save_scenes
+from .scene_analysis_video import SceneVideoAnalyzer
 
 # 定义核心 Prompt (保持之前设计的结构化指令)
 messages = [
@@ -520,21 +525,23 @@ def _caption_clip(task: Tuple[str, Dict], caption_ckpt_folder) -> Tuple[str, dic
         max_tokens=config.VIDEO_ANALYSIS_MODEL_MAX_TOKEN,
     )["content"]
     json_data = parse_json_safely(resp)
-    json_data["duration"] = {
-            "clip_start_time": clip_start_time, # 建议保留2位小数
-            "clip_end_time": clip_end_time
-        }
-    json_data["frame_range"] = frame_range
 
     save_path = os.path.join(caption_ckpt_folder, f"{timestamp}.json")
     if json_data:
+        # Add duration and frame_range only if json_data is valid
+        json_data["duration"] = {
+            "clip_start_time": clip_start_time,
+            "clip_end_time": clip_end_time
+        }
+        json_data["frame_range"] = frame_range
+
         with open(save_path, 'w', encoding='utf-8') as f:
             json.dump(json_data, f, indent=2, ensure_ascii=False)
         return None # Success
     else:
         # 解析失败，保存原始内容以便 Debug
         with open(save_path.replace('.json', '.txt'), 'w', encoding='utf-8') as f:
-            f.write(resp)
+            f.write(resp if resp else "No response from model")
         return f"JSON Parse Error in {timestamp_parts}.json"
 
 def process_video(
@@ -542,15 +549,17 @@ def process_video(
     output_caption_folder: str,
     subtitle_file_path: str = None,
     long_shots_path: str = None,
+    video_type: str = "film",
 ):
     """
     Process video and generate captions.
-    
+
     Args:
         frame_folder: Path to folder containing video frames
         output_caption_folder: Path to save caption outputs
         subtitle_file_path: Optional path to subtitle file (.srt)
         long_shots_path: Optional path to shot_scenes.txt file for scene-based processing
+        video_type: Type of video ("film" or "vlog"). For vlog, subtitles will not be auto-searched.
     """
     caption_ckpt_folder = os.path.join(output_caption_folder, "ckpt")
     os.makedirs(caption_ckpt_folder, exist_ok=True)
@@ -594,3 +603,99 @@ def process_video(
 
     # # 如果你需要保持结果的顺序（原imap_unordered是无序的）
     # # 但既然改为串行了，结果就是按顺序的
+
+    # ============ Step 2: Scene Merge ============
+    print("\n" + "="*50)
+    print("Step 2: Merging shots into scenes...")
+    print("="*50)
+
+    scenes_dir = os.path.join(output_caption_folder, "scenes")
+    scenes_output = os.path.join(scenes_dir, "scene_0.json")
+
+    if not os.path.exists(scenes_output):
+        # Load shots from ckpt folder
+        shots = load_shots(caption_ckpt_folder)
+        print(f"Loaded {len(shots)} shots from {caption_ckpt_folder}")
+
+        if shots:
+            # Initialize segmenter
+            segmenter = OptimizedSceneSegmenter()
+
+            # Merge shots into scenes
+            merged_scenes = segmenter.segment(
+                shots,
+                threshold=getattr(config, 'SCENE_SIMILARITY_THRESHOLD', 0.5),
+                max_scene_duration_secs=getattr(config, 'MAX_SCENE_DURATION_SECS', 300)
+            )
+
+            print(f"Merged {len(shots)} shots into {len(merged_scenes)} scenes")
+
+            # Save scenes
+            save_scenes(merged_scenes, scenes_dir)
+            print(f"Scenes saved to {scenes_dir}")
+        else:
+            print("Warning: No shots found to merge")
+    else:
+        print(f"Scenes already exist at {scenes_dir}, skipping merge")
+
+    # ============ Step 3: Scene Video Analysis ============
+    print("\n" + "="*50)
+    print("Step 3: Analyzing scenes with video understanding...")
+    print("="*50)
+
+    scene_summaries_dir = os.path.join(output_caption_folder, "scene_summaries_video")
+    first_summary = os.path.join(scene_summaries_dir, "scene_0.json")
+
+    if os.path.exists(scenes_dir) and not os.path.exists(first_summary):
+        # Get parent directory to find frames and subtitle
+        # frame_folder structure: .../Video/{video_id}/frames
+        # We need to go up from output_caption_folder to find frames
+        video_base_dir = os.path.dirname(output_caption_folder)
+
+        # For vlog, don't search for subtitles; for film, check for subtitle files
+        subtitle_to_use = None
+        if video_type != "vlog":
+            # Check for subtitle files with character names first
+            subtitle_candidates = [
+                os.path.join(video_base_dir, "subtitles_with_characters.srt"),
+                os.path.join(video_base_dir, "subtitles.srt")
+            ]
+            for candidate in subtitle_candidates:
+                if os.path.exists(candidate):
+                    subtitle_to_use = candidate
+                    break
+
+        # Initialize analyzer
+        analyzer = SceneVideoAnalyzer(
+            frames_dir=frame_folder,
+            subtitle_file=subtitle_to_use
+        )
+
+        # Create output directory
+        os.makedirs(scene_summaries_dir, exist_ok=True)
+
+        # Get all scene files
+        scene_files = sorted(glob.glob(os.path.join(scenes_dir, "scene_*.json")))
+
+        print(f"Processing {len(scene_files)} scenes...")
+
+        # Process each scene
+        success_count = 0
+        for scene_file in tqdm(scene_files, desc="Analyzing scenes"):
+            scene_name = os.path.basename(scene_file)
+            output_file = os.path.join(scene_summaries_dir, scene_name)
+
+            result = analyzer.process_file(scene_file, output_file)
+            if result == "Success":
+                success_count += 1
+
+        print(f"Scene analysis completed: {success_count}/{len(scene_files)} scenes processed")
+        print(f"Scene summaries saved to {scene_summaries_dir}")
+    elif os.path.exists(first_summary):
+        print(f"Scene summaries already exist at {scene_summaries_dir}, skipping analysis")
+    else:
+        print(f"Warning: Scenes directory not found at {scenes_dir}, skipping scene analysis")
+
+    print("\n" + "="*50)
+    print("Video processing complete!")
+    print("="*50)

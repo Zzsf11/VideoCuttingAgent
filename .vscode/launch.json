@@ -75,10 +75,10 @@
             "justMyCode": false
         },
                 {
-            "name": "vca.Screenwriter_scene",
+            "name": "vca.Screenwriter_scene_short",
             "type": "python",
             "request": "launch",
-            "module": "vca.Screenwriter_scene",
+            "module": "vca.Screenwriter_scene_short",
             "console": "integratedTerminal",
             "justMyCode": false
         },
@@ -112,5 +112,50 @@
             "console": "integratedTerminal",
             "justMyCode": false
         }
+        ,
+            {
+                "name": "demo_pitch_topk.py",
+                "type": "python",
+                "request": "launch",
+                "program": "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/aubio/python/demos/demo_pitch_topk.py",
+                "args": [
+                "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Way_Down_We_Go.wav",
+                "--topk",
+                "100",
+                "-c",
+                "0.6"
+                ],
+                "console": "integratedTerminal",
+                "justMyCode": false
+            }
+            ,
+            {
+                "name": "Python: local_run.py The Dark Knight (Joker narrative)",
+                "type": "python",
+                "request": "launch",
+                "program": "${workspaceFolder}/local_run.py",
+                "args": [
+                    "--Video_Path",
+                    "Dataset/Video/Movie/The_Dark_Knight.mkv",
+                    "--Audio_Path",
+                    "Dataset/Audio/Way_Down_We_Go.mp3",
+                    "--Instruction",
+                    "A mesmerizing showcase of the Joker's chaotic presence, capturing his unsettling mannerisms—the constant licking of scarred lips, the unpredictable head tilts, the disturbingly calm smile amidst carnage. Sync his erratic movements and explosive laughter to the song's building tension, highlighting close-ups of his smeared makeup, the purple coat swirling as he orchestrates destruction, and those haunting green eyes that embody pure anarchy.",
+                    "--instruction_type",
+                    "object",
+                    "--config.MAIN_CHARACTER_NAME",
+                    "Joker",
+                    "--type",
+                    "film",
+                    "--config.AUDIO_MIN_SEGMENT_DURATION",
+                    "2",
+                    "--config.AUDIO_MAX_SEGMENT_DURATION",
+                    "7",
+                    "--config.AUDIO_TOTAL_SHOTS",
+                    "50"
+                ],
+                "console": "integratedTerminal",
+                "justMyCode": false
+            }
     ]
 }

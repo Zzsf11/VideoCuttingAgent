@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-from vca.build_database.video_caption_ori import convert_seconds_to_hhmmss
+from vca.build_database.video_caption import convert_seconds_to_hhmmss
 from nano_vectordb import NanoVectorDB
 from vca import config
 import multiprocessing
@@ -45,8 +45,7 @@ def init_single_video_db(video_caption_json_path, output_video_db_path, emb_dim)
                 }
             )
         _ = vdb.upsert(data)
-        with open(video_caption_json_path, "r") as f:
-            captions = json.load(f)
+        captions = load_captions_from_path(video_caption_json_path)
         subject_registry = captions.pop('subject_registry', captions.pop('character_registry', None))
         # 解析时间戳格式：可能是 "0_21" 或 "8393_8396_shot2044_sub18"
         video_length = max([float(k.split("_")[1]) for k in captions.keys() if "_" in k])
@@ -61,9 +60,49 @@ def init_single_video_db(video_caption_json_path, output_video_db_path, emb_dim)
         vdb.save()
     return vdb
 
+def load_captions_from_path(caption_json_path):
+    """
+    Load captions from either a single JSON file or from ckpt directory.
+
+    Args:
+        caption_json_path: Path to captions.json or captions directory
+
+    Returns:
+        dict: Merged captions from all sources
+    """
+    # Check if the file exists
+    if os.path.isfile(caption_json_path):
+        with open(caption_json_path, "r") as f:
+            return json.load(f)
+
+    # If file doesn't exist, check for ckpt directory
+    captions_dir = os.path.dirname(caption_json_path) if caption_json_path.endswith('.json') else caption_json_path
+    ckpt_dir = os.path.join(captions_dir, "ckpt")
+
+    if os.path.isdir(ckpt_dir):
+        print(f"captions.json not found, loading from ckpt directory: {ckpt_dir}")
+        captions = {}
+
+        # Read all JSON files in ckpt directory
+        json_files = sorted([f for f in os.listdir(ckpt_dir) if f.endswith('.json')])
+        print(f"Found {len(json_files)} caption files in ckpt directory")
+
+        for json_file in json_files:
+            timestamp_key = json_file.replace('.json', '')
+            file_path = os.path.join(ckpt_dir, json_file)
+            try:
+                with open(file_path, 'r') as f:
+                    caption_data = json.load(f)
+                    captions[timestamp_key] = caption_data
+            except Exception as e:
+                print(f"Warning: Failed to load {json_file}: {e}")
+
+        return captions
+
+    raise FileNotFoundError(f"Cannot find captions at {caption_json_path} or {ckpt_dir}")
+
 def preprocess_captions(caption_json_path):
-    with open(caption_json_path, "r") as f:
-        captions = json.load(f)
+    captions = load_captions_from_path(caption_json_path)
     scripts = []
     captions.pop('subject_registry', None)
     captions.pop('character_registry', None)

@@ -321,6 +321,9 @@ def write_srt(subtitles: List[Dict], output_path: str):
         subtitles: List of subtitle entries
         output_path: Path to output SRT file
     """
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
     with open(output_path, 'w', encoding='utf-8') as f:
         for sub in subtitles:
             f.write(f"{sub['index']}\n")
@@ -339,6 +342,9 @@ def write_character_info(character_info: Dict, output_path: str):
         character_info: Character identification results
         output_path: Path to output JSON file
     """
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(character_info, f, ensure_ascii=False, indent=2)
 

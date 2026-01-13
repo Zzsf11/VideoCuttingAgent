@@ -9,7 +9,7 @@
 #SBATCH --ntasks-per-node=1         # 每个节点运行1个任务
 #SBATCH --cpus-per-task=16          # 为任务申请16个CPU核心
 #SBATCH --mem=128G                  # 申请128GB内存
-#SBATCH --time=8:00:00              # 任务最长运行时间（4小时）
+#SBATCH --time=12:00:00              # 任务最长运行时间（4小时）
 #SBATCH --output=output/Qwen3_8891_vllm-server.out       # 将标准输出重定向到 slurm-JOBID.out 文件
 
 #===============================================================

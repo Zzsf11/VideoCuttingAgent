@@ -11,6 +11,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 SHOTS_DIR = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/VLOG_Lisbon/captions/ckpt"       # 输入：存放单镜头 json 的文件夹
 SCENES_DIR = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/VLOG_Lisbon/captions/scenes"     # 输出：存放合并后 scene json 的文件夹
 SIMILARITY_THRESHOLD = 0.5 # 切分阈值 (越低越难切分，越高越容易切分)
+MAX_SCENE_DURATION_SECS = 300  # 单个场景最大时长（秒），超过此值将被拆分，默认5分钟
 # ===========================================
 
 class OptimizedSceneSegmenter:
@@ -242,7 +243,106 @@ class OptimizedSceneSegmenter:
 
         return scenes_pass_2
 
-    def segment(self, shots, threshold=0.5):
+    def _split_long_scenes(self, scenes, max_duration_secs=300):
+        """
+        拆分超过最大时长的场景
+
+        Args:
+            scenes: 场景列表，每个场景是一个 shot 列表
+            max_duration_secs: 单个场景允许的最大时长（秒），默认5分钟
+
+        Returns:
+            拆分后的场景列表
+        """
+        if not scenes or max_duration_secs <= 0:
+            return scenes
+
+        split_scenes = []
+        scenes_split_count = 0
+
+        for scene_shots in scenes:
+            if not scene_shots:
+                continue
+
+            # 计算场景时长
+            first_shot = scene_shots[0]
+            last_shot = scene_shots[-1]
+
+            start_time = first_shot.get('duration', {}).get('clip_start_time', 0)
+            end_time = last_shot.get('duration', {}).get('clip_end_time', 0)
+
+            # 如果时间信息是字符串格式，尝试转换
+            if isinstance(start_time, str):
+                start_time = self._time_str_to_seconds(start_time)
+            if isinstance(end_time, str):
+                end_time = self._time_str_to_seconds(end_time)
+
+            scene_duration = end_time - start_time
+
+            if scene_duration <= max_duration_secs:
+                # 场景时长在限制内，保持不变
+                split_scenes.append(scene_shots)
+            else:
+                # 场景时长超过限制，需要拆分
+                scenes_split_count += 1
+
+                # 计算需要拆分成多少段
+                num_segments = int(np.ceil(scene_duration / max_duration_secs))
+                target_duration_per_segment = scene_duration / num_segments
+
+                current_segment = []
+                segment_start_time = start_time
+
+                for shot in scene_shots:
+                    shot_end_time = shot.get('duration', {}).get('clip_end_time', 0)
+                    if isinstance(shot_end_time, str):
+                        shot_end_time = self._time_str_to_seconds(shot_end_time)
+
+                    current_segment.append(shot)
+
+                    # 检查当前段是否已达到目标时长
+                    segment_duration = shot_end_time - segment_start_time
+
+                    if segment_duration >= target_duration_per_segment and len(current_segment) >= 1:
+                        # 保存当前段，开始新段
+                        split_scenes.append(current_segment)
+                        current_segment = []
+                        segment_start_time = shot_end_time
+
+                # 处理剩余的 shots
+                if current_segment:
+                    # 如果剩余部分太短，合并到前一个段
+                    if split_scenes and len(current_segment) <= 2:
+                        split_scenes[-1].extend(current_segment)
+                    else:
+                        split_scenes.append(current_segment)
+
+        if scenes_split_count > 0:
+            original_count = len(scenes)
+            new_count = len(split_scenes)
+            print(f"[Scene Split] Split {scenes_split_count} long scenes (>{max_duration_secs}s) "
+                  f"into smaller segments: {original_count} -> {new_count} scenes")
+
+        return split_scenes
+
+    def _time_str_to_seconds(self, time_str):
+        """将时间字符串转换为秒数"""
+        if isinstance(time_str, (int, float)):
+            return float(time_str)
+        try:
+            parts = str(time_str).split(':')
+            if len(parts) == 3:
+                h, m, s = parts
+                return int(h) * 3600 + int(m) * 60 + float(s)
+            elif len(parts) == 2:
+                m, s = parts
+                return int(m) * 60 + float(s)
+            else:
+                return float(parts[0])
+        except:
+            return 0.0
+
+    def segment(self, shots, threshold=0.5, max_scene_duration_secs=300):
         if not shots:
             return []
             
@@ -292,7 +392,10 @@ class OptimizedSceneSegmenter:
             
         scenes.append(current_scene)
         # 3. 执行后处理合并
-        final_scenes = self._post_process_merge(scenes)
+        merged_scenes = self._post_process_merge(scenes)
+
+        # 4. 拆分超长场景
+        final_scenes = self._split_long_scenes(merged_scenes, max_scene_duration_secs)
         return final_scenes
 
 def natural_sort_key(s):
@@ -377,7 +480,12 @@ def main():
     # threshold 建议：
     # 0.4 - 0.5: 倾向于合并 (场景更长，容错率高)
     # 0.6 - 0.7: 倾向于切分 (场景更碎，更敏感)
-    merged_scenes = segmenter.segment(shots, threshold=SIMILARITY_THRESHOLD)
+    # max_scene_duration_secs: 超过此时长（秒）的场景将被拆分
+    merged_scenes = segmenter.segment(
+        shots,
+        threshold=SIMILARITY_THRESHOLD,
+        max_scene_duration_secs=MAX_SCENE_DURATION_SECS
+    )
     
     print(f"Merged {len(shots)} shots into {len(merged_scenes)} scenes.")
     

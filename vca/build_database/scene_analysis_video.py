@@ -21,7 +21,7 @@ from vca import config
 
 # ================= 配置 =================
 # 数据路径
-DATABASE_ROOT = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/Batman_Begins_2005_1080p_BluRay_x264_YIFY"
+DATABASE_ROOT = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Database/VLOG_Lisbon"
 FRAMES_DIR = os.path.join(DATABASE_ROOT, "frames")
 SCENES_DIR = os.path.join(DATABASE_ROOT, "captions", "scenes")
 OUTPUT_DIR = os.path.join(DATABASE_ROOT, "captions", "scene_summaries_video_new")
@@ -45,32 +45,90 @@ MAX_WORKERS = 8  # 并发数
 # 场景级视频理解 Prompt（以人物为主体）
 SCENE_VIDEO_CAPTION_PROMPT = """
 [Role]
-You are an expert Film Analyst. Analyze the provided scene frames and generate a CHARACTER-CENTRIC narrative description.
+You are an expert Film Analyst specializing in video editing material selection. Your job is to:
+1. Classify scenes by type and content quality
+2. Score scene importance for video editing purposes
+3. Generate character-centric narrative descriptions
 
 [CRITICAL INSTRUCTION - SCENE CLASSIFICATION]
-FIRST, classify the scene type. Non-content scenes are NOT suitable for video editing:
-- **content**: Main story content with characters and narrative (USABLE for editing)
-- **studio_logo**: Production company logos (Warner Bros., DC Comics, Legendary, etc.) - NOT usable
-- **title_card**: Movie title cards or chapter titles - NOT usable
+FIRST, scan ALL frames and classify the scene. Be especially careful about:
+
+**Scene Types** (check the FIRST few frames carefully):
+- **content**: Main story content with characters and meaningful narrative (potentially USABLE)
+- **studio_logo**: Production company logos (Warner Bros., DC Comics, Legendary, Syncopy, etc.) - NOT usable
+- **title_card**: Movie title cards, chapter titles, or stylized text screens - NOT usable
 - **credits**: Opening/ending credits, cast/crew text overlays - NOT usable
 - **transition**: Pure black screens, fade transitions, or abstract non-narrative visuals - NOT usable
+- **mixed**: Scene STARTS with logo/credits/title but transitions to content - PARTIALLY usable (note the transition point)
 
-If scene_type is NOT "content", you can skip detailed character/narrative analysis.
+**IMPORTANT**: If the FIRST frame shows a logo (e.g., "Warner Bros. Pictures"), the scene_type should be "studio_logo" or "mixed", NOT "content"!
+
+[CRITICAL INSTRUCTION - IMPORTANCE SCORING]
+Score each scene's editing value (0-5). Consider TWO dimensions:
+
+**Dimension A - Emotional Intensity** (high emotion = higher score):
+- **Intense emotions**: Fighting, kissing, crying, screaming, rage, fear, despair, joy, reunion
+- **Physical action**: Combat, chase, explosion, falling, running
+- **Intimate moments**: Confession, embrace, death of loved one, betrayal revelation
+
+**Dimension B - Visual Quality** (cinematic shots = higher score):
+- **Striking compositions**: Beautiful close-ups, dramatic wide shots, silhouettes
+- **Atmospheric shots**: Sunset/sunrise, rain, fog, city skyline at night
+- **Dynamic camera**: Sweeping crane shots, intense tracking shots, slow-motion
+
+**Scoring Guide**:
+**5 - Essential**:
+   - Core plot events with HIGH emotional intensity (murder, climactic fight, passionate kiss, tragic death)
+   - Character-defining moments with strong emotion (rage outburst, breakdown crying, triumphant victory)
+   - Visually stunning + emotionally powerful combinations
+   - Examples: Parent's murder scene, final battle, romantic climax, hero's sacrifice
+
+**4 - Very Important**:
+   - Key plot with moderate emotion OR high emotion with less plot significance
+   - Beautifully shot emotional moments (tearful goodbye, tense confrontation)
+   - Impressive action sequences, dramatic reveals
+   - Examples: Intense dialogue confrontation, chase scene, emotional reunion
+
+**3 - Moderately Important**:
+   - Supporting scenes with some emotional content or good visual quality
+   - Character interactions with tension or warmth
+   - Well-composed establishing shots of important locations
+   - Examples: Planning scene with conflict, scenic wide shot of Gotham
+
+**2 - Low Importance**:
+   - Neutral emotional content, standard cinematography
+   - Pure exposition without tension, transitional moments
+   - Flashbacks without strong emotion or new revelation
+   - Examples: Walking through hallway, casual conversation
+
+**1 - Minimal Value**:
+   - Flat emotional content, poor or unremarkable visuals
+   - Filler, repetitive, or redundant scenes
+   - Examples: Extended static shots, repeated information
+
+**0 - Not Usable**: Non-content (logos, credits, black screens)
+
+**BOOST scores for**: Crying, fighting, kissing, screaming, explosions, beautiful landscapes, dramatic lighting, slow-motion, close-ups showing intense emotion
+
+**Flashback/Memory Scenes**: These are often 2-3 importance unless they reveal critical backstory.
+Childhood scenes showing young versions of characters typically score 2-3 unless they depict traumatic/formative events (like parents' death = 5).
 
 [CRITICAL INSTRUCTION - NARRATIVE]
-For "content" scenes, you must write a COHERENT STORY, not describe individual frames. Your description should:
+For "content" or "mixed" scenes, write a COHERENT STORY:
 1. Use CHARACTER NAMES as sentence subjects (e.g., "Bruce watches in horror" NOT "A boy is shown watching")
 2. Tell the COMPLETE EVENT from beginning to end
 3. Connect cause and effect (what triggers what, and what are the consequences)
 4. Integrate dialogue with visual actions
+5. For flashbacks: clearly indicate "In a flashback/memory, young Bruce..."
 
 [Pattern Recognition]
-- Gun drawn + Shot fired + Person falls + Child cries = MURDER scene - describe it as "X shoots Y, killing them"
-- Formal attire + Child + Parents = FAMILY
+- Gun drawn + Shot fired + Person falls + Child cries = MURDER scene (importance: 5)
+- Formal attire + Child + Parents = FAMILY scene
+- Young version of main character playing = CHILDHOOD FLASHBACK (importance: 2-3 unless traumatic)
 - If dialogue mentions names, USE those names for the characters
-- Logo on screen + no characters + abstract background = studio_logo
-- Text overlay listing names/roles = credits
-- Movie title text on screen = title_card
+- Logo on screen + no characters + abstract background = studio_logo (importance: 0)
+- Text overlay listing names/roles = credits (importance: 0)
+- Movie title text on screen = title_card (importance: 0)
 
 [Input]
 - **Known Characters**: {CHARACTERS}
@@ -80,23 +138,182 @@ For "content" scenes, you must write a COHERENT STORY, not describe individual f
 [Output Schema - JSON]
 {
   "scene_classification": {
-    "scene_type": "content/studio_logo/title_card/credits/transition",
-    "important_score": true/false,
-    "unusable_reason": "null if usable, otherwise: 'Studio logo (Warner Bros.)', 'End credits', 'Title card', 'Transition/Black screen', etc."
+    "scene_type": "content/studio_logo/title_card/credits/transition/mixed",
+    "is_usable": true/false,
+    "importance_score": 0-5,
+    "unusable_reason": "null if fully usable, otherwise explain: 'Studio logo (Warner Bros.)', 'Childhood flashback with low narrative value', 'Opening credits', etc.",
+    "contains_non_content": "If mixed scene, describe what non-content elements exist (e.g., 'First 21 seconds contain Warner Bros. logo')"
   },
   "scene_summary": {
-    "narrative": "3-5 sentence coherent story using character names. For non-content scenes: brief description like 'Warner Bros. Pictures logo appears against cloudy sky. And indicate is not usable for video editing.'",
-    "key_event": "Single most important event (e.g., 'Reunion with the lost dog'). For non-content: 'Studio logo display' or 'Credits roll'",
+    "narrative": "3-5 sentence coherent story using character names. For non-content: brief description. For flashbacks: clearly indicate it's a memory/flashback.",
+    "key_event": "Single most important event. For non-content: 'Studio logo display'. For flashbacks: 'Childhood memory of X'",
     "location": "Specific location",
-    "time": "Day/Night"
-  }
+    "time": "Day/Night",
+    "scene_function": "plot_progression/character_development/flashback/exposition/action/emotional_beat/establishment/transition"
+  },
   "narrative_elements": {
-    "conflict": "Type of conflict",
+    "conflict": "Type of conflict (or 'None' for non-narrative scenes)",
     "mood_arc": "Emotional progression",
-    "cause_effect": "What triggers the event and its consequences"
+    "cause_effect": "What triggers the event and its consequences",
+    "editing_notes": "Specific notes for video editors (e.g., 'Skip first 21 seconds of logo', 'Good establishing shot', 'Contains key dialogue about X')"
   }
 }
 """
+
+# 场景级视频理解 Prompt（Vlog旅行风景版）
+VLOG_SCENE_CAPTION_PROMPT = """
+[Role]
+You are an expert Travel Vlog Analyst specializing in video editing material selection. Your job is to:
+1. Classify scenes by type and content quality
+2. Score scene importance for travel vlog editing purposes
+3. Generate journey-centric narrative descriptions focusing on landscapes, experiences, and creator expression
+
+[CRITICAL INSTRUCTION - SCENE CLASSIFICATION]
+FIRST, scan ALL frames and classify the scene. Be especially careful about:
+
+**Scene Types** (check the FIRST few frames carefully):
+- **scenery**: Beautiful landscapes, natural wonders, cityscapes, architectural landmarks (HIGH VALUE)
+- **journey**: Travel process - walking, driving, flying, sailing, exploring new places (HIGH VALUE)
+- **creator_moment**: Vlogger speaking to camera, expressing thoughts, sharing experiences (HIGH VALUE)
+- **local_culture**: Local food, markets, festivals, people, traditions (MODERATE-HIGH VALUE)
+- **b_roll**: Atmospheric shots, detail shots, ambient footage without clear subject (MODERATE VALUE)
+- **transition**: Pure black screens, fade transitions, or abstract non-narrative visuals - NOT usable
+- **technical_issue**: Blurry footage, accidental recording, equipment malfunction - NOT usable
+- **mixed**: Scene contains multiple types above - note the composition
+
+**IMPORTANT**: Prioritize scenes that capture the ESSENCE of travel - the beauty of discovery, the emotion of experiencing new places, and authentic creator expression!
+
+[CRITICAL INSTRUCTION - IMPORTANCE SCORING]
+Score each scene's editing value (0-5). Consider THREE dimensions:
+
+**Dimension A - Visual Beauty** (stunning visuals = higher score):
+- **Natural landscapes**: Mountains, oceans, sunsets, forests, lakes, waterfalls, starry skies
+- **Urban aesthetics**: Skylines, historic architecture, charming streets, night cityscapes
+- **Atmospheric moments**: Golden hour light, morning mist, rain, snow, dramatic clouds
+- **Unique perspectives**: Drone shots, elevated viewpoints, reflections, silhouettes
+
+**Dimension B - Journey Authenticity** (genuine travel experience = higher score):
+- **First encounters**: Arriving at a new place, first glimpse of landmark, initial reactions
+- **Immersive moments**: Walking through local markets, tasting local food, interacting with locals
+- **Adventure activities**: Hiking, swimming, cycling, exploring hidden spots
+- **Transit poetry**: Window views from trains/planes, road trip scenery, boat rides
+
+**Dimension C - Creator Expression** (emotional connection = higher score):
+- **Genuine reactions**: Awe, excitement, peace, wonder, gratitude
+- **Personal reflections**: Thoughts about the journey, life insights, cultural observations
+- **Storytelling moments**: Sharing history, explaining context, narrating experiences
+- **Vulnerable moments**: Challenges faced, lessons learned, honest feelings
+
+**Scoring Guide**:
+**5 - Essential (Must Include)**:
+   - Breathtaking landscape shots with exceptional composition (sunrise over mountains, ocean panorama)
+   - Iconic landmark reveals with emotional creator reaction
+   - Powerful creator monologue with beautiful backdrop
+   - Once-in-a-lifetime moments (aurora, wildlife encounter, perfect sunset)
+   - Examples: First view of Eiffel Tower at golden hour, standing atop a mountain summit, emotional reflection at journey's end
+
+**4 - Very Important**:
+   - Beautiful scenery with good lighting and composition
+   - Meaningful journey moments showing exploration and discovery
+   - Engaging creator content with authentic expression
+   - Unique local experiences well captured
+   - Examples: Walking through charming old town streets, tasting famous local dish, scenic train window views
+
+**3 - Moderately Important**:
+   - Pleasant scenery, standard tourist spots well-shot
+   - Transitional journey moments that maintain narrative flow
+   - Creator content with moderate engagement value
+   - Cultural moments that add context
+   - Examples: Hotel room tour with nice view, walking to destination, explaining travel plans
+
+**2 - Low Importance**:
+   - Average visuals without distinctive beauty
+   - Repetitive travel footage (similar walking shots, routine activities)
+   - Filler content without strong narrative purpose
+   - Examples: Packing luggage, waiting at airport, generic street walking
+
+**1 - Minimal Value**:
+   - Poor lighting, shaky footage, unflattering compositions
+   - Extended footage without visual interest or narrative purpose
+   - Redundant content that doesn't add new information
+   - Examples: Long static shots of nothing particular, repeated similar angles
+
+**0 - Not Usable**: Technical issues, accidental recordings, black screens, completely blurry footage
+
+**BOOST scores for**:
+- Golden hour/blue hour lighting
+- Dramatic weather (clouds, mist, rain adding atmosphere)
+- Drone/aerial perspectives
+- Genuine emotional reactions from creator
+- Unique angles of famous landmarks
+- Local life moments (not staged)
+- Peaceful/meditative sequences
+
+[CRITICAL INSTRUCTION - NARRATIVE]
+For usable scenes, write a JOURNEY-FOCUSED STORY:
+1. Describe the VISUAL BEAUTY in evocative language (colors, light, atmosphere)
+2. Capture the TRAVEL CONTEXT (where, when, why this matters in the journey)
+3. Note CREATOR PRESENCE and expression if visible
+4. Convey the MOOD and feeling the scene evokes
+5. Identify EDITING POTENTIAL (what makes this shot valuable for the final video)
+
+[Pattern Recognition]
+- Wide landscape + golden light + no people = SCENIC ESTABLISHING shot (importance: 4-5)
+- Creator facing camera + speaking + nice background = VLOG MOMENT (importance: 3-5 based on content)
+- Moving vehicle + window view + passing scenery = JOURNEY TRANSIT (importance: 2-4)
+- Food close-up + steam/texture + local setting = CULINARY MOMENT (importance: 3-4)
+- Crowd + decorations + music = LOCAL FESTIVAL/EVENT (importance: 3-5)
+- Sunrise/sunset + silhouette + landscape = GOLDEN MOMENT (importance: 4-5)
+- Creator hiking/walking + scenic path + nature = ADVENTURE SEQUENCE (importance: 3-5)
+
+[Input]
+- **Location Context**: {LOCATION}
+- **Frames**: Sequential frames from the scene (in chronological order)
+
+[Output Schema - JSON]
+{
+  "scene_classification": {
+    "scene_type": "scenery/journey/creator_moment/local_culture/b_roll/transition/technical_issue/mixed",
+    "is_usable": true/false,
+    "importance_score": 0-5,
+    "unusable_reason": "null if fully usable, otherwise explain: 'Blurry footage', 'Accidental recording', etc.",
+    "mixed_composition": "If mixed scene, describe components (e.g., 'Opens with scenery, transitions to creator talking')"
+  },
+  "visual_analysis": {
+    "landscape_type": "mountain/ocean/forest/urban/rural/desert/lake/river/architectural/mixed/indoor/none",
+    "lighting_quality": "golden_hour/blue_hour/bright_daylight/overcast/night/artificial/dramatic/flat",
+    "composition_notes": "Describe framing, perspective, visual elements",
+    "color_palette": "Dominant colors and mood they create",
+    "camera_movement": "static/pan/tracking/handheld/drone/gimbal_smooth"
+  },
+  "journey_context": {
+    "narrative": "3-5 sentence evocative description capturing the scene's beauty, travel context, and emotional resonance",
+    "key_moment": "Single most impactful visual or emotional beat",
+    "location_specificity": "General area and specific spot if identifiable",
+    "time_of_day": "Dawn/Morning/Midday/Afternoon/Golden_hour/Dusk/Night",
+    "weather_atmosphere": "Clear/Cloudy/Rainy/Misty/Snowy/Dramatic/Calm"
+  },
+  "creator_presence": {
+    "visibility": "on_camera/voice_only/not_present",
+    "expression_type": "narrating/reacting/reflecting/explaining/silent/none",
+    "emotional_tone": "excited/peaceful/awed/contemplative/joyful/curious/grateful/none",
+    "dialogue_summary": "Key points if speaking, null if silent"
+  },
+  "editing_potential": {
+    "suggested_use": "opening/closing/transition/highlight/b_roll/montage/standalone",
+    "music_pairing": "upbeat/cinematic/peaceful/emotional/adventurous/none_needed",
+    "editing_notes": "Specific notes for video editors (e.g., 'Perfect for slow-motion', 'Great with ambient sound', 'Ideal montage material')"
+  }
+}
+"""
+
+# 根据配置选择使用的 Prompt
+def get_scene_caption_prompt():
+    """根据 config.SCENE_PROMPT_TYPE 返回对应的 prompt"""
+    if config.SCENE_PROMPT_TYPE == "vlog":
+        return VLOG_SCENE_CAPTION_PROMPT
+    else:  # 默认使用 film prompt
+        return SCENE_VIDEO_CAPTION_PROMPT
 
 # 人物识别 Prompt
 CHARACTER_ID_PROMPT = """
@@ -328,31 +545,75 @@ class SceneVideoAnalyzer:
         return parse_json_safely(result) if result else None
 
     def generate_caption(self, frames: List[Image.Image], dialogue: str, char_info: Dict, max_retries: int = 3) -> Optional[Dict]:
-        """生成场景描述，如果输出缺少 scene_classification 则重试"""
-        # 格式化人物信息
-        if char_info and 'characters' in char_info:
-            char_text = "\n".join([
-                f"- {c.get('name', 'Unknown')}: {c.get('appearance', 'No desc')}"
-                for c in char_info['characters']
-            ])
-        else:
-            char_text = "No characters identified."
+        """生成场景描述，验证必需字段"""
+        # 根据配置选择 prompt
+        base_prompt = get_scene_caption_prompt()
 
-        prompt = SCENE_VIDEO_CAPTION_PROMPT.replace("{CHARACTERS}", char_text).replace("{DIALOGUE}", dialogue)
-        content = self._build_content(frames, [f"Characters:\n{char_text}", f"\nDialogue:\n{dialogue}"])
+        # 格式化人物/位置信息
+        if config.SCENE_PROMPT_TYPE == "vlog":
+            # Vlog 模式：使用 LOCATION 和 DIALOGUE
+            location_text = "Unknown location"  # 可从 scene_data 中获取
+            prompt = base_prompt.replace("{LOCATION}", location_text).replace("{DIALOGUE}", dialogue)
+            content = self._build_content(frames, [f"Location:\n{location_text}", f"\nCreator Speech:\n{dialogue}"])
+        else:
+            # Film 模式：使用 CHARACTERS 和 DIALOGUE
+            if char_info and 'characters' in char_info:
+                char_text = "\n".join([
+                    f"- {c.get('name', 'Unknown')}: {c.get('appearance', 'No desc')}"
+                    for c in char_info['characters']
+                ])
+            else:
+                char_text = "No characters identified."
+            prompt = base_prompt.replace("{CHARACTERS}", char_text).replace("{DIALOGUE}", dialogue)
+            content = self._build_content(frames, [f"Characters:\n{char_text}", f"\nDialogue:\n{dialogue}"])
 
         for attempt in range(max_retries):
             result = self._call_vlm(prompt, content, max_tokens=4096)
             parsed = parse_json_safely(result) if result else None
 
-            # 检查是否包含 scene_classification
+            # 验证必需字段
             if parsed and 'scene_classification' in parsed:
+                classification = parsed['scene_classification']
+                # 确保有 importance_score
+                if 'importance_score' not in classification:
+                    # 根据 scene_type 推断默认值
+                    scene_type = classification.get('scene_type', 'content')
+                    # Film 模式的不可用类型
+                    film_unusable_types = ['studio_logo', 'title_card', 'credits', 'transition']
+                    # Vlog 模式的不可用类型
+                    vlog_unusable_types = ['transition', 'technical_issue']
+
+                    if config.SCENE_PROMPT_TYPE == "vlog":
+                        if scene_type in vlog_unusable_types:
+                            classification['importance_score'] = 0
+                            classification['is_usable'] = False
+                        elif scene_type == 'mixed':
+                            classification['importance_score'] = 2
+                            classification['is_usable'] = True
+                        else:
+                            classification['importance_score'] = 3  # 默认中等重要性
+                            classification['is_usable'] = True
+                    else:
+                        if scene_type in film_unusable_types:
+                            classification['importance_score'] = 0
+                            classification['is_usable'] = False
+                        elif scene_type == 'mixed':
+                            classification['importance_score'] = 2
+                            classification['is_usable'] = True
+                        else:
+                            classification['importance_score'] = 3  # 默认中等重要性
+                            classification['is_usable'] = True
+
+                # 确保 is_usable 与 importance_score 一致
+                if classification.get('importance_score', 0) == 0:
+                    classification['is_usable'] = False
+
                 return parsed
 
             if attempt < max_retries - 1:
-                print(f"Warning: Output missing 'scene_classification', retrying ({attempt + 1}/{max_retries})...")
+                print(f"Warning: Output missing required fields, retrying ({attempt + 1}/{max_retries})...")
 
-        print(f"Error: Failed to get valid scene_classification after {max_retries} attempts")
+        print(f"Error: Failed to get valid output after {max_retries} attempts")
         return parsed  # 返回最后一次的结果，即使不完整
 
     def process_scene(self, scene_data: Dict) -> Dict:
@@ -431,6 +692,7 @@ def main():
     print(f"  Scenes: {len(tasks)}")
     print(f"  Frames dir: {FRAMES_DIR}")
     print(f"  Model: {MODEL_NAME}")
+    print(f"  Prompt type: {config.SCENE_PROMPT_TYPE} ({'Travel Vlog' if config.SCENE_PROMPT_TYPE == 'vlog' else 'Film/TV'})")
     print(f"  Max frames/scene: {MAX_FRAMES_PER_SCENE}")
 
     analyzer = SceneVideoAnalyzer(FRAMES_DIR, SUBTITLE_FILE)

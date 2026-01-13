@@ -1,0 +1,451 @@
+[
+  {
+    "status": "success",
+    "section_idx": 0,
+    "shot_idx": 0,
+    "total_duration": 2.9,
+    "target_duration": 2.9,
+    "num_clips": 1,
+    "is_stitched": false,
+    "clips": [
+      {
+        "shot": 1,
+        "start": "00:01:37.0",
+        "end": "00:01:39.9",
+        "duration": 2.9
+      }
+    ],
+    "protagonist_detection": {
+      "method": "vlm",
+      "total_frames_analyzed": 6,
+      "frames_with_protagonist": 5,
+      "protagonist_ratio": 0.833,
+      "frame_detections": [
+        {
+          "frame_idx": 194,
+          "time_sec": 97.0,
+          "protagonist_detected": false,
+          "bounding_box": null,
+          "confidence": 0.0,
+          "reason": "no_protagonist (The frame shows an aerial view of a city street with multiple cars and a building, but no clear presence of Bruce Wayne or Batman. There are no identifiable characters in the frame, only vehicles and infrastructure, so the main protagonist is not present.)"
+        },
+        {
+          "frame_idx": 195,
+          "time_sec": 97.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 344,
+            "y": 538,
+            "width": 38,
+            "height": 72
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=38px, conf=0.95)"
+        },
+        {
+          "frame_idx": 196,
+          "time_sec": 98.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 374,
+            "y": 520,
+            "width": 100,
+            "height": 180
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=100px, conf=0.95)"
+        },
+        {
+          "frame_idx": 197,
+          "time_sec": 98.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 414,
+            "y": 594,
+            "width": 45,
+            "height": 79
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=45px, conf=0.95)"
+        },
+        {
+          "frame_idx": 198,
+          "time_sec": 99.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 450,
+            "y": 650,
+            "width": 50,
+            "height": 80
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=50px, conf=0.95)"
+        },
+        {
+          "frame_idx": 199,
+          "time_sec": 99.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 500,
+            "y": 538,
+            "width": 50,
+            "height": 100
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=50px, conf=0.95)"
+        }
+      ]
+    }
+  },
+  {
+    "status": "success",
+    "section_idx": 0,
+    "shot_idx": 1,
+    "total_duration": 2.0,
+    "target_duration": 2.9,
+    "num_clips": 1,
+    "is_stitched": false,
+    "clips": [
+      {
+        "shot": 1,
+        "start": "01:17:45.0",
+        "end": "01:17:47.0",
+        "duration": 2.0
+      }
+    ],
+    "protagonist_detection": {
+      "method": "vlm",
+      "total_frames_analyzed": 4,
+      "frames_with_protagonist": 2,
+      "protagonist_ratio": 0.5,
+      "frame_detections": [
+        {
+          "frame_idx": 9330,
+          "time_sec": 4665.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 297,
+            "y": 10,
+            "width": 570,
+            "height": 990
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=570px, conf=0.98)"
+        },
+        {
+          "frame_idx": 9331,
+          "time_sec": 4665.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 314,
+            "y": 10,
+            "width": 590,
+            "height": 790
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=590px, conf=0.98)"
+        },
+        {
+          "frame_idx": 9332,
+          "time_sec": 4666.0,
+          "protagonist_detected": false,
+          "bounding_box": null,
+          "confidence": 0.0,
+          "reason": "no_protagonist (The frame shows a vehicle, likely the Batmobile, with flames from its engine, but no visible human figure. Bruce Wayne or Batman is not present in the frame, so the protagonist is not detected.)"
+        },
+        {
+          "frame_idx": 9333,
+          "time_sec": 4666.5,
+          "protagonist_detected": false,
+          "bounding_box": null,
+          "confidence": 0.0,
+          "reason": "no_protagonist (The frame shows a vehicle from behind in a dimly lit tunnel, with no visible human figures. There is no indication of Bruce Wayne or Batman being present, and no characters are discernible in the scene.)"
+        }
+      ]
+    }
+  },
+  {
+    "status": "success",
+    "section_idx": 0,
+    "shot_idx": 2,
+    "total_duration": 2.9,
+    "target_duration": 2.9,
+    "num_clips": 1,
+    "is_stitched": false,
+    "clips": [
+      {
+        "shot": 1,
+        "start": "00:26:45.0",
+        "end": "00:26:47.9",
+        "duration": 2.9
+      }
+    ],
+    "protagonist_detection": {
+      "method": "vlm",
+      "total_frames_analyzed": 6,
+      "frames_with_protagonist": 6,
+      "protagonist_ratio": 1.0,
+      "frame_detections": [
+        {
+          "frame_idx": 3210,
+          "time_sec": 1605.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 104,
+            "y": 188,
+            "width": 270,
+            "height": 894
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=270px, conf=0.95)"
+        },
+        {
+          "frame_idx": 3211,
+          "time_sec": 1605.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 84,
+            "y": 166,
+            "width": 250,
+            "height": 994
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=250px, conf=0.95)"
+        },
+        {
+          "frame_idx": 3212,
+          "time_sec": 1606.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 74,
+            "y": 140,
+            "width": 247,
+            "height": 994
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=247px, conf=0.95)"
+        },
+        {
+          "frame_idx": 3213,
+          "time_sec": 1606.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 48,
+            "y": 138,
+            "width": 238,
+            "height": 994
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=238px, conf=0.95)"
+        },
+        {
+          "frame_idx": 3214,
+          "time_sec": 1607.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 44,
+            "y": 127,
+            "width": 231,
+            "height": 994
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=231px, conf=0.95)"
+        },
+        {
+          "frame_idx": 3215,
+          "time_sec": 1607.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 34,
+            "y": 130,
+            "width": 220,
+            "height": 994
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=220px, conf=0.95)"
+        }
+      ]
+    }
+  },
+  {
+    "status": "success",
+    "section_idx": 0,
+    "shot_idx": 3,
+    "total_duration": 3.0,
+    "target_duration": 3.0,
+    "num_clips": 1,
+    "is_stitched": false,
+    "clips": [
+      {
+        "shot": 1,
+        "start": "00:08:23.0",
+        "end": "00:08:26.0",
+        "duration": 3.0
+      }
+    ],
+    "protagonist_detection": {
+      "method": "vlm",
+      "total_frames_analyzed": 6,
+      "frames_with_protagonist": 4,
+      "protagonist_ratio": 0.667,
+      "frame_detections": [
+        {
+          "frame_idx": 1006,
+          "time_sec": 503.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 197,
+            "y": 58,
+            "width": 580,
+            "height": 994
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=580px, conf=0.95)"
+        },
+        {
+          "frame_idx": 1007,
+          "time_sec": 503.5,
+          "protagonist_detected": false,
+          "bounding_box": null,
+          "confidence": 0.0,
+          "reason": "minor_character_detected (The frame shows multiple individuals in a dimly lit environment, but none are clearly identifiable as Bruce Wayne or Batman. The central figure is a man in a brown leather jacket, but he lacks any iconic features or costume elements associated with Batman or Bruce Wayne. The other individuals are in the background and appear to be minor characters or extras. There is no visual evidence of the protagonist being the primary focus.)"
+        },
+        {
+          "frame_idx": 1008,
+          "time_sec": 504.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 288,
+            "y": 758,
+            "width": 140,
+            "height": 240
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=140px, conf=0.95)"
+        },
+        {
+          "frame_idx": 1009,
+          "time_sec": 504.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 144,
+            "y": 0,
+            "width": 624,
+            "height": 996
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=624px, conf=0.95)"
+        },
+        {
+          "frame_idx": 1010,
+          "time_sec": 505.0,
+          "protagonist_detected": false,
+          "bounding_box": null,
+          "confidence": 0.0,
+          "reason": "minor_character_detected (The frame shows multiple individuals in a dimly lit environment, but none are clearly identifiable as Bruce Wayne or Batman. The central figure is a man in a leather jacket, but he does not exhibit any iconic features or costume elements associated with Batman or Bruce Wayne. The scene appears to feature background characters or extras, with no visual focus on the main protagonist.)"
+        },
+        {
+          "frame_idx": 1011,
+          "time_sec": 505.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 418,
+            "y": 95,
+            "width": 684,
+            "height": 994
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=684px, conf=0.95)"
+        }
+      ]
+    }
+  },
+  {
+    "status": "success",
+    "section_idx": 0,
+    "shot_idx": 4,
+    "total_duration": 2.9,
+    "target_duration": 2.9,
+    "num_clips": 1,
+    "is_stitched": false,
+    "clips": [
+      {
+        "shot": 1,
+        "start": "01:02:54.0",
+        "end": "01:02:56.9",
+        "duration": 2.9
+      }
+    ],
+    "protagonist_detection": {
+      "method": "vlm",
+      "total_frames_analyzed": 6,
+      "frames_with_protagonist": 3,
+      "protagonist_ratio": 0.5,
+      "frame_detections": [
+        {
+          "frame_idx": 7548,
+          "time_sec": 3774.0,
+          "protagonist_detected": false,
+          "bounding_box": null,
+          "confidence": 0.0,
+          "reason": "minor_character_detected (The individual in the frame is identified as 'Sergeant Daniel Dames' based on the name tag, indicating a minor character. Bruce Wayne or Batman is not present in the frame.)"
+        },
+        {
+          "frame_idx": 7549,
+          "time_sec": 3774.5,
+          "protagonist_detected": false,
+          "bounding_box": null,
+          "confidence": 0.0,
+          "reason": "minor_character_detected (The frame shows a man in a uniform with a name tag reading 'RACHEL DAWES', who is a minor character in the Batman series. Bruce Wayne or Batman is not present in the frame.)"
+        },
+        {
+          "frame_idx": 7550,
+          "time_sec": 3775.0,
+          "protagonist_detected": false,
+          "bounding_box": null,
+          "confidence": 0.0,
+          "reason": "minor_character_detected (The individual in the frame is a minor character, identified by the name tag 'DAWES' on a police uniform, indicating a background or supporting role. This is not Bruce Wayne or Batman, and they are not the primary visual subject.)"
+        },
+        {
+          "frame_idx": 7551,
+          "time_sec": 3775.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 104,
+            "y": 0,
+            "width": 656,
+            "height": 996
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=656px, conf=0.95)"
+        },
+        {
+          "frame_idx": 7552,
+          "time_sec": 3776.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 100,
+            "y": 0,
+            "width": 684,
+            "height": 996
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=684px, conf=0.95)"
+        },
+        {
+          "frame_idx": 7553,
+          "time_sec": 3776.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 10,
+            "y": 0,
+            "width": 518,
+            "height": 996
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=518px, conf=0.95)"
+        }
+      ]
+    }
+  }
+]

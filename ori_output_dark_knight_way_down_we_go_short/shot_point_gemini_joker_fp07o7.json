@@ -1,0 +1,100 @@
+[
+  {
+    "status": "success",
+    "section_idx": 0,
+    "shot_idx": 0,
+    "total_duration": 2.9,
+    "target_duration": 2.9,
+    "num_clips": 1,
+    "is_stitched": false,
+    "clips": [
+      {
+        "shot": 1,
+        "start": "00:01:37.0",
+        "end": "00:01:39.9",
+        "duration": 2.9
+      }
+    ],
+    "protagonist_detection": {
+      "method": "vlm",
+      "total_frames_analyzed": 6,
+      "frames_with_protagonist": 5,
+      "protagonist_ratio": 0.833,
+      "frame_detections": [
+        {
+          "frame_idx": 194,
+          "time_sec": 97.0,
+          "protagonist_detected": false,
+          "bounding_box": null,
+          "confidence": 0.0,
+          "reason": "no_protagonist (The frame shows an aerial view of a city street with cars and a building, but no main character is visible. There are no identifiable individuals or figures that match the description of Joker or any other protagonist. The scene is an establishing shot with no clear visual focus on any character.)"
+        },
+        {
+          "frame_idx": 195,
+          "time_sec": 97.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 348,
+            "y": 540,
+            "width": 40,
+            "height": 70
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=40px, conf=0.95)"
+        },
+        {
+          "frame_idx": 196,
+          "time_sec": 98.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 374,
+            "y": 518,
+            "width": 100,
+            "height": 150
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=100px, conf=0.95)"
+        },
+        {
+          "frame_idx": 197,
+          "time_sec": 98.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 414,
+            "y": 594,
+            "width": 45,
+            "height": 80
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=45px, conf=0.95)"
+        },
+        {
+          "frame_idx": 198,
+          "time_sec": 99.0,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 450,
+            "y": 650,
+            "width": 50,
+            "height": 80
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=50px, conf=0.95)"
+        },
+        {
+          "frame_idx": 199,
+          "time_sec": 99.5,
+          "protagonist_detected": true,
+          "bounding_box": {
+            "x": 500,
+            "y": 540,
+            "width": 50,
+            "height": 100
+          },
+          "confidence": 0.0,
+          "reason": "protagonist_ok (size=50px, conf=0.95)"
+        }
+      ]
+    }
+  }
+]

@@ -363,97 +363,97 @@ def main():
 
 
 
-    # # Step 5: Run Screenwriter to generate shot plan
-    # if os.path.exists(scene_summaries_dir) and os.path.exists(audio_caption_file):
-    #     print("\n" + "="*80)
-    #     print("Running Screenwriter to generate shot plan...")
-    #     print("="*80)
-
-    #     from vca.Screenwriter_scene_short import Screenwriter
-
-    #     # Create output directory
-    #     os.makedirs(os.path.dirname(shot_plan_output_path), exist_ok=True)
-
-    #     # Initialize Screenwriter agent
-    #     screenwriter = Screenwriter(
-    #         video_scene_path=scene_summaries_dir,
-    #         audio_caption_path=audio_caption_file,
-    #         output_path=shot_plan_output_path,
-    #         max_iterations=20,
-    #         video_path=Video_Path,
-    #         frame_folder_path=frames_dir,
-
-    #     )
-
-    #     # Run the screenwriter with the Instruction
-    #     print(f"Running screenwriter with instruction: '{Instruction}'")
-    #     _shot_plan = screenwriter.run(Instruction)
-
-    #     print(f"\n{'='*80}")
-    #     print(f"Shot plan generated successfully!")
-    #     print(f"Output saved to: {shot_plan_output_path}")
-    #     print(f"{'='*80}\n")
-    # else:
-    #     if not os.path.exists(scene_summaries_dir):
-    #         print(f"Warning: Scene summaries directory not found at {scene_summaries_dir}")
-    #         print("Skipping screenwriter execution.")
-    #     if not os.path.exists(audio_caption_file):
-    #         print(f"Warning: Audio caption file not found at {audio_caption_file}")
-    #         print("Skipping screenwriter execution.")
-
-
-    # Step 6: Run EditorCoreAgent to select video clips based on shot plan
-    # Final output path for shot points
-    shot_point_output_path = os.path.join(
-        config.VIDEO_DATABASE_FOLDER,
-        'Output',
-        f"{video_id}_{audio_id}",
-        instruction_type,
-        f"shot_point_{instruction_id}.json"
-    )
-
-    # Check if we have all required files for core agent
-    if os.path.exists(scene_summaries_dir) and os.path.exists(audio_caption_file) and os.path.exists(shot_plan_output_path):
+    # Step 5: Run Screenwriter to generate shot plan
+    if os.path.exists(scene_summaries_dir) and os.path.exists(audio_caption_file):
         print("\n" + "="*80)
-        print("Running EditorCoreAgent to select video clips...")
+        print("Running Screenwriter to generate shot plan...")
         print("="*80)
 
-        from vca.core import EditorCoreAgent
+        from vca.Screenwriter_scene_short import Screenwriter
 
         # Create output directory
-        os.makedirs(os.path.dirname(shot_point_output_path), exist_ok=True)
+        os.makedirs(os.path.dirname(shot_plan_output_path), exist_ok=True)
 
-        # Initialize EditorCoreAgent (note: video_db_path is no longer needed)
-        editor_agent = EditorCoreAgent(
-            video_caption_path=caption_file,
+        # Initialize Screenwriter agent
+        screenwriter = Screenwriter(
             video_scene_path=scene_summaries_dir,
             audio_caption_path=audio_caption_file,
-            output_path=shot_point_output_path,
-            max_iterations=config.AGENT_MAX_ITERATIONS if hasattr(config, 'AGENT_MAX_ITERATIONS') else 30,
+            output_path=shot_plan_output_path,
+            max_iterations=20,
             video_path=Video_Path,
             frame_folder_path=frames_dir,
-            transcript_path=srt_with_characters if os.path.exists(srt_with_characters) else srt_path
+
         )
 
-        # Run the editor agent with the instruction and shot plan
-        print(f"Running editor agent with instruction: '{Instruction}'")
-        print(f"Using shot plan from: {shot_plan_output_path}")
-        _messages = editor_agent.run(Instruction, shot_plan_path=shot_plan_output_path)
+        # Run the screenwriter with the Instruction
+        print(f"Running screenwriter with instruction: '{Instruction}'")
+        _shot_plan = screenwriter.run(Instruction)
 
         print(f"\n{'='*80}")
-        print(f"Video clip selection completed!")
-        print(f"Output saved to: {shot_point_output_path}")
+        print(f"Shot plan generated successfully!")
+        print(f"Output saved to: {shot_plan_output_path}")
         print(f"{'='*80}\n")
     else:
-        print("\n" + "="*80)
-        print("Cannot run EditorCoreAgent - missing required files:")
         if not os.path.exists(scene_summaries_dir):
-            print(f"  ❌ Scene summaries directory not found at {scene_summaries_dir}")
+            print(f"Warning: Scene summaries directory not found at {scene_summaries_dir}")
+            print("Skipping screenwriter execution.")
         if not os.path.exists(audio_caption_file):
-            print(f"  ❌ Audio caption file not found at {audio_caption_file}")
-        if not os.path.exists(shot_plan_output_path):
-            print(f"  ❌ Shot plan file not found at {shot_plan_output_path}")
-        print("="*80 + "\n")
+            print(f"Warning: Audio caption file not found at {audio_caption_file}")
+            print("Skipping screenwriter execution.")
+
+
+    # # Step 6: Run EditorCoreAgent to select video clips based on shot plan
+    # # Final output path for shot points
+    # shot_point_output_path = os.path.join(
+    #     config.VIDEO_DATABASE_FOLDER,
+    #     'Output',
+    #     f"{video_id}_{audio_id}",
+    #     instruction_type,
+    #     f"shot_point_{instruction_id}.json"
+    # )
+
+    # # Check if we have all required files for core agent
+    # if os.path.exists(scene_summaries_dir) and os.path.exists(audio_caption_file) and os.path.exists(shot_plan_output_path):
+    #     print("\n" + "="*80)
+    #     print("Running EditorCoreAgent to select video clips...")
+    #     print("="*80)
+
+    #     from vca.core import EditorCoreAgent
+
+    #     # Create output directory
+    #     os.makedirs(os.path.dirname(shot_point_output_path), exist_ok=True)
+
+    #     # Initialize EditorCoreAgent (note: video_db_path is no longer needed)
+    #     editor_agent = EditorCoreAgent(
+    #         video_caption_path=caption_file,
+    #         video_scene_path=scene_summaries_dir,
+    #         audio_caption_path=audio_caption_file,
+    #         output_path=shot_point_output_path,
+    #         max_iterations=config.AGENT_MAX_ITERATIONS if hasattr(config, 'AGENT_MAX_ITERATIONS') else 30,
+    #         video_path=Video_Path,
+    #         frame_folder_path=frames_dir,
+    #         transcript_path=srt_with_characters if os.path.exists(srt_with_characters) else srt_path
+    #     )
+
+    #     # Run the editor agent with the instruction and shot plan
+    #     print(f"Running editor agent with instruction: '{Instruction}'")
+    #     print(f"Using shot plan from: {shot_plan_output_path}")
+    #     _messages = editor_agent.run(Instruction, shot_plan_path=shot_plan_output_path)
+
+    #     print(f"\n{'='*80}")
+    #     print(f"Video clip selection completed!")
+    #     print(f"Output saved to: {shot_point_output_path}")
+    #     print(f"{'='*80}\n")
+    # else:
+    #     print("\n" + "="*80)
+    #     print("Cannot run EditorCoreAgent - missing required files:")
+    #     if not os.path.exists(scene_summaries_dir):
+    #         print(f"  ❌ Scene summaries directory not found at {scene_summaries_dir}")
+    #     if not os.path.exists(audio_caption_file):
+    #         print(f"  ❌ Audio caption file not found at {audio_caption_file}")
+    #     if not os.path.exists(shot_plan_output_path):
+    #         print(f"  ❌ Shot plan file not found at {shot_plan_output_path}")
+    #     print("="*80 + "\n")
 
 
 if __name__ == "__main__":

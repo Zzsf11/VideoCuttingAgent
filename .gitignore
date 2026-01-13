@@ -22,3 +22,5 @@ Qwen3-VL/
 *.png
 *.jpg
 *.wav
+output*
+Visulization/

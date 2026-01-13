@@ -2,20 +2,19 @@ import os
 import json
 import copy
 import re
+import argparse
+from pathlib import Path
 import numpy as np
 from typing import Annotated as A, Any
-from vca.build_database.video_caption_ori import (
+from vca.build_database.video_caption import (
     convert_seconds_to_hhmmss, 
-    CAPTION_PROMPT,
     SYSTEM_PROMPT,
     messages as caption_messages
 )
-from vca.build_database.build_vectorDB import init_single_video_db
-from nano_vectordb import NanoVectorDB
 from vca import config
 from vca.func_call_shema import as_json_schema
 from vca.func_call_shema import doc as D
-from vca.vllm_calling import call_vllm_model, get_vllm_embeddings
+from vca.vllm_calling import call_vllm_model
 
 from pprint import pprint
 
@@ -24,60 +23,76 @@ from pprint import pprint
 GENERATE_STRUCTURE_PROPOSAL_PROMPT = """
 VIDEO_SUMMARY_PLACEHOLDER
 
-You are a professional screenwriter. Design a minutes-long video script structure based on the provided footage and background music.
+You are a professional tiktok editor specializing in creating short video.
 
-**PRIORITY ORDER:**
-1. **User Instruction** — All story decisions must serve this goal.
-2. **Video Content** — Only use characters/events explicitly present.
-3. **Audio Arc** — Determines pacing and intensity.
+**YOUR PRIMARY GOAL:**
+Select 8-15 scenes that create the BEST MATCH between:
+1. User's creative vision (instruction)
+2. Music's energy and rhythm
+3. Visual excitement and iconic moments
 
-**SCENE RULES:**
+**USER'S CREATIVE VISION:**: INSTRUCTION_PLACEHOLDER
 
-1. **Full Coverage**: Total: TOTAL_SCENE_COUNT_PLACEHOLDER). Must cover early, middle, and late scenes.
 
-2. **Representative Selection**: Pick 3-5 representative scenes per section (not exhaustive lists).
-   - Prioritize: action, conflict, emotional climaxes, visually striking moments
-   - Avoid: mundane activities, slow transitions, minor backstory without visual impact
+**SELECTION STRATEGY:**
 
-3. **NO SCENE OVERLAP BETWEEN SECTIONS** (CRITICAL):
-   - Each scene index can ONLY appear in ONE section's related_scenes.
-   - If Section A uses Scene 15, Section B and all other sections CANNOT use Scene 15.
-   - Plan the scene allocation across all sections BEFORE writing the output to ensure no duplicates.
-   - This rule has NO exceptions.
+**Step 1: Understand the Instruction's Core Elements**
+Before selecting ANY scene, identify what the instruction emphasizes:
+- **Visual Style**: What kind of visuals? (e.g., "visceral", "elegant", "chaotic", "intimate")
+- **Key Elements**: What specific elements are mentioned? (e.g., "combat", "Tumbler", "relationship", "cityscape")
+- **Energy Level**: What's the overall intensity? (e.g., "explosive action" vs "quiet reflection")
+- **Emotional Tone**: What feeling should dominate? (e.g., "powerful", "melancholic", "triumphant")
 
-4. **Short-Form Video Pacing** (CRITICAL):
-   - This is a minutes-long short video, NOT a full movie edit. Every second counts.
-   - **Intro must hook immediately**: Start with impactful, core-narrative scenes. NO slow childhood flashbacks, quiet dialogue-only moments, or peripheral backstory unless directly tied to the climax.
-   - **Cut non-essential setup**: If a scene only provides context but lacks visual/emotional punch, SKIP IT.
-   - **Prioritize payoff over buildup**: In short videos, audiences expect quick engagement. Favor scenes with clear conflict, stakes, or visual spectacle over gradual world-building.
+**Step 2: Match Scenes to Instruction + Music**
+For each scene you consider, ask:
+1. **Does this scene's VISUAL STYLE match what the instruction describes?**
+   - Example: If instruction says "visceral combat", does this scene show intense physical action?
+   - Example: If instruction says "emotional intimacy", does this scene show close character moments?
 
-5. **Scene Distribution by Audio Phase** (do NOT cluster in early scenes):
-   - Intro/Verse → Early scenes (setup)
-   - Build-up → Middle scenes (development)
-   - Chorus/Climax → Later scenes (conflict, payoff)
-   - Outro → Final scenes (closure)
+2. **Does this scene contain ELEMENTS explicitly mentioned in the instruction?**
+   - Example: If instruction mentions "Tumbler/Batmobile", prioritize vehicle scenes
+   - Example: If instruction mentions "relationship", prioritize character interaction scenes
 
-6. **No Hallucination**: Only use content explicitly described in input materials.
+3. **Does this scene's ENERGY LEVEL match instruction + music?**
+   - High-energy music + "combat" instruction → Dynamic action scenes with movement
+   - Low-energy music + "reflection" instruction → Quiet character moments
+   - Build-up music + "tension" instruction → Escalating threat or preparation scenes
+
+4. **Does this scene feature the MAIN CHARACTER in a way that fits the instruction?**
+   - If instruction emphasizes "physicality" → Character must be actively moving/fighting
+   - If instruction emphasizes "iconography" → Character must be visually striking/memorable
+   - If instruction emphasizes "emotion" → Character's expression must be prominent
+
+**Step 3: Prioritize Based on Alignment Score**
+Rate each scene's alignment with instruction:
+- ⭐⭐⭐ **PERFECT MATCH**: Scene embodies multiple core elements from instruction
+  - Example: "visceral combat" instruction → Batman fighting multiple enemies in brutal hand-to-hand combat
+- ⭐⭐ **GOOD MATCH**: Scene contains 1-2 core elements from instruction
+  - Example: "visceral combat" instruction → Batman standing ready for battle (static but iconic)
+- ⭐ **WEAK MATCH**: Scene has main character but doesn't match instruction's style/energy
+  - Example: "visceral combat" instruction → Bruce Wayne sitting quietly (wrong energy level)
+
+**Choose scenes with ⭐⭐⭐ or ⭐⭐ alignment. Avoid ⭐ scenes.**
+
+**Scene Selection Guidelines:**
+1. **Visual Variety**: Mix different shot types (action, close-ups, wide shots) while maintaining instruction alignment
+2. **Main Character Focus**: Protagonist should be the PRIMARY visual subject in most scenes
+3. **Distribution**: Select scenes from different parts of the video for variety
+4. **Total Count**: Pick 8-15 scenes total
+5. **Available Scenes**: TOTAL_SCENE_COUNT_PLACEHOLDER scenes total
+
+**No Hallucination**: Only use scenes explicitly described in the input.
 
 **INPUT DATA:**
 - Audio Summary: AUDIO_SUMMARY_PLACEHOLDER
-- Audio Structure: AUDIO_STRUCTURE_PLACEHOLDER
-- User Instruction: INSTRUCTION_PLACEHOLDER
+- Audio Description: AUDIO_STRUCTURE_PLACEHOLDER
 
 **OUTPUT (JSON):**
 {
-    "overall_theme": "Theme reflecting the User Instruction",
-    "narrative_logic": "How audio arc maps to beginning/middle/end of scene range",
-    "video_structure": [
-        {
-            "content": "Concrete scene description: actions, characters, visuals. Detailed and specific.",
-            "audio_section": "e.g., 'Chorus 1'",
-            "emotion": "Dominant tone",
-            "start_time": "seconds",
-            "end_time": "seconds",
-            "related_scenes": [5 representative scene indices]
-        }
-    ]
+    "overall_theme": "Describe how your selected scenes match the instruction's vision",
+    "narrative_logic": "Explain how scenes will sync with music progression",
+    "emotion": "Overall emotional tone that aligns with instruction",
+    "related_scenes": [8-15 scene indices with BEST instruction+music alignment]
 }
 
 """
@@ -88,76 +103,175 @@ GENERATE_SHOT_PLAN_PROMPT = """
 RELATED_VIDEO_PLACEHOLDER
 
 [Role]
-You are a professional screenwriter tasked with creating a detailed shot plan that synchronizes the narrative storyline with the background music. This shot plan will serve as a part of full script for video editing.
+You are a professional music video editor creating a shot-by-shot plan that achieves the BEST MATCH between user's creative vision and music rhythm.
+
+[YOUR PRIMARY GOAL]
+For EACH music segment, select the shot that creates the STRONGEST ALIGNMENT with:
+1. User's creative vision (instruction below)
+2. This specific music segment's energy/emotion
+3. Visual impact and character presence
+
+[USER'S CREATIVE VISION]
+INSTRUCTION_PLACEHOLDER
+
 
 [Task]
-Map each analyzed music segment to a corresponding shot based EXCLUSIVELY on the provided scene information and proposal content. The resulting sequence must form a coherent narrative arc that aligns with the music's rhythm while using ONLY existing visual content from the scenes.
+Map each music segment to ONE shot by finding the BEST MATCH for that specific moment.
 
 [Inputs]
-- Detailed analysis of each music segment: AUDIO_SUMMARY_PLACEHOLDER
-- Current video section narrative (from proposal): VIDEO_SECTION_INFO_PLACEHOLDER
-- Related video scenes: Provided above with their visual descriptions
-- User Instruction: INSTRUCTION_PLACEHOLDER
+- Music segments with detailed analysis: AUDIO_SUMMARY_PLACEHOLDER
+- Creative direction from user: See USER'S CREATIVE VISION above
+- Visual guidance: VIDEO_SECTION_INFO_PLACEHOLDER
+- Available scenes: Provided above
 
-[Strict Content Constraints]
-**CRITICAL: You must ONLY use content that explicitly appears in the provided inputs. DO NOT fabricate, imagine, or invent any visual elements, actions, characters, objects, or narrative events that are not directly described in the scene information or proposal.**
+[How to Select the Right Shot - Step by Step]
 
-- Every visual element mentioned in "content" and "visuals" fields MUST come from the related_scenes descriptions
-- Every narrative beat in "story_beat" MUST align with the proposal's section narrative
-- If a music segment requires content not available in the scenes, describe it using the closest matching available scene content
-- Never add characters, locations, objects, or events not present in the source materials
+**For EACH music segment:**
 
-[Workflow]
-1. Carefully read and understand ALL provided scene descriptions and the proposal narrative.
-2. For each music segment (in chronological order), select the most appropriate scene content that matches both the narrative requirement and music mood.
-3. Design each shot using ONLY the visual elements explicitly described in the selected scene - do not embellish or add imaginary details.
-4. Ensure the duration matches the music segment's length (minimum 3.0s).
-5. Verify that every shot description can be directly traced back to the provided scene information.
+**STEP 1: Understand This Music Segment**
+Read the music segment's description carefully:
+- What's the energy level? (explosive, building, calm, intense)
+- What's the emotional tone? (triumphant, melancholic, aggressive, hopeful)
+- What's the rhythm/pacing? (fast cuts, smooth flow, climactic peak)
 
-[Guidelines]
-- Maintain strict one-to-one correspondence between music segments and shots; no combining or subdividing.
-- Keep shot durations realistic and proportional to each music segment.
-- **Every shot must reference a specific related_scene index, and the content must accurately reflect that scene's description.**
-- If the proposal mentions a narrative element, use only scenes that actually contain visual content supporting that element.
-- Do not create transitions, actions, or visual details beyond what the scene descriptions explicitly provide.
+**STEP 2: Extract Instruction's Key Requirements**
+Re-read the instruction and identify:
+- **Core Visual Style**: What kind of visuals dominate? (e.g., "visceral", "elegant", "chaotic")
+- **Key Elements**: What's explicitly mentioned? (e.g., "combat", "Tumbler", "cityscape", "relationships")
+- **Overall Energy**: What's the baseline intensity? (high-energy action vs contemplative emotion)
+- **Character Focus**: How should the character be shown? (in action, in emotion, iconographic)
 
-[Output]
-Return STRICT JSON ONLY with this schema:
+**STEP 3: Find the Best Shot Match**
+For each available scene, calculate its MATCH SCORE:
+
+**Match Score = Visual Style Match + Element Match + Energy Match + Character Match**
+
+1. **Visual Style Match** (0-3 points)
+   - Does this shot's visual style match what the instruction describes?
+   - Example: Instruction says "visceral combat" → Shot shows brutal hand-to-hand fighting = 3 points
+   - Example: Instruction says "visceral combat" → Shot shows character sitting quietly = 0 points
+
+2. **Element Match** (0-3 points)
+   - Does this shot contain elements explicitly mentioned in the instruction?
+   - Example: Instruction mentions "Tumbler" → Shot shows Batmobile chase = 3 points
+   - Example: Instruction mentions "Tumbler" → Shot has no vehicles = 0 points
+
+3. **Energy Match** (0-3 points)
+   - Does this shot's energy level match both instruction AND current music segment?
+   - Example: Instruction = "intense", Music = "explosive climax", Shot = dramatic fight = 3 points
+   - Example: Instruction = "intense", Music = "explosive climax", Shot = quiet dialogue = 0 points
+
+4. **Character Match** (0-3 points)
+   - Does the main character appear in a way that fits the instruction?
+   - Example: Instruction emphasizes "physicality" → Character actively fighting = 3 points
+   - Example: Instruction emphasizes "physicality" → Character lying still = 0 points
+
+**Target Score: Aim for 9-12 points (perfect match)**
+**Acceptable: 6-8 points (good match)**
+**Avoid: 0-5 points (poor match)**
+
+**STEP 4: Consider Music Sync**
+- Fast-paced music → Choose shots with dynamic movement or quick visual changes
+- Slow build-up → Choose shots with tension, preparation, or escalating action
+- Emotional peak → Choose shots with character close-ups showing intense expression
+- Bass drop/climax → Choose shots with explosive action or dramatic reveals
+
+**STEP 5: Maintain Visual Flow**
+- Ensure smooth transitions between consecutive shots
+- Vary shot types (wide, medium, close-up) for visual interest
+- Use different scenes across the video to avoid repetition
+- Keep main character as primary visual subject in most shots
+
+[Constraints]
+- Every shot MUST use content from the provided related_scenes
+- Duration must EXACTLY match the music segment
+- One shot per music segment - no combining or splitting
+- Describe only what's actually visible in the selected scene
+- Distribute scenes evenly - avoid using the same scene repeatedly
+
+[Output Format]
+Return STRICT JSON ONLY:
 {
     "shots": [
         {
-            "id": <int, matching the segment id in music segment>,
-            "time_duration": <float, duration in seconds>,
-            "content": "<detailed description of on-screen action and visual staging>",
-            "story_beat": "<specific narrative moment>",
-            "emotion": "<primary emotional tone>",
-            "visuals": "<key visual elements, composition, and camera movement>",
-            "related_scene": "<int, one the most relevant scene index from related_scenes>"
+            "id": <int, matching music segment id>,
+            "time_duration": <float, EXACT duration from music segment>,
+            "content": "<Detailed visual description of what's happening in this shot>",
+            "story_beat": "<The narrative/emotional moment this shot represents>",
+            "emotion": "<Energy level and mood that matches music + instruction>",
+            "visuals": "<Camera angle, movement, lighting, composition details>",
+            "related_scene": <int, the scene index being used>
         },
         ...
     ]
 }
+
+[Quality Checklist Before Submitting]
+For each shot, verify:
+✅ Does this shot's visual style match the instruction's core aesthetic?
+✅ Does this shot contain elements mentioned in the instruction (if applicable)?
+✅ Does this shot's energy match both the instruction AND this music segment?
+✅ Is the main character present and shown in a way that fits the instruction?
+✅ Does the shot duration exactly match the music segment?
+
+**No Hallucination**: Only use scenes and content explicitly described in the input.
+
 """
 
 def parse_structure_proposal_output(output: str):
     """
     解析generate_structure_proposal输出的结果。
 
+    期望格式:
+    {
+        "overall_theme": "Visual style and mood",
+        "narrative_logic": "How visual energy matches music progression",
+        "emotion": "Visual mood/energy level",
+        "related_scenes": [list of scene indices]
+    }
+
     Args:
         output (str): generate_structure_proposal返回的字符串，通常为模型生成的结构提案。
 
     Returns:
-        dict or list: 尝试将输出解析为结构化数据（dict或list），解析失败则返回原始字符串。
+        dict: 解析后的结构化数据，包含必需字段。解析失败则返回None。
     """
     import json
     import re
 
+    def validate_structure(data):
+        """验证解析结果是否符合预期格式"""
+        if not isinstance(data, dict):
+            return False
+
+        # 检查必需字段
+        required_fields = ['overall_theme', 'narrative_logic', 'emotion', 'related_scenes']
+        for field in required_fields:
+            if field not in data:
+                print(f"Warning: Missing required field '{field}'")
+                return False
+
+        # 验证 related_scenes 是列表
+        if not isinstance(data['related_scenes'], list):
+            print(f"Warning: 'related_scenes' must be a list, got {type(data['related_scenes'])}")
+            return False
+
+        # 验证场景索引都是整数
+        for idx, scene_id in enumerate(data['related_scenes']):
+            if not isinstance(scene_id, int):
+                print(f"Warning: Scene index at position {idx} is not an integer: {scene_id}")
+                return False
+
+        return True
+
     # 尝试直接json解析
     try:
         result = json.loads(output)
-        return result
-    except Exception:
-        pass
+        if validate_structure(result):
+            return result
+        print("Direct JSON parse succeeded but validation failed")
+    except Exception as e:
+        print(f"Direct JSON parse failed: {e}")
 
     # 尝试从代码块中提取json字符串
     json_block_re = re.compile(r"```(?:json)?\n(.*?)```", re.DOTALL | re.IGNORECASE)
@@ -166,9 +280,11 @@ def parse_structure_proposal_output(output: str):
         json_str = match.group(1)
         try:
             result = json.loads(json_str)
-            return result
-        except Exception:
-            pass
+            if validate_structure(result):
+                return result
+            print("Code block JSON parse succeeded but validation failed")
+        except Exception as e:
+            print(f"Code block JSON parse failed: {e}")
 
     # 尝试定位到貌似json的部分开始(比如以{或[开头)
     json_start = min(
@@ -178,21 +294,26 @@ def parse_structure_proposal_output(output: str):
         json_candidate = output[json_start:]
         try:
             result = json.loads(json_candidate)
-            return result
-        except Exception:
-            pass
+            if validate_structure(result):
+                return result
+            print("JSON candidate parse succeeded but validation failed")
+        except Exception as e:
+            print(f"JSON candidate parse failed: {e}")
 
     # 再尝试提取所有大括号内容
     brackets = re.findall(r'({.*})', output, re.DOTALL)
     for b in brackets:
         try:
             result = json.loads(b)
-            return result
+            if validate_structure(result):
+                return result
         except Exception:
             continue
 
-    # 最后返回原始字符串结果
-    return output
+    # 所有解析尝试都失败
+    print("All parsing attempts failed. Raw output:")
+    print(output[:500])  # Print first 500 chars for debugging
+    return None
 
 def parse_shot_plan_output(output: str) -> dict | None:
     if not output:
@@ -256,7 +377,7 @@ def load_scene_summaries(scene_folder_path: str) -> tuple[str, int]:
 
             # Check importance_score field, skip scenes with score < 3
             importance_score = scene_classification.get('importance_score', 5)  # Default to 5 for backward compatibility
-            if importance_score <= 3:
+            if importance_score < 3:
                 print(f"Skipping {filename}: importance_score ({importance_score}) is below threshold (3)")
                 continue
 
@@ -327,38 +448,6 @@ def finish(
     else:
         return "Error: output_path not provided for saving the shot plan."
 
-def search_video_library(
-        database: A[NanoVectorDB, D("The database object that supports querying with embeddings.")],
-        event_description: A[str, D("A textual description of the event to search for.")],
-        top_k: A[int, D("The maximum number of top results to retrieve. Just use the default value.")] = 16
-) -> tuple:
-    """
-    Searches for events in a video clip database based on a given event description and retrieves the top-k most relevant video clip captions.
-
-    Returns:
-        str: A formatted string containing the concatenated captions of the searched video clip scripts.
-
-    Notes:
-        - This function utilizes the vLLM Embedding Service to generate embeddings for the input text.
-        - Use default values for `top_k` to limit the number of results returned.
-    """
-    # Get the embedding data for the clip
-    embedding_data = get_vllm_embeddings(
-        input_text=event_description,
-        endpoint=config.VLLM_EMBEDDING_ENDPOINT
-    )
-    # Extract the embedding vector from the response
-    embedding = np.array(embedding_data[0]['embedding'])
-    
-    results = database.query(embedding, top_k=top_k)
-    captions = [
-    (data['time_start_secs'], data['caption'])
-    for i, data in enumerate(results)
-    ]
-    captions = sorted(captions, key=lambda x: x[0])
-    captions = "\n".join([cap[1] for cap in captions])
-    return f"Here is the searched video clip scripts:\n\n" + captions
-
 def inspect_clip_details(
     time_range: A[str, D("The time range to analyze (e.g., '00:13:28 to 00:13:40'). This tool will analyze the ENTIRE range and provide scene breakdowns within it.")],
     frame_path: A[str, D("The path to the video frames file.")] = "",
@@ -428,7 +517,7 @@ Analyze the provided frames and segment the video into coherent clips that an ed
 1. Identify Boundaries: Only split when there is an actual camera cut or a clear narrative beat change.
 2. Describe: For each segment, write a factual, dense visual caption.
 
-[Segmentation Rules]
+[Segmentation Rules]x
 - Minimum Duration: Aim for segments that are at least ~3 seconds long. Only create a shorter segment when there is a hard cut or a dramatic visual change that cannot be merged.
 - Merge Micro-Actions: If the camera and setting stay consistent, cover the entire action in a single segment even if the subject performs multiple small movements.
 - Target Density: Produce roughly 4-8 segments for every 60 seconds of footage. Prioritize editorial usefulness over sheer granularity.
@@ -615,7 +704,6 @@ def generate_structure_proposal(
     prompt = prompt.replace("INSTRUCTION_PLACEHOLDER", user_instruction)
     
     # Prepare messages for the LLM
-
     messages = [
         {
             "role": "user",
@@ -646,118 +734,68 @@ def check_scene_distribution(
     concentration_threshold: float = 0.7
 ) -> tuple[bool, str]:
     """
-    Check whether the scene distribution in the generated script structure is reasonable.
+    Simplified check - only verify basic structure validity for the new flat format.
+    No strict scene distribution or overlap requirements for visual-focused music videos.
+
+    Expected format:
+    {
+        "overall_theme": "...",
+        "narrative_logic": "...",
+        "emotion": "...",
+        "related_scenes": [list of scene indices]
+    }
 
     Args:
-        structure_proposal: Parsed script structure
+        structure_proposal: Parsed script structure (flat format)
         total_scene_count: Total number of scenes
-        concentration_threshold: Concentration threshold, exceeding this ratio is considered too concentrated
+        concentration_threshold: (unused but kept for compatibility)
 
     Returns:
         tuple: (Whether the check passed, Feedback message)
     """
-    video_structure = structure_proposal.get('video_structure', [])
-    if not video_structure:
-        return False, "No video_structure found in proposal."
+    # Check if structure_proposal is valid
+    if not structure_proposal or not isinstance(structure_proposal, dict):
+        return False, "Invalid structure proposal format."
 
-    # Check for scene overlap between sections
-    section_scenes = []  # List of (section_index, set of scenes)
-    overlapping_scenes = {}  # scene_index -> list of section indices that use it
+    # Get related_scenes from the flat structure
+    related_scenes = structure_proposal.get('related_scenes', [])
 
-    for sec_idx, section in enumerate(video_structure):
-        related_scenes = section.get('related_scenes', [])
-        scene_set = set(related_scenes)
-        section_scenes.append((sec_idx, scene_set))
+    if not related_scenes:
+        return False, "No related_scenes found in proposal."
 
-        # Track which sections use each scene
-        for scene in related_scenes:
-            if scene not in overlapping_scenes:
-                overlapping_scenes[scene] = []
-            overlapping_scenes[scene].append(sec_idx)
+    # Check scene count (should be 8-15 as per prompt)
+    if len(related_scenes) < 8:
+        return False, f"Too few scenes selected: {len(related_scenes)}. Need at least 8 scenes."
 
-    # Find scenes that appear in multiple sections
-    duplicated_scenes = {
-        scene: sections
-        for scene, sections in overlapping_scenes.items()
-        if len(sections) > 1
-    }
+    if len(related_scenes) > 15:
+        print(f"Warning: More than 15 scenes selected ({len(related_scenes)}). This might be too many.")
 
-    # Collect all scene indices
-    all_scenes = []
-    for section in video_structure:
-        related_scenes = section.get('related_scenes', [])
-        all_scenes.extend(related_scenes)
+    # Check that scenes are valid indices
+    for scene_id in related_scenes:
+        if not isinstance(scene_id, int):
+            return False, f"Invalid scene index (not an integer): {scene_id}"
 
-    if not all_scenes:
-        return False, "No related_scenes found in any section."
+        if scene_id < 0:
+            return False, f"Invalid scene index (negative): {scene_id}"
 
-    # Calculate scene distribution
-    unique_scenes = set(all_scenes)
-    max_scene_idx = max(unique_scenes) if unique_scenes else 0
-    min_scene_idx = min(unique_scenes) if unique_scenes else 0
+        if scene_id >= total_scene_count:
+            return False, f"Scene index {scene_id} exceeds total scene count ({total_scene_count})"
 
-    # Check 1: Whether scenes cover a sufficient range
-    coverage_range = max_scene_idx - min_scene_idx
-    expected_range = total_scene_count * 0.5  # Expect to cover at least 50% of the scene range
-
-    # Check 2: Whether scenes are too concentrated in the first half
-    mid_point = total_scene_count // 2
-    scenes_in_first_half = sum(1 for s in unique_scenes if s < mid_point)
-    scenes_in_second_half = sum(1 for s in unique_scenes if s >= mid_point)
-
-    # Check 3: Whether scenes are concentrated within a range of 30 scenes
-    # Use sliding window check
-    window_size = min(30, total_scene_count // 2)
-    max_concentration = 0
-    concentrated_range = (0, 0)
-
-    for start in range(0, total_scene_count - window_size + 1):
-        end = start + window_size
-        scenes_in_window = sum(1 for s in unique_scenes if start <= s < end)
-        concentration = scenes_in_window / len(unique_scenes) if unique_scenes else 0
-        if concentration > max_concentration:
-            max_concentration = concentration
-            concentrated_range = (start, end)
-
-    # Generate feedback
-    issues = []
-
-    # Check 0: Scene overlap between sections (HIGHEST PRIORITY)
-    if duplicated_scenes:
-        overlap_details = []
-        for scene, sections in sorted(duplicated_scenes.items()):
-            section_names = [f"Section {s+1}" for s in sections]
-            overlap_details.append(f"Scene {scene} appears in {', '.join(section_names)}")
-        issues.append(f"CRITICAL - Scene overlap detected! Each scene can only appear in ONE section. Conflicts:\n    " + "\n    ".join(overlap_details))
-
-    if coverage_range < expected_range:
-        issues.append(f"Insufficient scene coverage: Currently covering Scene {min_scene_idx} to Scene {max_scene_idx} (range={coverage_range}), but there are {total_scene_count} scenes in total, expecting to cover at least {int(expected_range)} scene range.")
-
-    if scenes_in_second_half == 0:
-        issues.append(f"Second half scenes completely unused! Scenes {mid_point} to {total_scene_count-1} were not selected, please ensure coverage of key plot points in the middle and later portions.")
-    elif scenes_in_first_half > scenes_in_second_half * 2:
-        issues.append(f"Unbalanced scene distribution: First half ({scenes_in_first_half} scenes) far exceeds second half ({scenes_in_second_half} scenes), please increase usage of later scenes.")
-
-    if max_concentration > concentration_threshold:
-        issues.append(f"Scenes too concentrated: {int(max_concentration*100)}% of scenes are concentrated in Scene {concentrated_range[0]} to Scene {concentrated_range[1]} range, please diversify scene selection.")
-
-    if issues:
-        feedback = "Scene distribution check failed with the following issues:\n" + "\n".join(f"- {issue}" for issue in issues)
-        return False, feedback
-
-    return True, "Scene distribution check passed"
+    # All good - this is a visually-focused music video, no strict rules needed
+    print(f"[Scene Check] Proposal contains {len(related_scenes)} scenes selected based on visual appeal.")
+    print(f"[Scene Check] Selected scenes: {related_scenes}")
+    return True, f"Scene selection looks good - {len(related_scenes)} visually appealing scenes selected."
 
 
 def generate_structure_proposal_with_retry(
     video_scene_path: str,
     audio_caption_path: str,
     user_instruction: str,
-    max_retries: int = 5
+    max_retries: int = 2  # Reduced from 5 - less strict checking needed
 ) -> str | None:
     """
-    Structure generation function with scene distribution check and retry mechanism.
-
-    If the generated structure has unreasonable scene distribution, it will provide feedback and regenerate.
+    Structure generation function with basic validation.
+    Only retries if parsing fails or basic structure is invalid.
     """
     # Get total scene count from loaded scenes (excluding unusable and low importance scenes)
     _, scene_count = load_scene_summaries(video_scene_path)
@@ -767,7 +805,7 @@ def generate_structure_proposal_with_retry(
     if content is None:
         return None
 
-    # Try to parse and check
+    # Try to parse and validate basic structure
     for retry in range(max_retries):
         try:
             parsed = parse_structure_proposal_output(content)
@@ -776,21 +814,19 @@ def generate_structure_proposal_with_retry(
                 content = generate_structure_proposal(video_scene_path, audio_caption_path, user_instruction)
                 continue
 
+            # Basic validation only
             passed, feedback = check_scene_distribution(parsed, scene_count)
 
             if passed:
-                print(f"[Scene Distribution Check] Passed")
+                print(f"[Validation] Passed - proposal ready for shot planning")
                 return content
             else:
-                print(f"[Scene Distribution Check] Failed (Retry {retry+1}/{max_retries})")
+                print(f"[Validation] Failed (Retry {retry+1}/{max_retries})")
                 print(f"Feedback: {feedback}")
 
                 if retry < max_retries - 1:
-                    # Construct regeneration request with feedback
-                    content = _regenerate_with_feedback(
-                        video_scene_path, audio_caption_path, user_instruction,
-                        content, feedback, scene_count
-                    )
+                    # Simple retry without complex feedback
+                    content = generate_structure_proposal(video_scene_path, audio_caption_path, user_instruction)
                 else:
                     print("[Warning] Maximum retries reached, using current result")
                     return content
@@ -803,91 +839,6 @@ def generate_structure_proposal_with_retry(
                 return content
 
     return content
-
-
-def _regenerate_with_feedback(
-    video_scene_path: str,
-    audio_caption_path: str,
-    user_instruction: str,
-    previous_output: str,
-    feedback: str,
-    scene_count: int
-) -> str | None:
-    """
-    Regenerate structure proposal based on feedback.
-    """
-    video_summary, loaded_scene_count = load_scene_summaries(video_scene_path)
-    # Use loaded scene count instead of parameter for accuracy
-    scene_count = loaded_scene_count
-    max_scene_index = scene_count - 1 if scene_count > 0 else 0
-
-    if isinstance(audio_caption_path, str):
-        with open(audio_caption_path, 'r', encoding='utf-8') as f:
-            audio_caption_data = json.load(f)
-    else:
-        audio_caption_data = audio_caption_path
-
-    audio_summary = audio_caption_data.get('overall_analysis', {}).get('summary', '')
-    sections = audio_caption_data.get('sections', [])
-    filtered_sections = []
-    for section in sections:
-        section_copy = {
-            'name': section.get('name', ''),
-            'description': section.get('description', ''),
-            'Start_Time': section.get('Start_Time', ''),
-            'End_Time': section.get('End_Time', '')
-        }
-        filtered_sections.append(section_copy)
-    audio_structure = json.dumps(filtered_sections, indent=2, ensure_ascii=False)
-
-    # 构造带反馈的 prompt
-    prompt = GENERATE_STRUCTURE_PROPOSAL_PROMPT
-    prompt = prompt.replace("TOTAL_SCENE_COUNT_PLACEHOLDER", str(scene_count))
-    prompt = prompt.replace("MAX_SCENE_INDEX_PLACEHOLDER", str(max_scene_index))
-    prompt = prompt.replace("VIDEO_SUMMARY_PLACEHOLDER", video_summary)
-    prompt = prompt.replace("AUDIO_SUMMARY_PLACEHOLDER", audio_summary)
-    prompt = prompt.replace("AUDIO_STRUCTURE_PLACEHOLDER", audio_structure)
-    prompt = prompt.replace("INSTRUCTION_PLACEHOLDER", user_instruction)
-
-    retry_prompt = f"""
-{prompt}
-
----
-
-**IMPORTANT: Your previous attempt was rejected due to scene distribution issues.**
-
-**Feedback on your previous attempt:**
-{feedback}
-
-**You MUST fix these issues in your new response:**
-1. **NO SCENE OVERLAP**: Each scene index can ONLY appear in ONE section's related_scenes. If Scene X is used in Section A, it CANNOT be used in any other section. This is the HIGHEST priority rule.
-2. Ensure scenes are distributed across the ENTIRE range (Scene 0 to Scene {max_scene_index})
-3. Include scenes from the LATER portions of the footage (Scene {scene_count//2} onwards)
-4. Do NOT cluster most scenes in one small range
-5. Each audio section should draw from its corresponding part of the timeline
-
-**Before generating output, mentally verify:**
-- List all scenes you plan to use for each section
-- Check that NO scene appears in more than one section
-- If you find any overlap, reassign scenes to different sections
-
-Generate a corrected JSON response now:
-"""
-
-    messages = [{"role": "user", "content": retry_prompt}]
-
-    response = call_vllm_model(
-        messages,
-        endpoint=config.VLLM_AGENT_ENDPOINT,
-        model_name=config.AGENT_MODEL,
-        temperature=0.3,  # Slightly increase temperature to get different results
-        max_tokens=config.AGENT_MODEL_MAX_TOKEN,
-    )
-
-    if response is None:
-        return None
-
-    return response.get('content', '')
 
 
 def generate_shot_plan(
@@ -914,7 +865,6 @@ def generate_shot_plan(
     prompt = prompt.replace("AUDIO_SUMMARY_PLACEHOLDER", music_json)
     prompt = prompt.replace("VIDEO_SECTION_INFO_PLACEHOLDER", str(video_section_proposal))
     prompt = prompt.replace("INSTRUCTION_PLACEHOLDER", user_instruction)
-
 
     # Load related scenes based on related_scenes indices from video_section_proposal
     related_video_context = ""
@@ -956,9 +906,8 @@ def generate_shot_plan(
 
 
 class Screenwriter:
-    def __init__(self, video_db_path, video_caption_path, video_scene_path, audio_caption_path, output_path, max_iterations, video_path=None, frame_folder_path=None):
+    def __init__(self, video_scene_path, audio_caption_path, output_path, max_iterations, video_path=None, frame_folder_path=None):
         self.tools = [
-            search_video_library,
             inspect_clip_details,
             finish,
         ]
@@ -967,7 +916,6 @@ class Screenwriter:
             {"function": as_json_schema(func), "type": "function"}
             for func in self.name_to_function_map.values()
         ]
-        self.video_db = init_single_video_db(video_caption_path, video_db_path, config.AOAI_EMBEDDING_LARGE_DIM)
         self.video_scene_path = video_scene_path
         self.audio_caption_path = audio_caption_path
         self.audio_db = json.load(open(audio_caption_path, 'r', encoding='utf-8'))
@@ -1014,7 +962,6 @@ You are an expert Video Conform Editor. Your goal is to convert a "Draft Shot Pl
 Validate and finalize the draft plan against the video database. Real footage is the only truth. If a drafted scene is unavailable, replace it with the most relevant existing clip or discard it. NEVER invent filenames or timestamps.
 
 [Tools]
-• `search_video_library`: Semantic search for clips. Returns `clip_id`, `time_range`, and `visual_summary`.
 • `inspect_clip_details`: Verify and enrich clip details. Returns detailed captions.
 • `finish`: Submit the finalized plan.
 
@@ -1023,7 +970,6 @@ Validate and finalize the draft plan against the video database. Real footage is
 2. Search & Match (Iterative):
     For each shot:
     a. Query: Create a focused visual query based on the draft beat.
-    b. Search: Call `search_video_library`.
     c. Verify:
         - Strong Match: Use `inspect_clip_details` if needed, then lock `clip_id` and `time_range`.
         - Partial Match: Prioritize real footage. Revise the shot description to match the actual clip.
@@ -1036,7 +982,7 @@ Validate and finalize the draft plan against the video database. Real footage is
 - Background music: BACKGROUND_MUSIC_PLACEHOLDER
 
 [Constraints]
-- The "Final Shot Plan" MUST include valid `clip_id` and `exact_timestamps` for every shot.
+- The "Final Shot Plan" must be grounded in actual footage details (use `inspect_clip_details` when uncertain).
 - Adhere to the draft's narrative and emotional arc, but strictly ground every detail in actual footage.
 - Develop the narrative by expanding on emotions and plot points. Do NOT output a single isolated shot; instead, construct a coherent sequence of multiple shots that align with the music and tell a story.
 """
@@ -1058,15 +1004,6 @@ Validate and finalize the draft plan against the video database. Real footage is
         except json.JSONDecodeError as exc:
             raise StopException(f"Error decoding arguments: {exc!s}")
 
-        # Inject system-provided parameters
-        if "database" in args or name == "search_video_library":
-            args["database"] = self.video_db
-        
-        if "topk" in args or "top_k" in args:
-            key = "top_k" if "top_k" in args else "topk"
-            if config.OVERWRITE_CLIP_SEARCH_TOPK > 0:
-                args[key] = config.OVERWRITE_CLIP_SEARCH_TOPK
-        
         # For inspect_clip_details, inject frame_folder parameter
         if name == "inspect_clip_details":
             if self.frame_folder_path:
@@ -1157,197 +1094,84 @@ Validate and finalize the draft plan against the video database. Real footage is
         """
         Run the ReAct-style loop with OpenAI Function Calling.
         """
-
-        # Use version with scene distribution check, will automatically retry if distribution is unreasonable
         structure_proposal = generate_structure_proposal_with_retry(self.video_scene_path, self.audio_caption_path, instruction)
         structure_proposal = parse_structure_proposal_output(structure_proposal)
-        overall_theme = structure_proposal['overall_theme']
-        narrative_logic = structure_proposal['narrative_logic']
-
-        # TODO: Run generate_structure_proposal again for each section based on detailed section content
-
-        # Initialize output data structure for valid JSON format
-        # Each section in video_structure will contain its corresponding shot_plan
-        output_data = {
-            "overall_theme": structure_proposal.get('overall_theme', ''),
-            "narrative_logic": structure_proposal.get('narrative_logic', ''),
-            "video_structure": []
-        }
-
         pprint(structure_proposal, width=150)
 
-        for sec_idx, sec_cur in enumerate(structure_proposal['video_structure']):
-            print(f"\n{'='*60}")
-            print(f"Processing Section {sec_idx + 1}/{len(structure_proposal['video_structure'])}")
-            print(f"{'='*60}\n")
-            
-            # Calculate video section length (in seconds)
-            start_time = sec_cur.get('start_time', 0)
-            end_time = sec_cur.get('end_time', 0)
-            def time_str_to_sec(t):
-                # Handle if already a number (float or int)
-                if isinstance(t, (int, float)):
-                    return float(t)
-                # Handle string format (HH:MM:SS or MM:SS)
-                parts = str(t).split(':')
-                if len(parts) == 3:
-                    h, m, s = [float(x) for x in parts]
-                    return h * 3600 + m * 60 + s
-                elif len(parts) == 2:
-                    m, s = [float(x) for x in parts]
-                    return m * 60 + s
-                else:
-                    try:
-                        return float(parts[0])
-                    except ValueError:
-                        return 0
-            length_sec = abs(time_str_to_sec(end_time) - time_str_to_sec(start_time))
-            
-            # Set current target length for finish function validation
-            
-            print(f"Section {sec_idx + 1} output path: {self.output_path}")
-            print(f"Target duration: {length_sec} seconds")
-            print(f"Content: {sec_cur.get('content', 'N/A')}")
-            print(f"Emotion: {sec_cur.get('emotion', 'N/A')}\n")
-            
-            
+        # Check if this is a short video (single audio section)
+        audio_sections = self.audio_db.get('sections', [])
 
-            shot_plan = generate_shot_plan(
-                self.audio_db['sections'][sec_idx].get('detailed_analysis', '')['sections'],
-                sec_cur,
-                self.video_scene_path,
-            )
-            shot_plan = parse_shot_plan_output(shot_plan)
-            pprint(shot_plan, width=150)
+        print("\n" + "="*60)
+        print("DETECTED SHORT VIDEO MODE")
+        print("="*60)
+        print(f"Single audio section found: {audio_sections[0].get('name', 'Unknown')}")
+        print(f"Time range: {audio_sections[0].get('Start_Time', '0')} - {audio_sections[0].get('End_Time', '0')}")
+        print("Skipping section structure generation, directly creating shot plan...")
+        print("="*60 + "\n")
 
-            # Combine section info with its shot_plan
-            section_with_shots = {
-                **sec_cur,  # Include all original section fields
+        # For short videos, directly create shot plan without section subdivision
+        audio_section = audio_sections[0]
+
+        # Calculate duration
+        def time_str_to_sec(t):
+            if isinstance(t, (int, float)):
+                return float(t)
+            parts = str(t).split(':')
+            if len(parts) == 3:
+                h, m, s = [float(x) for x in parts]
+                return h * 3600 + m * 60 + s
+            elif len(parts) == 2:
+                m, s = [float(x) for x in parts]
+                return m * 60 + s
+            else:
+                try:
+                    return float(parts[0])
+                except ValueError:
+                    return 0
+
+        start_time = time_str_to_sec(audio_section.get('Start_Time', 0))
+        end_time = time_str_to_sec(audio_section.get('End_Time', 0))
+        duration = end_time - start_time
+
+
+
+        print(f"Target duration: {duration:.1f} seconds")
+
+        # Generate shot plan directly
+        shot_plan = generate_shot_plan(
+            audio_section.get('detailed_analysis', {}).get('sections', []),
+            structure_proposal,
+            self.video_scene_path,
+            instruction
+        )
+        shot_plan = parse_shot_plan_output(shot_plan)
+        pprint(shot_plan, width=150)
+
+        # Create output data with single section
+        import datetime
+        output_data = {
+            "instruction": instruction,  # Add explicit instruction field
+            "metadata": {
+                "created_at": datetime.datetime.now().isoformat(),
+                "video_path": self.video_path if hasattr(self, 'video_path') else None,
+                "audio_path": self.audio_caption_path,
+                "video_scene_path": self.video_scene_path,
+            },
+            "overall_theme": f"Short video for {audio_section.get('name', 'audio section')}",
+            "narrative_logic": instruction,
+            "video_structure": [{
+                **structure_proposal,
+                "start_time": start_time,
+                "end_time": end_time,
                 "shot_plan": shot_plan
-            }
-            output_data["video_structure"].append(section_with_shots)
-            # for idx, shot in enumerate(shot_plan['shots']):
-            #     msgs = copy.deepcopy(self.messages)
-            #     print(f"\n{'='*60}")
-            #     print(f"Processing Shot {idx + 1}/{len(shot_plan['shots'])}")
-            #     print(f"{'='*60}\n")
-            #     print(f"Shot output path: {self.output_path}")
-            #     msgs[-1]["content"] = msgs[-1]["content"].replace("SHOT_PLAN_PLACEHOLDER", json.dumps(shot, indent=2, ensure_ascii=False))
-            #     audio_section_info = str({k: v for k, v in (json.loads(self.audio_db['sections'][sec_idx].get('detailed_analysis', '')['sections'][idx]) if isinstance(self.audio_db['sections'][sec_idx].get('detailed_analysis', '')['sections'][idx], str) else self.audio_db['sections'][sec_idx].get('detailed_analysis', '')['sections'][idx]).items()})
-            #     msgs[-1]["content"] = msgs[-1]["content"].replace("BACKGROUND_MUSIC_PLACEHOLDER", audio_section_info)
-            #     self.current_target_length = shot['time_duration']
+            }]
+        }
 
-            #     for i in range(self.max_iterations):
-            #         # msgs[-1]["content"] = msgs[-1]["content"].replace("VIDEO_THEME_PLACEHOLDER", overall_theme).replace("VIDEO_NARRATIVE_LOGIC_PLACEHOLDER", narrative_logic)
-            #         if i == self.max_iterations - 1:
-            #             msgs.append(
-            #                 {
-            #                     "role": "user",
-            #                     "content": "Please call the `finish` function to finish the task.",
-            #                 }
-            #             )
+        print("\nShort video shot plan generated successfully!")
 
-            #         # Retry loop for both model call and tool execution
-            #         # If tool execution fails, we rollback and retry the entire model call
-            #         max_model_retries = 2  # Retry model call if it returns None
-            #         max_tool_retries = 2   # Retry entire iteration if tool execution fails
-            #         tool_execution_success = False
-                    
-            #         for tool_retry in range(max_tool_retries):
-            #             # Save snapshot of msgs before making any changes
-            #             msgs_snapshot = copy.deepcopy(msgs)
-                        
-            #             # Call model with retry mechanism
-            #             response = None
-            #             for model_retry in range(max_model_retries):
-            #                 try:
-            #                     response = call_vllm_model(
-            #                         msgs,
-            #                         endpoint=config.VLLM_AGENT_ENDPOINT,
-            #                         model_name=config.AGENT_MODEL,
-            #                         temperature=0.0,
-            #                         max_tokens=config.AGENT_MODEL_MAX_TOKEN,
-            #                         tools=self.function_schemas,
-            #                         tool_choice="auto",
-            #                         return_json=False,
-            #                     )
-            #                     if response is not None:
-            #                         break  # Success, exit model retry loop
-            #                     else:
-            #                         print(f"⚠️  Model returned None, retrying model call ({model_retry + 1}/{max_model_retries})...")
-            #                 except Exception as e:
-            #                     print(f"⚠️  Model call failed with error: {e}, retrying ({model_retry + 1}/{max_model_retries})...")
-            #                     if model_retry == max_model_retries - 1:
-            #                         raise
-                        
-            #             # If all model retries failed, skip this iteration entirely
-            #             if response is None:
-            #                 print(f"❌ Model call failed after {max_model_retries} retries. Skipping iteration {i}.")
-            #                 # Restore original msgs and remove finish prompt if added
-            #                 msgs[:] = msgs_snapshot
-            #                 if i == self.max_iterations - 1 and msgs and msgs[-1].get("content") == "Please call the `finish` function to finish the task.":
-            #                     msgs.pop()
-            #                 break  # Exit tool retry loop
-                        
-            #             # Add response to msgs
-            #             response.setdefault("role", "assistant")
-            #             # Clean up extra newlines in content to prevent accumulation
-            #             if response.get("content"):
-            #                 response["content"] = response["content"].rstrip('\n') + '\n'
-            #             msgs.append(response)
-            #             print("#### Iteration: ", i, f"(Tool retry: {tool_retry + 1}/{max_tool_retries})" if tool_retry > 0 else "")
-            #             pprint(response, width=150)
-                        
-            #             # Execute any requested tool calls
-            #             section_completed = False
-            #             tool_execution_failed = False
-                        
-            #             try:
-            #                 tool_calls = response.get("tool_calls", [])
-            #                 if tool_calls is None:
-            #                     print("⚠️  Warning: tool_calls is None, treating as empty list")
-            #                     tool_calls = []
-                            
-            #                 for tool_call in tool_calls:
-            #                     is_finished = self._exec_tool(tool_call, msgs)
-            #                     if is_finished: 
-            #                         section_completed = True
-            #                         break
-                            
-            #                 # If we reach here, tool execution was successful
-            #                 tool_execution_success = True
-                            
-            #             except StopException:
-            #                 return msgs
-            #             except Exception as e:
-            #                 print(f"❌ Error executing tool calls: {e}")
-            #                 import traceback
-            #                 traceback.print_exc()
-            #                 tool_execution_failed = True
-                        
-            #             # If tool execution succeeded or we're on the last retry, exit retry loop
-            #             if tool_execution_success or tool_retry == max_tool_retries - 1:
-            #                 if tool_execution_failed and tool_retry == max_tool_retries - 1:
-            #                     print(f"❌ Tool execution failed after {max_tool_retries} retries. Moving to next iteration.")
-            #                 break
-                        
-            #             # Tool execution failed, rollback and retry
-            #             if tool_execution_failed:
-            #                 print(f"🔄 Rolling back messages and retrying model call ({tool_retry + 1}/{max_tool_retries})...")
-            #                 msgs[:] = msgs_snapshot  # Rollback to snapshot
-            #                 continue  # Retry the model call
-                    
-            #         # If model call failed completely, skip to next iteration
-            #         if response is None:
-            #             continue
-                    
-            #         # If section is completed successfully, move to next section
-            #         if section_completed:
-            #             print(f"Shot {idx + 1} completed.")
-            #             break
 
-            # Shot processed
-            print(f"\nShot processed.")
+        # Shot processed
+        print(f"\nShot processed.")
 
         # Save complete output as valid JSON file
         if self.output_path:
@@ -1361,42 +1185,148 @@ Validate and finalize the draft plan against the video database. Real footage is
 
 
 def main():
-    # video_caption_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Video/Batman_Begins/captions/captions.json"
-    # video_scene_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Video/Batman_Begins/captions/scene_summaries_video"
-    # audio_caption_path = "//public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Audio/Way_Down_We_Go/captions/captions_short.json"
-    # video_db_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Video/Batman_Begins/vdb.json"
-    # frame_folder_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Video/Batman_Begins/frames"
-    # video_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/Batman_Begins.mp4"
-    # output_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/output_batman_waywe_go_short/shot_plan_gemini.json"
-    # Instruction = """This script effectively portrays the growth of Batman through trauma, training, and moral choices, while implicitly addressing Bruce Wayne’s dual identity. With clearer contrasts between Bruce’s personal life and his role as Batman, the narrative would more directly emphasize the struggle of living a double life."""
+    def _norm_name(s: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "", (s or "").lower())
 
+    def _resolve_video_assets(
+        video_path: str,
+        video_scene_path: str | None,
+        frame_folder_path: str | None,
+        video_caption_path: str | None,
+    ) -> tuple[str, str | None, str | None]:
+        """Resolve video-related database paths from a raw video path.
 
-    # The Dart Knight Rises + Way Down We Go (short video test)
-    video_caption_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Video/The_Dark_Knight/captions/captions.json"
-    video_scene_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Video/The_Dark_Knight/captions/scene_summaries_video"
-    audio_caption_path = "//public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Audio/Way_Down_We_Go/captions1/captions.json"
-    video_db_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Video/The_Dark_Knight/vdb.json"
-    frame_folder_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Video/The_Dark_Knight/frames"
-    video_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/The_Dark_Knight.mp4"
-    output_path = "/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/output_dark_knight_way_down_we_go/shot_plan_gemini.json"
-    Instruction = ""
-    
+        Returns:
+            (resolved_video_scene_path, resolved_frame_folder_path, resolved_video_caption_path)
+        """
+        if video_scene_path and frame_folder_path and video_caption_path:
+            return video_scene_path, frame_folder_path, video_caption_path
+
+        if not video_path:
+            raise ValueError("--video-path is required")
+
+        repo_root = Path(__file__).resolve().parents[1]
+        video_db_root = repo_root / "video_database" / "Video"
+        if not video_db_root.exists():
+            raise FileNotFoundError(
+                f"Cannot find video database root at: {video_db_root}. "
+                "Run from the repo workspace or pass --video-scene-path manually."
+            )
+
+        stem = Path(video_path).stem
+        target_norm = _norm_name(stem)
+
+        # Find best matching folder under video_database/Video
+        match_dir: Path | None = None
+        if (video_db_root / stem).is_dir():
+            match_dir = video_db_root / stem
+        else:
+            for child in video_db_root.iterdir():
+                if not child.is_dir():
+                    continue
+                if _norm_name(child.name) == target_norm:
+                    match_dir = child
+                    break
+
+        if match_dir is None:
+            raise FileNotFoundError(
+                f"Cannot resolve video database folder for video '{stem}'. "
+                f"Expected something like: {video_db_root}/<VIDEO_NAME>/ . "
+                "Please pass --video-scene-path (and optionally --frame-folder-path)."
+            )
+
+        # Resolve paths with simple, existing conventions
+        captions_dir = match_dir / "captions"
+        candidate_scene_dirs = [
+            captions_dir / "scene_summaries_video",
+            captions_dir / "scene_summaries",
+        ]
+        resolved_scene_dir: Path | None = None
+        for cand in candidate_scene_dirs:
+            if cand.is_dir():
+                resolved_scene_dir = cand
+                break
+
+        if video_scene_path is None:
+            if resolved_scene_dir is None:
+                raise FileNotFoundError(
+                    f"Cannot find scene summaries folder under: {captions_dir}. "
+                    "Tried: scene_summaries_video/, scene_summaries/. "
+                    "Please pass --video-scene-path manually."
+                )
+            video_scene_path = str(resolved_scene_dir)
+
+        if frame_folder_path is None:
+            frames_dir = match_dir / "frames"
+            frame_folder_path = str(frames_dir) if frames_dir.is_dir() else None
+
+        if video_caption_path is None:
+            captions_json = captions_dir / "captions.json"
+            video_caption_path = str(captions_json) if captions_json.is_file() else None
+
+        return video_scene_path, frame_folder_path, video_caption_path
+
+    parser = argparse.ArgumentParser(
+        description="Generate a short-video shot plan from video scene summaries and short audio captions."
+    )
+    parser.add_argument(
+        "--video-scene-path",
+        default=None,
+        help="Path to scene summaries folder containing scene_*.json files. If omitted, inferred from --video-path.",
+    )
+    parser.add_argument(
+        "--audio-caption-path",
+        default="/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/video_database/Audio/Way_Down_We_Go/captions_max4s/captions_short.json",
+        help="Path to captions_short.json describing the audio segments.",
+    )
+    parser.add_argument(
+        "--frame-folder-path",
+        default=None,
+        help="Path to extracted frames folder. If omitted, inferred from --video-path when possible.",
+    )
+    parser.add_argument(
+        "--video-path",
+        required=True,
+        help="Path to the source video file (required).",
+    )
+    parser.add_argument(
+        "--output-path",
+        default="/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/output_dark_knight_way_down_we_go_short/shot_plan_gemini_joker.json",
+        help="Output path to save the generated shot plan JSON.",
+    )
+    parser.add_argument(
+        "--instruction",
+        default="A montage that captures the crazy and chaotic of Joker's character.",
+        help="User instruction / creative brief.",
+    )
+    parser.add_argument(
+        "--max-iterations",
+        type=int,
+        default=20,
+        help="Maximum iterations for the agent loop (kept for compatibility).",
+    )
+    args = parser.parse_args()
+
+    resolved_video_scene_path, resolved_frame_folder_path, _resolved_video_caption_path = _resolve_video_assets(
+        video_path=args.video_path,
+        video_scene_path=args.video_scene_path,
+        frame_folder_path=args.frame_folder_path,
+        video_caption_path=None,
+    )
 
     agent = Screenwriter(
-        video_db_path,
-        video_caption_path,
-        video_scene_path,  # Use scene summary folder path
-        audio_caption_path,
-        output_path,
-        max_iterations=20,
-        video_path=video_path,
-        frame_folder_path=frame_folder_path
+        video_scene_path=resolved_video_scene_path,
+        audio_caption_path=args.audio_caption_path,
+        output_path=args.output_path,
+        max_iterations=args.max_iterations,
+        video_path=args.video_path,
+        frame_folder_path=resolved_frame_folder_path,
     )
     # print("Generating structure proposal...")
     # structure_proposal = generate_structure_proposal(video_summary_path, audio_caption_path, Instruction)
     # structure_proposal = parse_structure_proposal_output(structure_proposal)
     # print("Structure proposal: ", structure_proposal)
-    messages = agent.run(Instruction)
+    messages = agent.run(args.instruction)
 
     # if messages:
     #     for m in messages:
