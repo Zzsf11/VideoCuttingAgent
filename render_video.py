@@ -764,7 +764,7 @@ def main():
     parser.add_argument(
         '--shot-json',
         type=str,
-        default='/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/output_batman_waywe_go/shot_point.json',
+        required=True,
         help='Path to shot_point.json file'
     )
     parser.add_argument(
@@ -776,7 +776,7 @@ def main():
     parser.add_argument(
         '--video',
         type=str,
-        default='/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/Dataset/Video/Batman.Begins.2005.1080p.BluRay.x264.YIFY.mp4',
+        required=True,
         help='Path to source video file'
     )
     parser.add_argument(
@@ -788,7 +788,7 @@ def main():
     parser.add_argument(
         '--output',
         type=str,
-        default='/public_hw/home/cit_shifangzhao/zsf/VideoCuttingAgent/output_batman_waywe_go/rendered_video.mp4',
+        required=True,
         help='Path for output video file'
     )
     parser.add_argument(

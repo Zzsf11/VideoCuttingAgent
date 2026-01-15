@@ -418,7 +418,10 @@ def main():
         print("Running EditorCoreAgent to select video clips...")
         print("="*80)
 
-        from vca.core import EditorCoreAgent
+        if config.VIDEO_TYPE == "film":
+            from vca.core import EditorCoreAgent
+        elif config.VIDEO_TYPE == "vlog":
+            from vca.core_vlog import EditorCoreAgent
 
         # Create output directory
         os.makedirs(os.path.dirname(shot_point_output_path), exist_ok=True)
@@ -429,7 +432,7 @@ def main():
             video_scene_path=scene_summaries_dir,
             audio_caption_path=audio_caption_file,
             output_path=shot_point_output_path,
-            max_iterations=config.AGENT_MAX_ITERATIONS if hasattr(config, 'AGENT_MAX_ITERATIONS') else 30,
+            max_iterations=config.AGENT_MAX_ITERATIONS if hasattr(config, 'AGENT_MAX_ITERATIONS') else 20,
             video_path=Video_Path,
             frame_folder_path=frames_dir,
             transcript_path=srt_with_characters if os.path.exists(srt_with_characters) else srt_path

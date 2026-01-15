@@ -1188,6 +1188,207 @@ class ReviewerAgent:
         return frame_results
 
 
+    def check_aesthetic_quality(
+        self,
+        video_path: A[str, D("Path to the video file.")],
+        time_range: A[str, D("The time range to check (e.g., '00:13:28 to 00:13:40').")],
+        min_aesthetic_score: A[float, D("Minimum required aesthetic score (1-5 scale). Default: 3.0")] = 3.0,
+        sample_fps: A[float, D("Sampling frame rate for analysis. Default: 2.0")] = 2.0,
+    ) -> str:
+        """
+        Check aesthetic quality of a video clip using VLM analysis.
+        Analyzes visual appeal, lighting, composition, colors, and cinematography.
+
+        Args:
+            video_path: Path to the video file
+            time_range: Time range in format "HH:MM:SS to HH:MM:SS" or "MM:SS to MM:SS"
+            min_aesthetic_score: Minimum required aesthetic score (default: 3.0 on 1-5 scale)
+            sample_fps: Frame sampling rate for analysis (default: 2.0 fps)
+
+        Returns:
+            str: Success message if aesthetic quality meets requirements, or error message with details.
+
+        Example:
+            >>> check_aesthetic_quality("/path/to/video.mp4", "00:10:00 to 00:10:10", min_aesthetic_score=3.5)
+        """
+        def hhmmss_to_seconds(time_str: str) -> float:
+            """Convert HH:MM:SS, HH:MM:SS.s, HH:MM:SS:FF, or MM:SS to seconds."""
+            parts = time_str.strip().split(':')
+            if len(parts) == 4:
+                # HH:MM:SS:FF format (with frame number)
+                h, m, s, f = int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3])
+                fps = getattr(config, 'VIDEO_FPS', 24) or 24
+                return h * 3600 + m * 60 + s + (f / fps)
+            elif len(parts) == 3:
+                h, m = int(parts[0]), int(parts[1])
+                s = float(parts[2])
+                return h * 3600 + m * 60 + s
+            elif len(parts) == 2:
+                m = int(parts[0])
+                s = float(parts[1])
+                return m * 60 + s
+            else:
+                return float(parts[0])
+
+        # Parse time range
+        match = re.search(r'([\d:.]+)\s+to\s+([\d:.]+)', time_range, re.IGNORECASE)
+        if not match:
+            return f"❌ Error: Could not parse time range '{time_range}'. Please use format 'HH:MM:SS to HH:MM:SS'."
+
+        try:
+            start_sec = hhmmss_to_seconds(match.group(1))
+            end_sec = hhmmss_to_seconds(match.group(2))
+            duration_sec = end_sec - start_sec
+
+            if duration_sec <= 0:
+                return f"❌ Error: Invalid time range. End time must be greater than start time."
+        except Exception as e:
+            return f"❌ Error parsing time range: {e}"
+
+        if not os.path.exists(video_path):
+            return f"❌ Error: Video file not found: {video_path}"
+
+        print(f"[Aesthetic Quality Check] Analyzing {time_range} ({duration_sec:.2f}s)...")
+        print(f"[Aesthetic Quality Check] Minimum aesthetic score: {min_aesthetic_score}/5.0")
+
+        # Use VLM to analyze aesthetic quality
+        AESTHETIC_ANALYSIS_PROMPT = """You are an expert cinematographer and visual aesthetics analyst specializing in vlog content.
+
+**Task**: Analyze the aesthetic quality and visual appeal of this video clip.
+
+**Analysis Criteria**:
+1. **Lighting Quality**: Natural light, artificial light, lighting consistency, shadows, highlights
+2. **Color Grading**: Color palette, saturation, contrast, color harmony, mood
+3. **Composition**: Framing, rule of thirds, visual balance, depth, leading lines
+4. **Camera Work**: Stability, smooth movements, focus, exposure
+5. **Visual Interest**: Engaging subjects, dynamic elements, visual variety
+6. **Cinematic Feel**: Overall production quality, professional look, artistic appeal
+
+**Output Format** (JSON only):
+{
+  "overall_aesthetic_score": <float 1.0-5.0>,
+  "lighting_score": <float 1.0-5.0>,
+  "color_score": <float 1.0-5.0>,
+  "composition_score": <float 1.0-5.0>,
+  "camera_work_score": <float 1.0-5.0>,
+  "visual_interest_score": <float 1.0-5.0>,
+  "strengths": ["<strength 1>", "<strength 2>", ...],
+  "weaknesses": ["<weakness 1>", "<weakness 2>", ...],
+  "recommendation": "<EXCELLENT | VERY_GOOD | GOOD | ACCEPTABLE | POOR>",
+  "detailed_analysis": "<Brief 2-3 sentence analysis of the visual aesthetics>"
+}
+
+**Scoring Guide**:
+- 5.0: Stunning - Professional cinematography, beautiful lighting, exceptional composition
+- 4.0: Very Good - High quality visuals, well-composed, attractive aesthetics
+- 3.0: Good - Acceptable quality, decent composition, suitable for use
+- 2.0: Fair - Some quality issues, basic composition, marginal aesthetics
+- 1.0: Poor - Significant quality problems, poor composition, unappealing
+
+**Guidelines**:
+- Be objective and specific in your assessment
+- Focus on visual appeal and production quality
+- Consider the context of vlog content (not cinema film standards)
+- Provide constructive feedback
+- Output ONLY valid JSON, no additional text
+"""
+
+        try:
+            messages = [
+                {"role": "system", "content": "You are an expert cinematographer and visual aesthetics analyst."},
+                {"role": "user", "content": AESTHETIC_ANALYSIS_PROMPT}
+            ]
+
+            # Call VLM with video clip
+            response = call_vllm_model_for_video(
+                messages,
+                endpoint=config.VLLM_ENDPOINT,
+                model_name=config.VIDEO_ANALYSIS_MODEL,
+                return_json=False,
+                video_path=video_path,
+                video_fps=config.VIDEO_FPS,
+                do_sample_frames=False,
+                max_tokens=2048,
+                use_local_clipping=True,
+                video_start_time=start_sec,
+                video_end_time=end_sec,
+            )
+
+            if response is None or response.get("content") is None:
+                return f"⚠️ WARNING: VLM returned no response for aesthetic analysis. Proceeding without validation."
+
+            content = response["content"].strip()
+
+            # Extract JSON from markdown code blocks if present
+            json_block_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', content, re.DOTALL)
+            if json_block_match:
+                content = json_block_match.group(1).strip()
+
+            analysis = json.loads(content)
+
+            overall_score = analysis.get("overall_aesthetic_score", 0.0)
+            lighting_score = analysis.get("lighting_score", 0.0)
+            color_score = analysis.get("color_score", 0.0)
+            composition_score = analysis.get("composition_score", 0.0)
+            camera_work_score = analysis.get("camera_work_score", 0.0)
+            visual_interest_score = analysis.get("visual_interest_score", 0.0)
+            strengths = analysis.get("strengths", [])
+            weaknesses = analysis.get("weaknesses", [])
+            recommendation = analysis.get("recommendation", "UNKNOWN")
+            detailed_analysis = analysis.get("detailed_analysis", "")
+
+            # Prepare result message
+            result_msg = f"\n[Aesthetic Quality Check Results]\n"
+            result_msg += f"Time range: {time_range} ({duration_sec:.2f}s)\n"
+            result_msg += f"Overall Aesthetic Score: {overall_score:.2f}/5.0\n"
+            result_msg += f"  • Lighting: {lighting_score:.2f}/5.0\n"
+            result_msg += f"  • Color: {color_score:.2f}/5.0\n"
+            result_msg += f"  • Composition: {composition_score:.2f}/5.0\n"
+            result_msg += f"  • Camera Work: {camera_work_score:.2f}/5.0\n"
+            result_msg += f"  • Visual Interest: {visual_interest_score:.2f}/5.0\n"
+            result_msg += f"Recommendation: {recommendation}\n"
+            result_msg += f"Minimum Required: {min_aesthetic_score:.2f}/5.0\n"
+
+            if strengths:
+                result_msg += f"\nStrengths:\n"
+                for strength in strengths[:3]:  # Show top 3
+                    result_msg += f"  ✓ {strength}\n"
+
+            if weaknesses:
+                result_msg += f"\nWeaknesses:\n"
+                for weakness in weaknesses[:3]:  # Show top 3
+                    result_msg += f"  ✗ {weakness}\n"
+
+            if detailed_analysis:
+                result_msg += f"\nAnalysis: {detailed_analysis}\n"
+
+            # Check if aesthetic score meets threshold
+            if overall_score < min_aesthetic_score:
+                result_msg += f"\n❌ FAILED: Aesthetic score ({overall_score:.2f}/5.0) is below minimum threshold ({min_aesthetic_score:.2f}/5.0)\n"
+                result_msg += f"\n⚠️ This shot does not meet the aesthetic quality requirements. Please select a shot with:\n"
+                result_msg += f"  • Better lighting (natural light preferred)\n"
+                result_msg += f"  • Improved composition (well-framed, balanced)\n"
+                result_msg += f"  • More vibrant colors and good contrast\n"
+                result_msg += f"  • Stable camera work\n"
+                result_msg += f"  • More visually interesting content\n"
+                print(result_msg)
+                return result_msg
+            else:
+                result_msg += f"\n✅ PASSED: Aesthetic score ({overall_score:.2f}/5.0) meets the minimum threshold.\n"
+                if overall_score >= 4.0:
+                    result_msg += f"⭐ Excellent visual quality! This shot is highly recommended for the final edit.\n"
+                result_msg += f"You can proceed with this shot."
+                print(result_msg)
+                return result_msg
+
+        except json.JSONDecodeError as e:
+            return f"⚠️ WARNING: Could not parse VLM response for aesthetic analysis: {e}\n\nProceeding without validation."
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return f"⚠️ WARNING: Error during aesthetic analysis: {str(e)}\n\nProceeding without validation."
+
+
     def review(self, shot_proposal: dict, context: dict, used_time_ranges: list = None) -> dict:
         """
         审核 shot 选择是否符合要求。

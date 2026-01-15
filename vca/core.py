@@ -913,6 +913,35 @@ class EditorCoreAgent:
         # Current shot context for reviewer
         self.current_shot_context = {}
 
+    def _load_progress(self):
+        """
+        Load progress from existing output file to support resume functionality.
+        Returns a set of completed (section_idx, shot_idx) tuples.
+        """
+        if not self.output_path or not os.path.exists(self.output_path):
+            return set()
+
+        try:
+            with open(self.output_path, 'r', encoding='utf-8') as f:
+                results = json.load(f)
+
+            completed = set()
+            for result in results:
+                if result.get('status') == 'success':
+                    sec_idx = result.get('section_idx')
+                    shot_idx = result.get('shot_idx')
+                    if sec_idx is not None and shot_idx is not None:
+                        completed.add((sec_idx, shot_idx))
+
+            if completed:
+                print(f"📋 Found {len(completed)} completed shots in existing output file")
+                print(f"   Completed: {sorted(completed)}")
+
+            return completed
+        except Exception as e:
+            print(f"⚠️ Error loading progress: {e}")
+            return set()
+
     def _construct_messages(self):
         messages = [
             {
@@ -1362,14 +1391,8 @@ Ready? Start with get_related_shot!
         with open(shot_plan_path, 'r', encoding='utf-8') as f:
             structure_proposal = json.load(f)
 
-        # Check if output file already exists, add random suffix if so
-        if self.output_path and os.path.exists(self.output_path):
-            import random
-            import string
-            base, ext = os.path.splitext(self.output_path)
-            random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
-            self.output_path = f"{base}_{random_suffix}{ext}"
-            print(f"⚠️ Output file already exists. Using new path: {self.output_path}")
+        # Load progress from existing output file (for resume functionality)
+        completed_shots = self._load_progress()
 
         # Store original output path and create section-specific paths
         original_output_path = self.output_path
@@ -1388,6 +1411,11 @@ Ready? Start with get_related_shot!
                 continue
             print("Using shot plan from file")
             for idx, shot in enumerate(shot_plan['shots']):
+                # Check if this shot is already completed (resume functionality)
+                if (sec_idx, idx) in completed_shots:
+                    print(f"\n⏭️  Skipping Shot {idx + 1}/{len(shot_plan['shots'])} - Already completed")
+                    continue
+
                 max_shot_restarts = 3  # Max restarts per shot
                 for restart_attempt in range(max_shot_restarts):
                     if restart_attempt > 0:

@@ -574,11 +574,7 @@ def trim_shot(
             "intensity": "<low | medium | high>",
             "narrative_function": "<e.g., 'builds suspense', 'reveals character emotion', 'establishes setting'>"
         },
-        "character_presence": {
-            "main_character_visible": <true | false>,
-            "character_view": "<e.g., 'close-up', 'medium shot', 'long shot', 'not visible'>"
-        },
-        "editor_recommendation": "<e.g., 'Ideal for action sequence', 'Good emotional beat', 'Use as reaction shot', 'Transition material'>"
+        "editor_recommendation": "<e.g., 'Ideal for beatiful scene', 'Good emotional beat', 'Transition material'>"
         }
     ]
     }
@@ -685,30 +681,30 @@ def trim_shot(
 
                 # Optional: Get detailed protagonist detection data using VLM
                 frame_protagonist_data = []
-                if getattr(config, 'ENABLE_TRIM_SHOT_CHARACTER_ANALYSIS', False):
-                    print(f"[trim_shot] Calling VLM for detailed character analysis...")
-                    try:
-                        # Create ReviewerAgent instance to access protagonist detection
-                        # Pass None for frame_folder_path to force video decoding
-                        # (trim_shot's frame_path is actually video_path, not a frames directory)
-                        from vca.Reviewer import ReviewerAgent
-                        reviewer = ReviewerAgent(
-                            frame_folder_path=None,  # Force video decoding, not using pre-extracted frames
-                            video_path=frame_path     # frame_path is actually video_path in trim_shot context
-                        )
+                # if getattr(config, 'ENABLE_TRIM_SHOT_CHARACTER_ANALYSIS', False):
+                #     print(f"[trim_shot] Calling VLM for detailed character analysis...")
+                #     try:
+                #         # Create ReviewerAgent instance to access protagonist detection
+                #         # Pass None for frame_folder_path to force video decoding
+                #         # (trim_shot's frame_path is actually video_path, not a frames directory)
+                #         from vca.Reviewer import ReviewerAgent
+                #         reviewer = ReviewerAgent(
+                #             frame_folder_path=None,  # Force video decoding, not using pre-extracted frames
+                #             video_path=frame_path     # frame_path is actually video_path in trim_shot context
+                #         )
 
-                        frame_protagonist_data = reviewer.get_protagonist_frame_data(
-                            video_path=frame_path,
-                            time_range=time_range,
-                            main_character_name=getattr(config, 'MAIN_CHARACTER_NAME', 'the main character'),
-                            sample_fps=getattr(config, 'TRIM_SHOT_CHARACTER_SAMPLE_FPS', 1.0),
-                            min_box_size=getattr(config, 'VLM_MIN_BOX_SIZE', 50),
-                        )
-                        print(f"[trim_shot] Got {len(frame_protagonist_data)} frame detections")
-                    except Exception as e:
-                        print(f"[trim_shot] Warning: VLM character analysis failed: {e}")
-                        import traceback
-                        traceback.print_exc()
+                #         frame_protagonist_data = reviewer.get_protagonist_frame_data(
+                #             video_path=frame_path,
+                #             time_range=time_range,
+                #             main_character_name=getattr(config, 'MAIN_CHARACTER_NAME', 'the main character'),
+                #             sample_fps=getattr(config, 'TRIM_SHOT_CHARACTER_SAMPLE_FPS', 1.0),
+                #             min_box_size=getattr(config, 'VLM_MIN_BOX_SIZE', 50),
+                #         )
+                #         print(f"[trim_shot] Got {len(frame_protagonist_data)} frame detections")
+                #     except Exception as e:
+                #         print(f"[trim_shot] Warning: VLM character analysis failed: {e}")
+                #         import traceback
+                #         traceback.print_exc()
 
                 for seg in parsed["segments"]:
                     # Build comprehensive description from new format
@@ -913,11 +909,40 @@ class EditorCoreAgent:
         # Current shot context for reviewer
         self.current_shot_context = {}
 
+    def _load_progress(self):
+        """
+        Load progress from existing output file to support resume functionality.
+        Returns a set of completed (section_idx, shot_idx) tuples.
+        """
+        if not self.output_path or not os.path.exists(self.output_path):
+            return set()
+
+        try:
+            with open(self.output_path, 'r', encoding='utf-8') as f:
+                results = json.load(f)
+
+            completed = set()
+            for result in results:
+                if result.get('status') == 'success':
+                    sec_idx = result.get('section_idx')
+                    shot_idx = result.get('shot_idx')
+                    if sec_idx is not None and shot_idx is not None:
+                        completed.add((sec_idx, shot_idx))
+
+            if completed:
+                print(f"📋 Found {len(completed)} completed shots in existing output file")
+                print(f"   Completed: {sorted(completed)}")
+
+            return completed
+        except Exception as e:
+            print(f"⚠️ Error loading progress: {e}")
+            return set()
+
     def _construct_messages(self):
         messages = [
             {
                 "role": "system",
-                "content": f"""You are an expert video editor specializing in creating emotionally engaging highlight reels synchronized with music.
+                "content": f"""You are an expert video editor specializing in creating visually stunning vlogs synchronized with music.
 
 Your workflow follows the THINK → ACT → OBSERVE loop:
 • THINK: Analyze what you've learned so far and plan your next action
@@ -925,11 +950,12 @@ Your workflow follows the THINK → ACT → OBSERVE loop:
 • OBSERVE: Carefully review the tool's output before proceeding
 
 Key principles:
-1. Focus on finding shots with the MAIN CHARACTER in iconic, emotionally powerful moments
-2. Prioritize visual continuity and smooth transitions between shots
-3. Be flexible - if perfect matches don't exist, find the best available alternative
-4. Never call the same tool with identical parameters twice
-5. When uncertain, trust your judgment and proceed confidently with the best option available"""
+1. Focus on finding shots with EXCELLENT AESTHETIC QUALITY - beautiful lighting, composition, and visual appeal
+2. Ensure PERFECT AUDIO-VISUAL SYNCHRONIZATION - shots must match the music's rhythm, energy, and emotion
+3. Prioritize visual continuity and smooth transitions between shots
+4. Be flexible - if perfect matches don't exist, find the best available alternative
+5. Never call the same tool with identical parameters twice
+6. When uncertain, trust your judgment and proceed confidently with the best option available"""
             },
             {
                 "role": "user",
@@ -941,11 +967,11 @@ MISSION: Select the Best Video Clip
 
 [Your Goal]
 Find ONE continuous video clip (or multiple nearby shots that can be stitched together) that:
-✓ Features the MAIN CHARACTER in a compelling, iconic moment
+✓ Has EXCELLENT AESTHETIC QUALITY (beautiful lighting, composition, colors)
 ✓ Matches the target duration: VIDEO_LENGTH_PLACEHOLDER seconds
 ✓ Aligns with the target emotion: CURRENT_VIDEO_EMOTION_PLACEHOLDER
 ✓ Fits the narrative content: CURRENT_VIDEO_CONTENT_PLACEHOLDER
-✓ Synchronizes well with the music: BACKGROUND_MUSIC_PLACEHOLDER
+✓ PERFECTLY SYNCHRONIZES with the music: BACKGROUND_MUSIC_PLACEHOLDER
 
 [Available Tools & Usage]
 
@@ -967,7 +993,7 @@ Find ONE continuous video clip (or multiple nearby shots that can be stitched to
    What it returns: Scene breakdowns with:
       - Content description for each internal scene
       - Visual quality scores (1-5, aim for ≥4)
-      - Protagonist presence ratio (aim for ≥{config.MIN_PROTAGONIST_RATIO * 100:.0f}%)
+      - Aesthetic analysis (lighting, composition, color)
       - Emotion/mood analysis
       - Editor recommendations
    Pro tip: Call this on slightly longer ranges (e.g., target + 2-3 seconds) to see context
@@ -977,7 +1003,8 @@ Find ONE continuous video clip (or multiple nearby shots that can be stitched to
    When to use: ALWAYS call this right before finish()
    What it checks:
       - No overlap with previously used footage
-      - Protagonist appears in enough frames
+      - Aesthetic quality score meets minimum threshold ({getattr(config, 'MIN_AESTHETIC_SCORE', 3.0)}/5.0)
+      - Lighting, composition, and visual appeal are acceptable
    Pro tip: This is mandatory - never skip it!
 
 4. **finish** - Your final submission
@@ -995,9 +1022,9 @@ Step 1: EXPLORE
 Step 2: ANALYZE
 → Call trim_shot on your best candidate (use target duration + 2s as range)
 → Review the "internal_scenes" carefully:
-   * Check protagonist_ratio for each scene
-   * Check visual_quality scores
+   * Check visual_quality scores (aim for ≥4)
    * Check emotion/mood alignment
+   * Look for beautiful lighting and composition
    * Read editor_recommendation notes
 
 Step 3: REFINE (if needed)
@@ -1007,6 +1034,7 @@ Step 3: REFINE (if needed)
 
 Step 4: VALIDATE
 → Call review_clip with your selected time range
+→ This will check aesthetic quality and overlap
 → If it fails, adjust and try again
 → If it passes, proceed immediately to finish
 
@@ -1015,21 +1043,30 @@ Step 5: SUBMIT
 
 [Critical Selection Criteria]
 
-🎯 PRIORITY 1: Main Character Presence
-- The protagonist must be CLEARLY VISIBLE and the FOCAL POINT of the shot
-- Aim for protagonist_ratio ≥ {config.MIN_PROTAGONIST_RATIO * 100:.0f}% (can go as low as 40% if emotion is very strong)
-- Prefer close-ups (CU), medium close-ups (MCU), or medium shots (MS)
-- AVOID: Wide shots where the character is a tiny distant figure
-- AVOID: Shots of minor characters, extras, or crowd scenes without the protagonist
+🎨 PRIORITY 1: Aesthetic Quality & Visual Appeal
+- Visual quality score must be ≥ {getattr(config, 'MIN_AESTHETIC_SCORE', 3.0)} (aim for 4+)
+- Look for excellent lighting (natural light is ideal)
+- Strong composition (well-framed, balanced, rule of thirds)
+- Vibrant colors with good contrast
+- Stable, smooth camera work
+- Visually engaging and interesting content
 
-🎬 PRIORITY 2: Visual Quality & Emotion
-- Visual quality score should be ≥ 4 (accept 3 if emotion is perfect)
-- Emotion/mood must align with target: CURRENT_VIDEO_EMOTION_PLACEHOLDER
-- Look for iconic, memorable moments - dramatic expressions, powerful actions
+🎵 PRIORITY 2: Audio-Visual Synchronization
+- Shot MUST match the music's energy and rhythm
+- Emotion/mood must align with: CURRENT_VIDEO_EMOTION_PLACEHOLDER
+- Visual action should sync with musical beats and transitions
+- Consider the music structure: BACKGROUND_MUSIC_PLACEHOLDER
+- Let the music guide your shot selection
 
-🧩 PRIORITY 3: Continuity (when stitching multiple shots)
+🎬 PRIORITY 3: Content Match & Emotion
+- Content should generally fit: CURRENT_VIDEO_CONTENT_PLACEHOLDER
+- BUT emotion and aesthetics are MORE important than literal content match
+- Look for visually striking, memorable moments
+- Prioritize shots that "feel right" for the music
+
+🧩 PRIORITY 4: Continuity (when stitching multiple shots)
 - If combining multiple shots, they MUST maintain visual continuity
-- Check that character position/action flows naturally between shots
+- Check that visual flow feels natural between shots
 - Time gaps between shots should be < 2 seconds
 - All shots should be from the same scene or closely related scenes
 
@@ -1048,39 +1085,41 @@ Option A: Extend a great shorter clip
 Option B: Stitch nearby shots
 - Found 2-3 short shots in the same scene? → Combine them
 - Example: [00:10:00-00:10:03] + [00:10:03-00:10:06] = one 6s clip
-- REQUIREMENT: Must maintain visual continuity (same location, character action flows naturally)
+- REQUIREMENT: Must maintain visual continuity (same location, smooth transitions)
 
 Option C: Accept close-enough duration
 - Target is 7s but best clip is 5s? → That's acceptable if quality/emotion are strong
 - Minimum acceptable: {getattr(config, 'MIN_ACCEPTABLE_SHOT_DURATION', 2.0)}s
 - Can be ±{getattr(config, 'ALLOW_DURATION_TOLERANCE', 1.0)}s off target
 
-Option D: Prioritize emotion over exact content
+Option D: Prioritize aesthetics and music sync over exact content
 - Can't find the exact action described in CURRENT_VIDEO_CONTENT_PLACEHOLDER?
-- → Find a shot with the SAME EMOTION and PROTAGONIST that fits the music
-- Example: If script says "Batman punches enemy" but you only find "Batman kicks enemy" - that's fine!
-- The music emotion matters more than literal content match
+- → Find a shot with EXCELLENT AESTHETICS and MUSIC SYNC that fits the emotion
+- Example: If script says "sunset walk" but you find "golden hour cityscape" - that's fine if aesthetics match!
+- The music emotion and visual beauty matter more than literal content match
 
 Option E: Use music as your guide
 - When content description is too specific to find:
 - → Let the music guide you: BACKGROUND_MUSIC_PLACEHOLDER
 - → Find shots that match the music's energy, rhythm, and mood
-- → Ensure protagonist is present and the shot feels "right" for that moment
+- → Ensure aesthetics are excellent and the shot feels "right" for that moment
 
 **Your decision hierarchy:**
-1st: Main character present + strong emotion match
-2nd: Visual quality + good duration match
-3rd: Perfect content match (this is LEAST important)
+1st: Aesthetic quality (≥{getattr(config, 'MIN_AESTHETIC_SCORE', 3.0)}) + music synchronization
+2nd: Emotion match + visual appeal
+3rd: Duration match
+4th: Perfect content match (this is LEAST important)
 
 [Common Mistakes to Avoid]
 
 ❌ Calling trim_shot with the exact same time range twice
-❌ Selecting shots without the main character
+❌ Selecting shots with poor lighting or composition
+❌ Ignoring the music's rhythm and energy
 ❌ Being too rigid about exact content matching
 ❌ Forgetting to call review_clip before finish
 ❌ Giving up because "perfect match not found" (there's always a best option!)
-❌ Selecting long/wide shots where protagonist is too small
-❌ Stitching shots with visual discontinuity (different locations, jarring cuts)
+❌ Selecting shots with low aesthetic scores (< {getattr(config, 'MIN_AESTHETIC_SCORE', 3.0)})
+❌ Stitching shots with visual discontinuity (different lighting, jarring transitions)
 
 [Output Format]
 
@@ -1210,78 +1249,40 @@ Ready? Start with get_related_shot!
                 "target_length_sec": self.current_target_length or 0.0
             }
 
-            # Face quality check (optional, controlled by config.ENABLE_FACE_QUALITY_CHECK)
-            if config.ENABLE_FACE_QUALITY_CHECK:
+            # Aesthetic quality check (optional, controlled by config.ENABLE_AESTHETIC_QUALITY_CHECK)
+            enable_aesthetic_check = getattr(config, 'ENABLE_AESTHETIC_QUALITY_CHECK', True)
+            if enable_aesthetic_check:
                 time_match = re.search(r'\[?shot[\s_]*\d*:\s*([0-9:.]+)\s+to\s+([0-9:.]+)\]?', shot_proposal["answer"], re.IGNORECASE)
                 if time_match:
                     time_range = f"{time_match.group(1)} to {time_match.group(2)}"
 
-                    # Choose face quality check method based on config
-                    face_check_method = getattr(config, 'FACE_QUALITY_CHECK_METHOD', 'traditional')
-
-                    if face_check_method == 'vlm':
-                        # Use VLM method for protagonist focus analysis
-                        print(f"🎬 Using VLM face quality check method...")
-                        face_check = self.reviewer.check_face_quality_vlm(
-                            video_path=args.get("video_path", ""),
-                            time_range=time_range,
-                            main_character_name=getattr(config, 'MAIN_CHARACTER_NAME', 'the main character'),
-                            min_protagonist_ratio=getattr(config, 'MIN_PROTAGONIST_RATIO', 0.7),
-                            sample_fps=getattr(config, 'VLM_FACE_CHECK_SAMPLE_FPS', 1.0),
-                            min_box_size=getattr(config, 'VLM_MIN_BOX_SIZE', 50),
-                        )
-                    else:
-                        # Use traditional face_recognition method
-                        print(f"👤 Using traditional face quality check method...")
-                        face_check = self.reviewer.check_face_quality(
-                            video_path=args.get("video_path", ""),
-                            time_range=time_range,
-                            max_break_ratio=config.FACE_QUALITY_MAX_BREAK_RATIO,
-                            min_face_size=config.FACE_QUALITY_MIN_FACE_SIZE,
-                            sample_fps=getattr(config, 'FACE_QUALITY_SAMPLE_FPS', 2.0),
-                        )
+                    # Check aesthetic quality using VLM
+                    print(f"🎨 Checking aesthetic quality...")
+                    aesthetic_check = self.reviewer.check_aesthetic_quality(
+                        video_path=args.get("video_path", ""),
+                        time_range=time_range,
+                        min_aesthetic_score=getattr(config, 'MIN_AESTHETIC_SCORE', 3.0),
+                        sample_fps=getattr(config, 'AESTHETIC_CHECK_SAMPLE_FPS', 2.0),
+                    )
 
                     # Store for debugging/trace
-                    self.current_shot_context["face_quality"] = face_check
-                    self.current_shot_context["face_quality_method"] = face_check_method
+                    self.current_shot_context["aesthetic_quality"] = aesthetic_check
 
-                    if "❌" in face_check or "FAILED" in face_check:
+                    if "❌" in aesthetic_check or "FAILED" in aesthetic_check:
                         self._append_tool_msg(
                             tool_call["id"],
                             name,
-                            f"Review Failed - Face quality check ({face_check_method}) did not pass:\n{face_check}",
+                            f"Review Failed - Aesthetic quality check did not pass:\n{aesthetic_check}",
                             msgs
                         )
                         return False
 
-                    print(f"✅ Face quality check ({face_check_method}) passed")
-
-                    # If VLM check passed, get detailed frame-by-frame detection data
-                    if face_check_method == 'vlm':
-                        print(f"📊 Collecting detailed protagonist detection data for frames...")
-                        protagonist_frame_data = self.reviewer.get_protagonist_frame_data(
-                            video_path=args.get("video_path", ""),
-                            time_range=time_range,
-                            main_character_name=getattr(config, 'MAIN_CHARACTER_NAME', 'the main character'),
-                            sample_fps=getattr(config, 'VLM_FACE_CHECK_SAMPLE_FPS', 1.0),
-                            min_box_size=getattr(config, 'VLM_MIN_BOX_SIZE', 50),
-                        )
-                        self.current_shot_context["protagonist_frame_data"] = protagonist_frame_data
-                        print(f"✅ Collected {len(protagonist_frame_data)} frame detections")
-                        # NOW set the protagonist_frame_data in args after it's been collected
-                        args["protagonist_frame_data"] = protagonist_frame_data
+                    print(f"✅ Aesthetic quality check passed")
             else:
-                print(f"⚠️  Face quality check is disabled (config.ENABLE_FACE_QUALITY_CHECK=False)")
+                print(f"⚠️  Aesthetic quality check is disabled (config.ENABLE_AESTHETIC_QUALITY_CHECK=False)")
 
-            # Set protagonist_frame_data if not already set (for cases where face quality check is disabled)
-            # Also overwrite if the value is None but we have data in context
-            if "protagonist_frame_data" not in args or args.get("protagonist_frame_data") is None:
-                context_data = self.current_shot_context.get("protagonist_frame_data", None)
-                if context_data is not None:
-                    args["protagonist_frame_data"] = context_data
-                    print(f"✅ Set protagonist_frame_data from context: {len(context_data)} detections")
-                else:
-                    args["protagonist_frame_data"] = None
+            # For vlog content, we don't need protagonist_frame_data
+            args["protagonist_frame_data"] = None
 
             review_result = self.reviewer.review(
                 shot_proposal=shot_proposal,
@@ -1362,14 +1363,8 @@ Ready? Start with get_related_shot!
         with open(shot_plan_path, 'r', encoding='utf-8') as f:
             structure_proposal = json.load(f)
 
-        # Check if output file already exists, add random suffix if so
-        if self.output_path and os.path.exists(self.output_path):
-            import random
-            import string
-            base, ext = os.path.splitext(self.output_path)
-            random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
-            self.output_path = f"{base}_{random_suffix}{ext}"
-            print(f"⚠️ Output file already exists. Using new path: {self.output_path}")
+        # Load progress from existing output file (for resume functionality)
+        completed_shots = self._load_progress()
 
         # Store original output path and create section-specific paths
         original_output_path = self.output_path
@@ -1388,6 +1383,11 @@ Ready? Start with get_related_shot!
                 continue
             print("Using shot plan from file")
             for idx, shot in enumerate(shot_plan['shots']):
+                # Check if this shot is already completed (resume functionality)
+                if (sec_idx, idx) in completed_shots:
+                    print(f"\n⏭️  Skipping Shot {idx + 1}/{len(shot_plan['shots'])} - Already completed")
+                    continue
+
                 max_shot_restarts = 3  # Max restarts per shot
                 for restart_attempt in range(max_shot_restarts):
                     if restart_attempt > 0:

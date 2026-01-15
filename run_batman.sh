@@ -1,27 +1,27 @@
 #!/bin/bash
 
-# python local_run.py \
-#     --Video_Path "Dataset/Video/Movie/The_Dark_Knight.mkv" \
-#     --Audio_Path "Dataset/Audio/Way_Down_We_Go.mp3" \
-#     --Instruction "A mesmerizing showcase of the Joker's chaotic presence, capturing his unsettling mannerisms—the constant licking of scarred lips, the unpredictable head tilts, the disturbingly calm smile amidst carnage. Sync his erratic movements and explosive laughter to the song's building tension, highlighting close-ups of his smeared makeup, the purple coat swirling as he orchestrates destruction, and those haunting green eyes that embody pure anarchy." \
-#     --instruction_type object \
-#     --config.MAIN_CHARACTER_NAME "Joker" \
-#     --type film \
-#     --config.AUDIO_MIN_SEGMENT_DURATION 2 \
-#     --config.AUDIO_MAX_SEGMENT_DURATION 7 \
-#     --config.AUDIO_TOTAL_SHOTS 50 \
-# # -s 00:43.5 -e 01:06.5
+python local_run.py \
+    --Video_Path "Dataset/Video/Movie/The_Dark_Knight.mkv" \
+    --Audio_Path "Dataset/Audio/Way_Down_We_Go.mp3" \
+    --Instruction "A mesmerizing showcase of the Joker's chaotic presence, capturing his unsettling mannerisms—the constant licking of scarred lips, the unpredictable head tilts, the disturbingly calm smile amidst carnage. Sync his erratic movements and explosive laughter to the song's building tension, highlighting close-ups of his smeared makeup, the purple coat swirling as he orchestrates destruction, and those haunting green eyes that embody pure anarchy." \
+    --instruction_type object \
+    --config.MAIN_CHARACTER_NAME "Joker" \
+    --type film \
+    --config.AUDIO_MIN_SEGMENT_DURATION 2 \
+    --config.AUDIO_MAX_SEGMENT_DURATION 7 \
+    --config.AUDIO_TOTAL_SHOTS 50 \
+# -s 00:43.5 -e 01:06.5
 
-# python local_run.py \
-#     --Video_Path "Dataset/Video/Movie/The_Dark_Knight.mkv" \
-#     --Audio_Path "Dataset/Audio/Way_Down_We_Go.mp3" \
-#     --Instruction "A psychological deconstruction of the 'White Knight's' corruption, framed through the Joker's thesis that 'madness is like gravity.' Interweave the hopeful, well-lit courtroom scenes of Harvey Dent with the charred, distorted reality of Two-Face, utilizing the Joker's interrogation monologue as the narrative spine to illustrate how the brightest hope of Gotham was systematically broken until he became the very villain he swore to fight, leaving Batman to silently carry the burden in the shadows." \
-#     --instruction_type narrative \
-#     --config.MAIN_CHARACTER_NAME "Joker, White Knight, Harvey Dent, Two-Face, Batman" \
-#     --type film \
-#     --config.AUDIO_MIN_SEGMENT_DURATION 2 \
-#     --config.AUDIO_MAX_SEGMENT_DURATION 7 \
-#     --config.AUDIO_TOTAL_SHOTS 50 \
+python local_run.py \
+    --Video_Path "Dataset/Video/Movie/The_Dark_Knight.mkv" \
+    --Audio_Path "Dataset/Audio/Way_Down_We_Go.mp3" \
+    --Instruction "A psychological deconstruction of the 'White Knight's' corruption, framed through the Joker's thesis that 'madness is like gravity.' Interweave the hopeful, well-lit courtroom scenes of Harvey Dent with the charred, distorted reality of Two-Face, utilizing the Joker's interrogation monologue as the narrative spine to illustrate how the brightest hope of Gotham was systematically broken until he became the very villain he swore to fight, leaving Batman to silently carry the burden in the shadows." \
+    --instruction_type narrative \
+    --config.MAIN_CHARACTER_NAME "Joker, White Knight, Harvey Dent, Two-Face, Batman" \
+    --type film \
+    --config.AUDIO_MIN_SEGMENT_DURATION 2 \
+    --config.AUDIO_MAX_SEGMENT_DURATION 7 \
+    --config.AUDIO_TOTAL_SHOTS 50 \
 
 python local_run.py \
     --Video_Path "Dataset/Video/Movie/Paprika.mkv" \
@@ -86,7 +86,7 @@ python local_run.py \
 python local_run.py \
     --Video_Path "Dataset/Video/Movie/Titanic.mp4" \
     --Audio_Path "Dataset/Audio/CallofSilence.mp3" \
-    --Instruction "A tragic retrospective told from the perspective of the ocean itself, utilizing the song's melancholic lyrics about forgotten names and silence to intercut the decaying underwater wreckage with the vibrant memories of the past, framing the sinking not just as a disaster, but as the moment a beautiful world was silenced and preserved forever in the deep." \
+    --Instruction "A heart-wrenching love story chronicling Rose and Jack's fateful encounter and tragic devotion: their first meeting at the ship's bow where he saves her life, the iconic 'I'm flying' moment with arms spread wide against the sunset, their forbidden romance dancing in third class, the tender 'draw me like one of your French girls' scene, the desperate fight for survival as the ship splits apart, and the devastating final moments clinging to a floating door in the freezing Atlantic—Rose's trembling hand holding Jack's as he sacrifices himself, whispering 'you'll die an old woman, warm in your bed,' their love immortalized in the icy waters where they promised to never let go." \
     --instruction_type narrative \
     --config.MAIN_CHARACTER_NAME "Rose, Jack" \
     --type film \
@@ -100,7 +100,7 @@ python local_run.py \
     --Audio_Path "Dataset/Audio/Moon.mp3" \
     --Instruction "An emotional portrait of Cooper's solitary journey as astronaut and father, capturing the weight of his sacrifice through intimate close-ups—his weathered hands gripping the controls, tears streaming down his face as he watches decades of messages from his children, the determination in his eyes during the desperate docking sequence, and the anguish of aging alone in space. Sync his physical and emotional endurance to the song's atmospheric tones, highlighting his NASA suit reflecting distant stars, the loneliness of his silhouette against infinite black space." \
     --instruction_type object \
-    --config.MAIN_CHARACTER_NAME "Cooper, Murph" \
+    --config.MAIN_CHARACTER_NAME "Cooper, Murph, Astronaut" \
     --type film \
     --config.AUDIO_MIN_SEGMENT_DURATION 3 \
     --config.AUDIO_MAX_SEGMENT_DURATION 7 \
